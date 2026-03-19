@@ -2,6 +2,9 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 
+const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
+const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
+
 export default function AdminArtistForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -29,10 +32,7 @@ export default function AdminArtistForm() {
       name: form.name,
       bio: form.bio,
       photoUrl: form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`,
-      specialties: form.specialties
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean),
+      specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
       instagram: form.instagram || undefined,
     };
     if (existing) {
@@ -45,96 +45,63 @@ export default function AdminArtistForm() {
 
   return (
     <div className="p-8 max-w-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Link to="/admin/artistas" className="text-gray-400 hover:text-white">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+      {/* Header */}
+      <div className="mb-8">
+        <Link
+          to="/admin/artistas"
+          className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors inline-flex items-center gap-2 mb-4"
+        >
+          ← Artistas
         </Link>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">
           {existing ? 'Editar Artista' : 'Novo Artista'}
         </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-gray-900 rounded-xl border border-gray-800 p-6 space-y-5">
+      <form onSubmit={handleSubmit} className="border border-white/10 p-6 space-y-5">
         <div>
-          <label className="block text-gray-400 text-sm mb-1.5">Nome *</label>
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-amber-500"
-            placeholder="Ex: Rafael Mendes"
-          />
+          <label className={labelCls}>Nome *</label>
+          <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder="Ex: Rafael Mendes" />
         </div>
 
         <div>
-          <label className="block text-gray-400 text-sm mb-1.5">Biografia</label>
-          <textarea
-            name="bio"
-            value={form.bio}
-            onChange={handleChange}
-            rows={4}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-amber-500 resize-none"
-            placeholder="Sobre o artista..."
-          />
+          <label className={labelCls}>Biografia</label>
+          <textarea name="bio" value={form.bio} onChange={handleChange} rows={4}
+            className={`${inputCls} resize-none`} placeholder="Sobre o artista..." />
         </div>
 
         <div>
-          <label className="block text-gray-400 text-sm mb-1.5">URL da Foto</label>
-          <input
-            name="photoUrl"
-            value={form.photoUrl}
-            onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-amber-500"
-            placeholder="https://picsum.photos/seed/exemplo/400/400"
-          />
+          <label className={labelCls}>URL da Foto</label>
+          <input name="photoUrl" value={form.photoUrl} onChange={handleChange} className={inputCls}
+            placeholder="https://picsum.photos/seed/exemplo/400/400" />
           {form.photoUrl && (
-            <img
-              src={form.photoUrl}
-              alt="Preview"
-              className="mt-2 w-20 h-20 object-cover rounded-full border-2 border-gray-700"
-            />
+            <img src={form.photoUrl} alt="Preview"
+              className="mt-2 w-16 h-16 object-cover border border-white/10"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           )}
         </div>
 
         <div>
-          <label className="block text-gray-400 text-sm mb-1.5">
+          <label className={labelCls}>
             Especialidades
-            <span className="text-gray-600 ml-1">(separadas por vírgula)</span>
+            <span className="text-gray-700 ml-1 normal-case tracking-normal font-normal">(separadas por vírgula)</span>
           </label>
-          <input
-            name="specialties"
-            value={form.specialties}
-            onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-amber-500"
-            placeholder="Ex: Realismo, Blackwork, Aquarela"
-          />
+          <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls}
+            placeholder="Realismo, Blackwork, Aquarela" />
         </div>
 
         <div>
-          <label className="block text-gray-400 text-sm mb-1.5">Instagram</label>
-          <input
-            name="instagram"
-            value={form.instagram}
-            onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-amber-500"
-            placeholder="@artista.ink"
-          />
+          <label className={labelCls}>Instagram</label>
+          <input name="instagram" value={form.instagram} onChange={handleChange} className={inputCls} placeholder="@artista.ink" />
         </div>
 
         <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            className="flex-1 bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold py-2.5 rounded-lg transition-colors"
-          >
-            {existing ? 'Salvar Alterações' : 'Criar Artista'}
+          <button type="submit"
+            className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
+            {existing ? 'Salvar' : 'Criar Artista'}
           </button>
-          <Link
-            to="/admin/artistas"
-            className="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg border border-gray-700 transition-colors text-center"
-          >
+          <Link to="/admin/artistas"
+            className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors text-center">
             Cancelar
           </Link>
         </div>

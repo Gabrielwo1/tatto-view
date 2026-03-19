@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 
-function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
+function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className={`bg-gray-900 rounded-xl p-5 border ${color}`}>
-      <p className="text-gray-400 text-sm">{label}</p>
-      <p className="text-white text-3xl font-bold mt-1">{value}</p>
+    <div className="border border-white/10 p-5 bg-black/40">
+      <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-2">{label}</p>
+      <p className="font-display text-5xl text-white leading-none">{value}</p>
     </div>
   );
 }
@@ -19,78 +19,94 @@ export default function AdminDashboard() {
 
   const recent = [...tattoos]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+    .slice(0, 9);
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold text-white mb-6">Dashboard</h1>
+    <div className="p-8 max-w-6xl">
+      {/* Header */}
+      <div className="mb-10">
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
+        <h1 className="font-display text-5xl text-white uppercase tracking-wide leading-none">Dashboard</h1>
+      </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total de Tatuagens" value={tattoos.length} color="border-gray-700" />
-        <StatCard label="Disponíveis" value={available} color="border-green-700/50" />
-        <StatCard label="Arquivadas" value={archived} color="border-gray-600/50" />
-        <StatCard label="Artistas" value={artists.length} color="border-amber-700/50" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
+        <StatCard label="Total" value={tattoos.length} />
+        <StatCard label="Disponíveis" value={available} />
+        <StatCard label="Arquivadas" value={archived} />
+        <StatCard label="Artistas" value={artists.length} />
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div className="flex gap-3 mb-12">
         <Link
           to="/admin/tatuagens/nova"
-          className="flex items-center gap-3 bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold px-5 py-4 rounded-xl transition-colors"
+          className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase px-6 py-3 transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
-          Nova Tatuagem
+          Nova Arte
         </Link>
         <Link
           to="/admin/artistas/novo"
-          className="flex items-center gap-3 bg-gray-800 hover:bg-gray-700 text-white font-bold px-5 py-4 rounded-xl border border-gray-700 transition-colors"
+          className="flex items-center gap-2 bg-transparent border border-white/20 hover:border-white text-white font-body font-bold text-xs tracking-widest uppercase px-6 py-3 transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>
           Novo Artista
         </Link>
       </div>
 
-      {/* Recent tattoos */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white font-semibold">Tatuagens Recentes</h2>
-          <Link to="/admin/tatuagens" className="text-amber-400 text-sm hover:underline">
-            Ver todas
-          </Link>
+      {/* Recent tattoos grid */}
+      <div className="mb-4 flex items-baseline justify-between">
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-500">Artes Recentes</p>
+        <Link to="/admin/tatuagens" className="font-body text-xs tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
+          Ver todas →
+        </Link>
+      </div>
+
+      {recent.length === 0 ? (
+        <div className="border border-white/10 py-16 text-center">
+          <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma arte cadastrada</p>
         </div>
-        <div className="space-y-3">
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
           {recent.map((t) => {
             const artist = artists.find((a) => a.id === t.artistId);
             return (
-              <div key={t.id} className="flex items-center gap-4 p-3 bg-gray-800 rounded-lg">
+              <Link
+                key={t.id}
+                to={`/admin/tatuagens/${t.id}/editar`}
+                className="group relative block aspect-square overflow-hidden bg-zinc-900"
+              >
                 <img
                   src={t.imageUrl}
                   alt={t.title}
-                  className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${t.id}/400/400`;
+                  }}
                 />
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium truncate">{t.title}</p>
-                  <p className="text-gray-500 text-sm">{artist?.name ?? 'Estúdio'} · {t.style}</p>
+                {/* Overlay on hover */}
+                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+                  <p className="font-display text-sm text-white uppercase tracking-wide leading-tight truncate">{t.title}</p>
+                  <p className="font-body text-xs text-gray-400 mt-0.5">{artist?.name ?? 'Estúdio'}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    {t.price && <span className="text-white text-xs font-body">{t.price}</span>}
+                    <span className={`text-[10px] font-body font-semibold tracking-widest uppercase px-1.5 py-0.5 ${
+                      t.status === 'available' ? 'bg-white text-black' : 'bg-white/20 text-white/60'
+                    }`}>
+                      {t.status === 'available' ? 'Disponível' : 'Arquivada'}
+                    </span>
+                  </div>
                 </div>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    t.status === 'available'
-                      ? 'bg-green-900/50 text-green-400'
-                      : 'bg-gray-700 text-gray-400'
-                  }`}
-                >
-                  {t.status === 'available' ? 'Disponível' : 'Arquivada'}
-                </span>
-              </div>
+              </Link>
             );
           })}
         </div>
-      </div>
+      )}
     </div>
   );
 }

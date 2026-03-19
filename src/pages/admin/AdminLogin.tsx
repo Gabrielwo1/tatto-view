@@ -27,47 +27,49 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <span className="text-5xl">💀</span>
-          <h1 className="text-3xl font-bold text-amber-400 mt-2">InkView</h1>
-          <p className="text-gray-500 mt-1 text-sm">Painel Administrativo</p>
+        <div className="text-center mb-10">
+          <img src="/LOGO EL DUDE.jpeg" alt="El Dude" className="h-16 w-auto object-contain mx-auto mb-4" />
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">
+            Painel Administrativo
+          </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-gray-900 rounded-2xl border border-gray-800 p-8 shadow-2xl"
-        >
-          <h2 className="text-white text-xl font-bold mb-6">Entrar</h2>
+        <form onSubmit={handleSubmit} className="border border-white/10 p-8">
+          <h2 className="font-display text-3xl text-white uppercase tracking-wide mb-8">Entrar</h2>
 
           {error && (
-            <div className="mb-4 px-4 py-3 bg-red-900/40 border border-red-700 rounded-lg text-red-400 text-sm">
+            <div className="mb-6 px-4 py-3 border border-white/20 text-white/60 text-xs font-body tracking-wide">
               {error}
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label className="block text-gray-400 text-sm mb-1.5">Usuário</label>
+              <label className="block font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">
+                Usuário
+              </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-transparent border border-white/20 px-4 py-3 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors"
                 placeholder="admin"
               />
             </div>
             <div>
-              <label className="block text-gray-400 text-sm mb-1.5">Senha</label>
+              <label className="block font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">
+                Senha
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full bg-transparent border border-white/20 px-4 py-3 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors"
                 placeholder="••••••••"
               />
             </div>
@@ -75,7 +77,7 @@ export default function AdminLogin() {
 
           <button
             type="submit"
-            className="w-full mt-6 bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold py-2.5 rounded-lg transition-colors"
+            className="w-full mt-8 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors"
           >
             Entrar
           </button>
