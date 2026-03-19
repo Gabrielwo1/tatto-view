@@ -22,15 +22,15 @@ export default function AdminDashboard() {
     .slice(0, 9);
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 md:p-8 max-w-6xl">
       {/* Header */}
-      <div className="mb-10">
+      <div className="mb-6 md:mb-10">
         <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
-        <h1 className="font-display text-5xl text-white uppercase tracking-wide leading-none">Dashboard</h1>
+        <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">Dashboard</h1>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-6 md:mb-10">
         <StatCard label="Total" value={tattoos.length} />
         <StatCard label="Disponíveis" value={available} />
         <StatCard label="Arquivadas" value={archived} />
@@ -38,7 +38,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick actions */}
-      <div className="flex gap-3 mb-12">
+      <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mb-8 md:mb-12">
         <Link
           to="/admin/tatuagens/nova"
           className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase px-6 py-3 transition-colors"
@@ -72,7 +72,7 @@ export default function AdminDashboard() {
           <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma arte cadastrada</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 md:gap-2">
           {recent.map((t) => {
             const artist = artists.find((a) => a.id === t.artistId);
             return (

@@ -46,7 +46,7 @@ export default function AdminTattooForm() {
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-4 md:p-8 max-w-2xl">
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -83,7 +83,7 @@ export default function AdminTattooForm() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Estilo *</label>
             <select name="style" value={form.style} onChange={handleChange}
@@ -97,7 +97,7 @@ export default function AdminTattooForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Artista</label>
             <select name="artistId" value={form.artistId ?? ''} onChange={handleChange}

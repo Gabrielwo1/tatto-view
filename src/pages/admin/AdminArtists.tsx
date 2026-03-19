@@ -13,12 +13,12 @@ export default function AdminArtists() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-10">
+      <div className="flex items-center justify-between mb-6 md:mb-10">
         <div>
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
-          <h1 className="font-display text-5xl text-white uppercase tracking-wide leading-none">Artistas</h1>
+          <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">Artistas</h1>
         </div>
         <Link
           to="/admin/artistas/novo"

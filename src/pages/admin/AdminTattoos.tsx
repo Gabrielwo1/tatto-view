@@ -22,12 +22,12 @@ export default function AdminTattoos() {
     .filter((t) => styleFilter === 'Todos' || t.style === styleFilter);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       {/* Header */}
-      <div className="flex items-baseline justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 md:mb-8">
         <div>
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
-          <h1 className="font-display text-5xl text-white uppercase tracking-wide leading-none">Tatuagens</h1>
+          <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">Tatuagens</h1>
         </div>
         <Link
           to="/admin/tatuagens/nova"
@@ -56,7 +56,7 @@ export default function AdminTattoos() {
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap gap-1.5 mb-6 md:mb-8">
         {['Todos', ...TATTOO_STYLES].map((s) => (
           <button
             key={s}
@@ -77,7 +77,7 @@ export default function AdminTattoos() {
           <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma encontrada</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 md:gap-2">
           {filtered.map((t) => {
             const artist = artists.find((a) => a.id === t.artistId);
             return (
