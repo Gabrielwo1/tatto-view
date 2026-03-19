@@ -43,7 +43,7 @@ export default function ArchivedPage() {
           <p className="font-display text-3xl tracking-widest uppercase">Nenhuma encontrada</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-8">
+        <div className="grid grid-cols-3 gap-x-2 gap-y-6">
           {filtered.map((tattoo) => (
             <TattooCard
               key={tattoo.id}
