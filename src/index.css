@@ -4,7 +4,9 @@
 
 body {
   margin: 0;
-  background-color: #030712;
+  background-color: #000;
+  font-family: 'Barlow', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {

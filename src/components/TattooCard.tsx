@@ -7,7 +7,7 @@ interface TattooCardProps {
 
 export default function TattooCard({ tattoo, artist }: TattooCardProps) {
   return (
-    <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-amber-500/50 transition-all duration-300 group hover:shadow-lg hover:shadow-amber-500/10">
+    <div className="bg-zinc-950 overflow-hidden border border-white/[0.08] hover:border-ink-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-ink-500/10">
       {/* Image */}
       <div className="relative overflow-hidden aspect-video">
         <img
@@ -20,20 +20,20 @@ export default function TattooCard({ tattoo, artist }: TattooCardProps) {
         />
         {/* Status badge */}
         {tattoo.status === 'archived' && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 bg-gray-900/90 text-gray-400 text-xs rounded-full border border-gray-700">
+          <div className="absolute top-2 right-2 px-2 py-0.5 bg-black/80 text-white/40 text-xs tracking-widest uppercase font-semibold">
             Arquivada
           </div>
         )}
         {/* Style badge */}
-        <div className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500/90 text-gray-900 text-xs font-semibold rounded-full">
+        <div className="absolute top-2 left-2 px-2 py-0.5 bg-ink-500 text-white text-xs font-semibold tracking-widest uppercase">
           {tattoo.style}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-white font-semibold text-lg mb-1 truncate">{tattoo.title}</h3>
-        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{tattoo.description}</p>
+        <h3 className="font-display text-xl text-white uppercase tracking-wide mb-1 truncate">{tattoo.title}</h3>
+        <p className="text-gray-500 text-sm mb-3 line-clamp-2">{tattoo.description}</p>
 
         <div className="flex items-center justify-between">
           {/* Artist */}
@@ -43,18 +43,18 @@ export default function TattooCard({ tattoo, artist }: TattooCardProps) {
                 <img
                   src={artist.photoUrl}
                   alt={artist.name}
-                  className="w-5 h-5 rounded-full object-cover"
+                  className="w-5 h-5 object-cover"
                 />
-                <span className="text-gray-400 text-sm">{artist.name}</span>
+                <span className="text-gray-500 text-xs font-medium tracking-wide">{artist.name}</span>
               </>
             ) : (
-              <span className="text-gray-600 text-sm italic">Estúdio</span>
+              <span className="text-gray-600 text-xs italic">Estúdio</span>
             )}
           </div>
 
           {/* Price */}
           {tattoo.price && (
-            <span className="text-amber-400 font-semibold text-sm">{tattoo.price}</span>
+            <span className="text-ink-400 font-bold text-sm">{tattoo.price}</span>
           )}
         </div>
       </div>
