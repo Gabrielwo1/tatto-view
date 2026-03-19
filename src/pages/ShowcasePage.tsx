@@ -23,7 +23,7 @@ export default function ShowcasePage() {
       {/* Tattoo showcase */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-10">
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-ink-500 mb-2">
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">
             Disponíveis
           </p>
           <h2 className="font-display text-5xl md:text-6xl text-white uppercase tracking-wide leading-none">
@@ -39,8 +39,8 @@ export default function ShowcasePage() {
               onClick={() => setSelectedStyle(style)}
               className={`px-4 py-1.5 text-xs font-body font-semibold tracking-widest uppercase transition-all border ${
                 selectedStyle === style
-                  ? 'bg-ink-500 text-white border-ink-500'
-                  : 'bg-transparent text-gray-400 border-gray-700 hover:border-ink-500 hover:text-ink-400'
+                  ? 'bg-white text-black border-white'
+                  : 'bg-transparent text-gray-500 border-gray-700 hover:border-white hover:text-white'
               }`}
             >
               {style}
@@ -53,7 +53,7 @@ export default function ShowcasePage() {
             <p className="font-display text-3xl tracking-widest uppercase">Nenhuma tatuagem encontrada</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-8">
             {filtered.map((tattoo) => (
               <TattooCard
                 key={tattoo.id}

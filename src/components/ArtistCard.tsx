@@ -9,7 +9,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   return (
     <Link
       to={`/artistas/${artist.id}`}
-      className="block bg-zinc-950 overflow-hidden border border-white/[0.08] hover:border-ink-500/50 transition-all duration-300 group hover:shadow-xl hover:shadow-ink-500/10"
+      className="block bg-zinc-950 overflow-hidden border border-white/[0.08] hover:border-white/30 transition-all duration-300 group hover:shadow-xl hover:shadow-white/5"
     >
       {/* Photo */}
       <div className="relative overflow-hidden aspect-square">
@@ -26,7 +26,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-display text-2xl text-white uppercase tracking-wide mb-2 group-hover:text-ink-500 transition-colors">
+        <h3 className="font-display text-2xl text-white uppercase tracking-wide mb-2 group-hover:text-gray-300 transition-colors">
           {artist.name}
         </h3>
         <p className="text-gray-500 text-sm mb-3 line-clamp-2">{artist.bio}</p>
@@ -36,7 +36,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
           {artist.specialties.map((specialty) => (
             <span
               key={specialty}
-              className="px-2 py-0.5 text-ink-400 text-xs font-semibold tracking-widest uppercase border border-ink-500/30"
+              className="px-2 py-0.5 text-white/70 text-xs font-semibold tracking-widest uppercase border border-white/20"
             >
               {specialty}
             </span>

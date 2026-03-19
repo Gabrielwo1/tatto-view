@@ -23,15 +23,17 @@ export default function Navbar() {
 
           {/* Center: Logo */}
           <Link to="/" className="absolute left-1/2 -translate-x-1/2">
-            <span className="font-display text-2xl tracking-widest text-ink-500 hover:text-ink-400 transition-colors uppercase">
-              InkView
-            </span>
+            <img
+              src="/LOGO EL DUDE.jpeg"
+              alt="El Dude"
+              className="h-9 w-auto object-contain"
+            />
           </Link>
 
           {/* Right: Admin */}
           <Link
             to="/admin"
-            className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-ink-500 transition-colors"
+            className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
           >
             Admin
           </Link>
@@ -54,7 +56,7 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
                   `font-display text-4xl uppercase tracking-wide transition-colors leading-tight ${
-                    isActive ? 'text-ink-500' : 'text-white hover:text-ink-400'
+                    isActive ? 'text-white' : 'text-white/50 hover:text-white'
                   }`
                 }
               >

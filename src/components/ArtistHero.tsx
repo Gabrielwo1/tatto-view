@@ -89,7 +89,7 @@ export default function ArtistHero() {
               <div
                 className="absolute top-8 left-8 font-display text-2xl tracking-widest select-none"
                 style={{
-                  color: isHovered ? '#ff4500' : 'rgba(255,255,255,0.25)',
+                  color: isHovered ? '#ffffff' : 'rgba(255,255,255,0.25)',
                   transition: 'color 0.35s ease',
                 }}
               >
@@ -115,7 +115,7 @@ export default function ArtistHero() {
                   <span
                     key={s}
                     className="text-xs font-body font-semibold tracking-widest uppercase px-2 py-1 border select-none"
-                    style={{ color: '#ff4500', borderColor: 'rgba(255,69,0,0.4)' }}
+                    style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }}
                   >
                     {s}
                   </span>
@@ -131,7 +131,7 @@ export default function ArtistHero() {
                     : isHovered
                     ? 'clamp(2.5rem, 4vw, 4.5rem)'
                     : 'clamp(1rem, 2vw, 2rem)',
-                  color: active ? '#ff4500' : 'white',
+                  color: active ? '#ffffff' : 'white',
                   opacity: !isMobile && anyHovered && !isHovered ? 0.35 : 1,
                   transition: 'font-size 0.5s ease, color 0.35s ease, opacity 0.35s ease',
                   letterSpacing: '0.02em',
@@ -152,7 +152,7 @@ export default function ArtistHero() {
                 <span className="font-body font-semibold text-xs tracking-widest uppercase text-white select-none">
                   Ver trabalhos
                 </span>
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#ff4500" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="white" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </div>

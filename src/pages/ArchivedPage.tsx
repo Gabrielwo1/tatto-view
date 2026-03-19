@@ -15,24 +15,22 @@ export default function ArchivedPage() {
       : archived.filter((t) => t.style === selectedStyle);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Tatuagens Arquivadas</h1>
-        <p className="text-gray-400">
-          Designs que já fizeram parte da nossa vitrine. Inspire-se ou solicite uma peça similar.
-        </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="mb-10">
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">Galeria</p>
+        <h1 className="font-display text-5xl md:text-6xl text-white uppercase tracking-wide leading-none">Arquivadas</h1>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="flex flex-wrap gap-2 mb-10">
         {['Todos', ...TATTOO_STYLES].map((style) => (
           <button
             key={style}
             onClick={() => setSelectedStyle(style)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-1.5 text-xs font-body font-semibold tracking-widest uppercase transition-all border ${
               selectedStyle === style
-                ? 'bg-amber-500 text-gray-900'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                ? 'bg-white text-black border-white'
+                : 'bg-transparent text-gray-500 border-gray-700 hover:border-white hover:text-white'
             }`}
           >
             {style}
@@ -41,11 +39,11 @@ export default function ArchivedPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
-          <p className="text-xl">Nenhuma tatuagem arquivada encontrada.</p>
+        <div className="text-center py-20 text-gray-600">
+          <p className="font-display text-3xl tracking-widest uppercase">Nenhuma encontrada</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-8">
           {filtered.map((tattoo) => (
             <TattooCard
               key={tattoo.id}
