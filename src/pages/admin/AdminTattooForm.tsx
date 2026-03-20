@@ -226,11 +226,11 @@ export default function AdminTattooForm() {
               {/* Preview */}
               {form.imageUrl ? (
                 <div className="space-y-3">
-                  <div className="relative">
+                  <div className="relative w-1/2">
                     <img
                       src={form.imageUrl}
                       alt="Preview"
-                      className="w-full aspect-square object-cover border border-white/10"
+                      className="w-full aspect-[3/4] object-cover border border-white/10"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                     <button
@@ -261,7 +261,7 @@ export default function AdminTattooForm() {
                   </button>
                 </div>
               ) : (
-                <div className="aspect-square border border-dashed border-white/10 flex items-center justify-center">
+                <div className="w-1/2 aspect-[3/4] border border-dashed border-white/10 flex items-center justify-center">
                   <p className="font-body text-[10px] text-gray-700 tracking-widest uppercase">
                     Sem imagem
                   </p>

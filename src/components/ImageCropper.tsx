@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface Props {
   src: string;
@@ -8,8 +8,8 @@ interface Props {
 
 type Corner = 'tl' | 'tr' | 'bl' | 'br';
 
-const MAX_DISPLAY = 240;
-const MIN_CROP = 50;
+const MAX_DISPLAY = 300;
+const MIN_CROP = 40;
 
 export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -20,7 +20,6 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
   const [box, setBox] = useState({ x: 0, y: 0, size: 0 });
   const [loaded, setLoaded] = useState(false);
 
-  // Refs to avoid stale closures in window listeners
   const boxRef = useRef({ x: 0, y: 0, size: 0 });
   const displayRef = useRef({ w: 0, h: 0 });
   const actionRef = useRef<{
@@ -58,101 +57,115 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
     setLoaded(true);
   }
 
-  function getPos(e: MouseEvent | React.MouseEvent) {
+  function getPos(e: MouseEvent | Touch | React.MouseEvent | React.Touch) {
     const rect = containerRef.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    return { x: (e as MouseEvent).clientX - rect.left, y: (e as MouseEvent).clientY - rect.top };
   }
 
-  function onBoxDown(e: React.MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    const p = getPos(e);
-    actionRef.current = { type: 'drag', startMx: p.x, startMy: p.y, startBox: { ...boxRef.current } };
+  function startDrag(mx: number, my: number) {
+    actionRef.current = { type: 'drag', startMx: mx, startMy: my, startBox: { ...boxRef.current } };
   }
 
-  function onCornerDown(corner: Corner) {
-    return (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const p = getPos(e);
-      actionRef.current = { type: 'resize', corner, startMx: p.x, startMy: p.y, startBox: { ...boxRef.current } };
-    };
+  function startResize(corner: Corner, mx: number, my: number) {
+    actionRef.current = { type: 'resize', corner, startMx: mx, startMy: my, startBox: { ...boxRef.current } };
   }
 
-  useEffect(() => {
-    function onMove(e: MouseEvent) {
-      const act = actionRef.current;
-      if (!act || !containerRef.current) return;
-      const p = getPos(e);
-      const dx = p.x - act.startMx;
-      const dy = p.y - act.startMy;
-      const sb = act.startBox;
-      const { w: dw, h: dh } = displayRef.current;
+  const onMove = useCallback((mx: number, my: number) => {
+    const act = actionRef.current;
+    if (!act) return;
+    const dx = mx - act.startMx;
+    const dy = my - act.startMy;
+    const sb = act.startBox;
+    const { w: dw, h: dh } = displayRef.current;
 
-      if (act.type === 'drag') {
-        syncBox({
-          x: Math.max(0, Math.min(sb.x + dx, dw - sb.size)),
-          y: Math.max(0, Math.min(sb.y + dy, dh - sb.size)),
-          size: sb.size,
-        });
-        return;
-      }
-
-      let nx = sb.x, ny = sb.y, nsize = sb.size;
-      switch (act.corner) {
-        case 'br': {
-          const delta = Math.max(dx, dy);
-          nsize = Math.max(MIN_CROP, Math.min(sb.size + delta, dw - sb.x, dh - sb.y));
-          break;
-        }
-        case 'tl': {
-          const delta = Math.max(-dx, -dy);
-          nsize = Math.max(MIN_CROP, Math.min(sb.size + delta, sb.x + sb.size, sb.y + sb.size));
-          nx = sb.x + sb.size - nsize;
-          ny = sb.y + sb.size - nsize;
-          break;
-        }
-        case 'tr': {
-          const delta = Math.max(dx, -dy);
-          nsize = Math.max(MIN_CROP, Math.min(sb.size + delta, dw - sb.x, sb.y + sb.size));
-          ny = sb.y + sb.size - nsize;
-          break;
-        }
-        case 'bl': {
-          const delta = Math.max(-dx, dy);
-          nsize = Math.max(MIN_CROP, Math.min(sb.size + delta, sb.x + sb.size, dh - sb.y));
-          nx = sb.x + sb.size - nsize;
-          break;
-        }
-      }
-      syncBox({ x: nx, y: ny, size: nsize });
+    if (act.type === 'drag') {
+      syncBox({
+        x: Math.max(0, Math.min(sb.x + dx, dw - sb.size)),
+        y: Math.max(0, Math.min(sb.y + dy, dh - sb.size)),
+        size: sb.size,
+      });
+      return;
     }
 
-    function onUp() {
-      actionRef.current = null;
+    let nx = sb.x, ny = sb.y, nsize = sb.size;
+    switch (act.corner) {
+      case 'br': {
+        const d = Math.max(dx, dy);
+        nsize = Math.max(MIN_CROP, Math.min(sb.size + d, dw - sb.x, dh - sb.y));
+        break;
+      }
+      case 'tl': {
+        const d = Math.max(-dx, -dy);
+        nsize = Math.max(MIN_CROP, Math.min(sb.size + d, sb.x + sb.size, sb.y + sb.size));
+        nx = sb.x + sb.size - nsize;
+        ny = sb.y + sb.size - nsize;
+        break;
+      }
+      case 'tr': {
+        const d = Math.max(dx, -dy);
+        nsize = Math.max(MIN_CROP, Math.min(sb.size + d, dw - sb.x, sb.y + sb.size));
+        ny = sb.y + sb.size - nsize;
+        break;
+      }
+      case 'bl': {
+        const d = Math.max(-dx, dy);
+        nsize = Math.max(MIN_CROP, Math.min(sb.size + d, sb.x + sb.size, dh - sb.y));
+        nx = sb.x + sb.size - nsize;
+        break;
+      }
     }
-
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
+    syncBox({ x: nx, y: ny, size: nsize });
   }, []);
 
-  function applyPreset(preset: 'center' | 'top' | 'bottom' | 'left' | 'right') {
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      const r = containerRef.current?.getBoundingClientRect();
+      if (!r) return;
+      onMove(e.clientX - r.left, e.clientY - r.top);
+    }
+    function onTouchMove(e: TouchEvent) {
+      const t = e.touches[0];
+      const r = containerRef.current?.getBoundingClientRect();
+      if (!r || !t) return;
+      onMove(t.clientX - r.left, t.clientY - r.top);
+    }
+    function onUp() { actionRef.current = null; }
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, [onMove]);
+
+  // Slider controls the crop size as % of the min dimension
+  const maxSize = loaded ? Math.min(displayRef.current.w, displayRef.current.h) : MAX_DISPLAY;
+  const sliderPct = loaded ? Math.round((box.size / maxSize) * 100) : 100;
+
+  function onSliderChange(pct: number) {
+    const { w: dw, h: dh } = displayRef.current;
+    const newSize = Math.max(MIN_CROP, Math.round((pct / 100) * Math.min(dw, dh)));
+    const cx = boxRef.current.x + boxRef.current.size / 2;
+    const cy = boxRef.current.y + boxRef.current.size / 2;
+    syncBox({
+      x: Math.max(0, Math.min(Math.round(cx - newSize / 2), dw - newSize)),
+      y: Math.max(0, Math.min(Math.round(cy - newSize / 2), dh - newSize)),
+      size: newSize,
+    });
+  }
+
+  function applyPreset(pos: 'center' | 'top' | 'bottom' | 'left' | 'right') {
     const { w: dw, h: dh } = displayRef.current;
     const { size } = boxRef.current;
     const cx = Math.round((dw - size) / 2);
     const cy = Math.round((dh - size) / 2);
-    const presets = {
-      center: { x: cx, y: cy },
-      top:    { x: cx, y: 0 },
-      bottom: { x: cx, y: dh - size },
-      left:   { x: 0,  y: cy },
-      right:  { x: dw - size, y: cy },
-    };
-    syncBox({ ...boxRef.current, ...presets[preset] });
+    const map = { center: { x: cx, y: cy }, top: { x: cx, y: 0 }, bottom: { x: cx, y: dh - size }, left: { x: 0, y: cy }, right: { x: dw - size, y: cy } };
+    syncBox({ ...boxRef.current, ...map[pos] });
   }
 
   function applyCrop() {
@@ -164,7 +177,6 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
     const sw = Math.round(box.size * scaleX);
     const sh = Math.round(box.size * scaleY);
     const outSize = Math.min(sw, sh, 1200);
-
     const canvas = document.createElement('canvas');
     canvas.width = outSize;
     canvas.height = outSize;
@@ -173,165 +185,163 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
       ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outSize, outSize);
       onConfirm(canvas.toDataURL('image/jpeg', 0.92));
     } catch {
-      onConfirm(src); // fallback if CORS blocks canvas read
+      onConfirm(src);
     }
   }
 
-  const scaleX = natural.w > 0 ? natural.w / display.w : 1;
-  const scaleY = natural.h > 0 ? natural.h / display.h : 1;
-  const outW = Math.round(box.size * scaleX);
-  const outH = Math.round(box.size * scaleY);
-
-  const aspectLabel =
-    natural.w === 0 ? '—'
-    : natural.w === natural.h ? 'Quadrado (1:1) ✓'
-    : natural.w > natural.h  ? `Horizontal (${natural.w}:${natural.h})`
-    : `Vertical (${natural.w}:${natural.h})`;
-
-  const isIdeal = natural.w > 0 && natural.w === natural.h;
+  const HANDLE = 18; // handle size px
 
   return (
-    <div className="border border-amber-400/30 bg-zinc-950 p-4 space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-amber-400/80">
-          Ajustar recorte
-        </p>
-        <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase">
-          Grade: quadrado 1:1
-        </p>
-      </div>
-
-      {/* Info bar */}
-      <div className="grid grid-cols-3 gap-2 border border-white/10 p-3">
-        <div className="text-center">
-          <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-1">Original</p>
-          <p className="font-body text-xs text-white/70">{natural.w > 0 ? `${natural.w}×${natural.h}` : '…'}</p>
-          <p className="font-body text-[10px] text-gray-500 mt-0.5">{aspectLabel}</p>
-        </div>
-        <div className="text-center border-x border-white/10">
-          <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-1">Recorte</p>
-          <p className="font-body text-xs text-white/70">{outW > 0 ? `${outW}×${outH}` : '…'}</p>
-          <p className="font-body text-[10px] text-gray-500 mt-0.5">px</p>
-        </div>
-        <div className="text-center">
-          <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-1">Ideal</p>
-          <p className={`font-body text-xs ${isIdeal ? 'text-green-400' : 'text-amber-400'}`}>
-            {isIdeal ? '✓ Perfeito' : 'Recortar'}
-          </p>
-          <p className="font-body text-[10px] text-gray-500 mt-0.5">1:1 quadrado</p>
-        </div>
-      </div>
-
-      {!isIdeal && (
-        <p className="font-body text-[10px] text-amber-400/70 tracking-wide">
-          ↳ Arraste ou redimensione o quadrado para escolher a área do recorte
-        </p>
-      )}
-
-      {/* Crop canvas */}
-      <div className="flex justify-center">
-        <div
-          ref={containerRef}
-          className="relative select-none overflow-hidden bg-zinc-900"
-          style={{ width: display.w || MAX_DISPLAY, height: display.h || MAX_DISPLAY }}
+    <div className="border border-amber-400/40 bg-zinc-950">
+      {/* Title bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
+        <span className="font-body text-[10px] font-bold tracking-widest uppercase text-amber-400">
+          Recortar imagem
+        </span>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="font-body text-[10px] text-gray-600 hover:text-white tracking-widest uppercase transition-colors"
         >
-          <img
-            ref={imgRef}
-            src={src}
-            onLoad={onImgLoad}
-            draggable={false}
-            crossOrigin="anonymous"
-            className="absolute inset-0 pointer-events-none"
-            style={{ width: display.w || MAX_DISPLAY, height: display.h || MAX_DISPLAY, objectFit: 'fill' }}
-          />
+          Usar sem recortar
+        </button>
+      </div>
 
-          {loaded && (
-            <>
-              {/* Dark overlay */}
-              <svg
-                className="absolute inset-0 pointer-events-none"
-                width={display.w}
-                height={display.h}
-              >
-                <defs>
-                  <mask id="img-crop-mask">
-                    <rect width={display.w} height={display.h} fill="white" />
-                    <rect x={box.x} y={box.y} width={box.size} height={box.size} fill="black" />
-                  </mask>
-                </defs>
-                <rect width={display.w} height={display.h} fill="rgba(0,0,0,0.6)" mask="url(#img-crop-mask)" />
-              </svg>
+      <div className="p-4 space-y-4">
+        {/* Canvas */}
+        <div className="flex justify-center">
+          <div
+            ref={containerRef}
+            className="relative select-none overflow-hidden bg-zinc-900 cursor-move touch-none"
+            style={{ width: display.w || MAX_DISPLAY, height: display.h || MAX_DISPLAY }}
+            onMouseDown={(e) => {
+              // only start drag if clicking outside the box area (direct container click = nothing)
+              e.preventDefault();
+            }}
+            onTouchStart={(e) => {
+              const t = e.touches[0];
+              const r = e.currentTarget.getBoundingClientRect();
+              startDrag(t.clientX - r.left, t.clientY - r.top);
+            }}
+          >
+            <img
+              ref={imgRef}
+              src={src}
+              onLoad={onImgLoad}
+              draggable={false}
+              crossOrigin="anonymous"
+              className="absolute inset-0 pointer-events-none"
+              style={{ width: display.w || MAX_DISPLAY, height: display.h || MAX_DISPLAY, objectFit: 'fill' }}
+            />
 
-              {/* Crop box */}
-              <div
-                className="absolute border border-white cursor-move"
-                style={{ left: box.x, top: box.y, width: box.size, height: box.size }}
-                onMouseDown={onBoxDown}
-              >
-                {/* Rule of thirds */}
+            {loaded && (
+              <>
+                {/* Dark overlay with hole */}
+                <svg className="absolute inset-0 pointer-events-none" width={display.w} height={display.h}>
+                  <defs>
+                    <mask id="crop-hole">
+                      <rect width={display.w} height={display.h} fill="white" />
+                      <rect x={box.x} y={box.y} width={box.size} height={box.size} fill="black" />
+                    </mask>
+                  </defs>
+                  <rect width={display.w} height={display.h} fill="rgba(0,0,0,0.65)" mask="url(#crop-hole)" />
+                  {/* Crop border */}
+                  <rect x={box.x} y={box.y} width={box.size} height={box.size} fill="none" stroke="white" strokeWidth="1.5" />
+                  {/* Rule of thirds */}
+                  <line x1={box.x + box.size / 3} y1={box.y} x2={box.x + box.size / 3} y2={box.y + box.size} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                  <line x1={box.x + (box.size * 2) / 3} y1={box.y} x2={box.x + (box.size * 2) / 3} y2={box.y + box.size} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                  <line x1={box.x} y1={box.y + box.size / 3} x2={box.x + box.size} y2={box.y + box.size / 3} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                  <line x1={box.x} y1={box.y + (box.size * 2) / 3} x2={box.x + box.size} y2={box.y + (box.size * 2) / 3} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+                </svg>
+
+                {/* Draggable crop area */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px)',
-                    backgroundSize: '33.33% 33.33%',
-                  }}
+                  className="absolute cursor-move"
+                  style={{ left: box.x, top: box.y, width: box.size, height: box.size }}
+                  onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); const r = containerRef.current!.getBoundingClientRect(); startDrag(e.clientX - r.left, e.clientY - r.top); }}
+                  onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; const r = containerRef.current!.getBoundingClientRect(); startDrag(t.clientX - r.left, t.clientY - r.top); }}
                 />
 
                 {/* Corner handles */}
                 {(['tl', 'tr', 'bl', 'br'] as Corner[]).map((c) => (
                   <div
                     key={c}
-                    className="absolute w-3 h-3 bg-white border border-black z-10"
+                    className="absolute bg-amber-400 z-10 touch-none"
                     style={{
+                      width: HANDLE, height: HANDLE,
                       cursor: c === 'tl' || c === 'br' ? 'nwse-resize' : 'nesw-resize',
-                      top:    c.startsWith('t') ? -5 : undefined,
-                      bottom: c.startsWith('b') ? -5 : undefined,
-                      left:   c.endsWith('l')   ? -5 : undefined,
-                      right:  c.endsWith('r')   ? -5 : undefined,
+                      top:    c.startsWith('t') ? box.y - HANDLE / 2 : undefined,
+                      bottom: c.startsWith('b') ? display.h - box.y - box.size - HANDLE / 2 : undefined,
+                      left:   c.endsWith('l')   ? box.x - HANDLE / 2 : undefined,
+                      right:  c.endsWith('r')   ? display.w - box.x - box.size - HANDLE / 2 : undefined,
                     }}
-                    onMouseDown={onCornerDown(c)}
+                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); const r = containerRef.current!.getBoundingClientRect(); startResize(c, e.clientX - r.left, e.clientY - r.top); }}
+                    onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; const r = containerRef.current!.getBoundingClientRect(); startResize(c, t.clientX - r.left, t.clientY - r.top); }}
                   />
                 ))}
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Quick position presets */}
-      <div>
-        <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-2">Posição rápida</p>
-        <div className="flex flex-wrap gap-1.5">
-          {(['center', 'top', 'bottom', 'left', 'right'] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => applyPreset(p)}
-              className="px-3 py-1 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body text-[10px] tracking-widest uppercase transition-colors"
-            >
-              {{ center: 'Centro', top: 'Topo', bottom: 'Base', left: 'Esq.', right: 'Dir.' }[p]}
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* Instruction */}
+        <p className="text-center font-body text-[10px] text-gray-600 tracking-wide">
+          Arraste a área ou os cantos laranja para ajustar o recorte
+        </p>
 
-      {/* Actions */}
-      <div className="flex gap-3">
+        {/* Size slider */}
+        {loaded && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-body text-[10px] text-gray-500 tracking-widest uppercase">Tamanho do recorte</span>
+              <span className="font-body text-[10px] text-gray-400">{sliderPct}%</span>
+            </div>
+            <input
+              type="range"
+              min={Math.round((MIN_CROP / maxSize) * 100)}
+              max={100}
+              value={sliderPct}
+              onChange={(e) => onSliderChange(Number(e.target.value))}
+              className="w-full accent-amber-400 h-1 cursor-pointer"
+            />
+          </div>
+        )}
+
+        {/* Position presets — D-pad layout */}
+        {loaded && (
+          <div className="flex items-center gap-4">
+            <span className="font-body text-[10px] text-gray-500 tracking-widest uppercase whitespace-nowrap">Posição</span>
+            <div className="grid grid-cols-3 gap-1" style={{ width: 84 }}>
+              <div />
+              <button type="button" onClick={() => applyPreset('top')}   className="p-1.5 border border-white/15 hover:border-amber-400/60 hover:text-amber-400 text-gray-500 flex items-center justify-center transition-colors" title="Topo">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+              </button>
+              <div />
+              <button type="button" onClick={() => applyPreset('left')}  className="p-1.5 border border-white/15 hover:border-amber-400/60 hover:text-amber-400 text-gray-500 flex items-center justify-center transition-colors" title="Esquerda">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <button type="button" onClick={() => applyPreset('center')} className="p-1.5 border border-white/15 hover:border-amber-400/60 hover:text-amber-400 text-gray-500 flex items-center justify-center transition-colors" title="Centro">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /></svg>
+              </button>
+              <button type="button" onClick={() => applyPreset('right')} className="p-1.5 border border-white/15 hover:border-amber-400/60 hover:text-amber-400 text-gray-500 flex items-center justify-center transition-colors" title="Direita">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </button>
+              <div />
+              <button type="button" onClick={() => applyPreset('bottom')} className="p-1.5 border border-white/15 hover:border-amber-400/60 hover:text-amber-400 text-gray-500 flex items-center justify-center transition-colors" title="Base">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              <div />
+            </div>
+          </div>
+        )}
+
+        {/* Confirm button */}
         <button
           type="button"
           onClick={applyCrop}
-          className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-2.5 transition-colors"
+          className="w-full py-3 bg-amber-400 hover:bg-amber-300 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
         >
-          Aplicar recorte
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-5 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors"
-        >
-          Pular
+          Confirmar recorte
         </button>
       </div>
     </div>
