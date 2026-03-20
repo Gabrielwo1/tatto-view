@@ -31,7 +31,7 @@ const seedArtists: Artist[] = [
     id: 'artist-2',
     name: 'Luii Tatto',
     bio: '',
-    photoUrl: 'https://picsum.photos/seed/luii-tatto/400/400',
+    photoUrl: '/luiisite.jpeg',
     specialties: [],
     instagram: undefined,
     createdAt: new Date('2025-01-02').toISOString(),
