@@ -57,11 +57,6 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
     setLoaded(true);
   }
 
-  function getPos(e: MouseEvent | Touch | React.MouseEvent | React.Touch) {
-    const rect = containerRef.current!.getBoundingClientRect();
-    return { x: (e as MouseEvent).clientX - rect.left, y: (e as MouseEvent).clientY - rect.top };
-  }
-
   function startDrag(mx: number, my: number) {
     actionRef.current = { type: 'drag', startMx: mx, startMy: my, startBox: { ...boxRef.current } };
   }
