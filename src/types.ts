@@ -17,6 +17,7 @@ export interface Artist {
   photoUrl: string;
   specialties: string[];
   instagram?: string;
+  whatsapp?: string;
   createdAt: string;
 }
 

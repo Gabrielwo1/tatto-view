@@ -20,6 +20,7 @@ export default function AdminArtistForm() {
     photoUrl: existing?.photoUrl ?? '',
     specialties: existing?.specialties.join(', ') ?? '',
     instagram: existing?.instagram ?? '',
+    whatsapp: existing?.whatsapp ?? '',
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -34,6 +35,7 @@ export default function AdminArtistForm() {
       photoUrl: form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`,
       specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
       instagram: form.instagram || undefined,
+      whatsapp: form.whatsapp || undefined,
     };
     if (existing) {
       updateArtist(existing.id, data);
@@ -93,6 +95,11 @@ export default function AdminArtistForm() {
         <div>
           <label className={labelCls}>Instagram</label>
           <input name="instagram" value={form.instagram} onChange={handleChange} className={inputCls} placeholder="@artista.ink" />
+        </div>
+
+        <div>
+          <label className={labelCls}>WhatsApp</label>
+          <input name="whatsapp" value={form.whatsapp} onChange={handleChange} className={inputCls} placeholder="5511999999999" />
         </div>
 
         <div className="flex gap-3 pt-2">
