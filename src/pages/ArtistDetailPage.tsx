@@ -116,7 +116,7 @@ export default function ArtistDetailPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-x-2 gap-y-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-5">
           {filtered.map((tattoo) => (
             <TattooCard key={tattoo.id} tattoo={tattoo} artist={artist} />
           ))}
