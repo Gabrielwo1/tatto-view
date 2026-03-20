@@ -29,7 +29,7 @@ const seedArtists: Artist[] = [
   },
   {
     id: 'artist-2',
-    name: 'Luii Tatto',
+    name: 'Luiz Balestro',
     bio: '',
     photoUrl: '/luiisite.jpeg',
     specialties: [],
@@ -56,7 +56,7 @@ const seedArtists: Artist[] = [
   },
   {
     id: 'artist-5',
-    name: 'Jaum Tatto',
+    name: 'João Vitor',
     bio: '',
     photoUrl: 'https://picsum.photos/seed/jaum-tatto/400/400',
     specialties: [],
