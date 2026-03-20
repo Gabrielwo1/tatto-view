@@ -17,6 +17,7 @@ interface AppState {
   updateArtist: (id: string, artist: Partial<Artist>) => void;
   deleteArtist: (id: string) => void;
   addMerch: (merch: Omit<Merch, 'id' | 'createdAt'>) => void;
+  updateMerch: (id: string, merch: Partial<Merch>) => void;
   deleteMerch: (id: string) => void;
 }
 
@@ -287,6 +288,12 @@ export const useStore = create<AppState>()(
           createdAt: new Date().toISOString(),
         };
         set((state) => ({ merchs: [...state.merchs, merch] }));
+      },
+
+      updateMerch: (id, data) => {
+        set((state) => ({
+          merchs: state.merchs.map((m) => (m.id === id ? { ...m, ...data } : m)),
+        }));
       },
 
       deleteMerch: (id) => {

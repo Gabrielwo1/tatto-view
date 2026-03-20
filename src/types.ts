@@ -27,6 +27,7 @@ export interface Merch {
   description: string;
   price: string;
   imageUrl: string;
+  link?: string;
   createdAt: string;
 }
 
