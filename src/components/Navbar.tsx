@@ -24,7 +24,7 @@ export default function Navbar() {
           {/* Center: Logo */}
           <Link to="/" className="absolute left-1/2 -translate-x-1/2">
             <img
-              src="/LOGO EL DUDE.jpeg"
+              src="/eldude logo.png"
               alt="El Dude"
               className="h-9 w-auto object-contain"
             />
