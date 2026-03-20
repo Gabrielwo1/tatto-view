@@ -9,7 +9,7 @@ export default function TattooCard({ tattoo, artist: _artist }: TattooCardProps)
   return (
     <div className="group cursor-pointer">
       {/* Image */}
-      <div className="relative overflow-hidden aspect-square mb-3 bg-zinc-900">
+      <div className="relative overflow-hidden aspect-[3/4] mb-3 bg-zinc-900">
         <img
           src={tattoo.imageUrl}
           alt={tattoo.title}
