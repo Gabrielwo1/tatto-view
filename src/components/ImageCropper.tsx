@@ -8,7 +8,7 @@ interface Props {
 
 type Corner = 'tl' | 'tr' | 'bl' | 'br';
 
-const MAX_DISPLAY = 380;
+const MAX_DISPLAY = 480;
 const MIN_CROP = 50;
 
 export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
