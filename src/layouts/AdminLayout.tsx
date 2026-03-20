@@ -55,7 +55,7 @@ export default function AdminLayout() {
       <aside className="hidden md:flex w-52 bg-black border-r border-white/10 flex-col flex-shrink-0">
         <div className="p-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/eldude logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
+            <img src="/eldude-logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
           </Link>
         </div>
@@ -98,7 +98,7 @@ export default function AdminLayout() {
       {/* ── Mobile: Top Bar ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 flex items-center justify-between px-4 h-14">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/eldude logo.png" alt="El Dude" className="h-7 w-auto object-contain" />
+          <img src="/eldude-logo.png" alt="El Dude" className="h-7 w-auto object-contain" />
         </Link>
         <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400">{currentLabel}</span>
         <button
@@ -121,7 +121,7 @@ export default function AdminLayout() {
           <aside className="relative ml-auto w-64 bg-black border-l border-white/10 flex flex-col h-full">
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <Link to="/" onClick={closeDrawer} className="flex items-center gap-3">
-                <img src="/eldude logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
+                <img src="/eldude-logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
                 <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
               </Link>
               <button onClick={closeDrawer} className="p-1 text-gray-600 hover:text-white">
