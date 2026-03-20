@@ -13,6 +13,7 @@ import AdminTattooForm from './pages/admin/AdminTattooForm';
 import AdminArtists from './pages/admin/AdminArtists';
 import AdminArtistForm from './pages/admin/AdminArtistForm';
 import GuestsPage from './pages/GuestsPage';
+import MerchsPage from './pages/MerchsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -71,6 +72,14 @@ export default function App() {
           element={
             <PublicLayout>
               <GuestsPage />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/merchs"
+          element={
+            <PublicLayout>
+              <MerchsPage />
             </PublicLayout>
           }
         />

@@ -49,6 +49,7 @@ export default function Navbar() {
               { to: '/arquivadas', label: 'Arquivadas', end: false },
               { to: '/artistas', label: 'Artistas', end: false },
               { to: '/guests', label: 'Guests', end: false },
+              { to: '/merchs', label: 'Merchs', end: false },
             ].map(({ to, label, end }) => (
               <NavLink
                 key={to}
