@@ -72,7 +72,7 @@ export default function AdminDashboard() {
           <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma arte cadastrada</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 md:gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 md:gap-2">
           {recent.map((t) => {
             const artist = artists.find((a) => a.id === t.artistId);
             return (

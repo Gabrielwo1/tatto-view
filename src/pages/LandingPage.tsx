@@ -258,7 +258,7 @@ export default function LandingPage() {
           </div>
 
           {available.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border border-white/10">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-px border border-white/10">
               {available.map((tattoo, i) => (
                 <Link
                   key={tattoo.id}
