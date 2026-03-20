@@ -26,7 +26,7 @@ export default function Navbar() {
             <img
               src="/eldude logo.png"
               alt="El Dude"
-              className="h-54 w-auto object-contain"
+              className="w-[5cm] h-auto object-contain"
             />
           </Link>
 
