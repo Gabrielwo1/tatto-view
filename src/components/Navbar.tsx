@@ -7,11 +7,11 @@ export default function Navbar() {
   return (
     <nav className="bg-black border-b border-white/10 sticky top-0 z-50">
       <div className="px-6 lg:px-10">
-        <div className="flex items-center justify-between h-16">
+        <div className="relative flex items-center justify-between h-16">
           {/* Left: Menu toggle */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2.5 text-white/50 hover:text-white transition-colors"
+            className="flex items-center gap-2.5 text-white/50 hover:text-white transition-colors z-10"
           >
             <div className="flex flex-col gap-1 w-5">
               <span className="block h-px bg-current" />
@@ -22,18 +22,18 @@ export default function Navbar() {
           </button>
 
           {/* Center: Logo */}
-          <Link to="/" className="absolute left-1/2 -translate-x-1/2">
+          <Link to="/" className="absolute left-0 right-0 flex justify-center items-center pointer-events-none">
             <img
               src="/eldude logo.png"
               alt="El Dude"
-              className="w-[5cm] h-auto object-contain"
+              className="w-[5cm] h-auto object-contain pointer-events-auto"
             />
           </Link>
 
           {/* Right: Admin */}
           <Link
             to="/admin"
-            className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
+            className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors z-10"
           >
             Admin
           </Link>
