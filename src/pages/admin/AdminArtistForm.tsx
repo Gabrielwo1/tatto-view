@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
+import ImageCropper from '../../components/ImageCropper';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -13,6 +14,8 @@ export default function AdminArtistForm() {
   const updateArtist = useStore((s) => s.updateArtist);
 
   const existing = id ? artists.find((a) => a.id === id) : null;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropSrc, setCropSrc] = useState('');
 
   const [form, setForm] = useState({
     name: existing?.name ?? '',
@@ -25,6 +28,26 @@ export default function AdminArtistForm() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { setCropSrc(ev.target?.result as string); };
+    reader.readAsDataURL(file);
+  }
+
+  function onCropConfirm(dataUrl: string) {
+    setForm((f) => ({ ...f, photoUrl: dataUrl }));
+    setCropSrc('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function onCropCancel() {
+    if (!form.photoUrl && cropSrc) setForm((f) => ({ ...f, photoUrl: cropSrc }));
+    setCropSrc('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   function handleSubmit(e: FormEvent) {
@@ -73,13 +96,52 @@ export default function AdminArtistForm() {
         </div>
 
         <div>
-          <label className={labelCls}>URL da Foto</label>
-          <input name="photoUrl" value={form.photoUrl} onChange={handleChange} className={inputCls}
-            placeholder="https://picsum.photos/seed/exemplo/400/400" />
-          {form.photoUrl && (
-            <img src={form.photoUrl} alt="Preview"
-              className="mt-2 w-16 h-16 object-cover border border-white/10"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <label className={labelCls}>Foto do Artista</label>
+
+          {cropSrc ? (
+            <ImageCropper src={cropSrc} onConfirm={onCropConfirm} onCancel={onCropCancel} />
+          ) : (
+            <>
+              {/* URL input + upload button */}
+              {!form.photoUrl.startsWith('data:') && (
+                <div className="flex gap-2 mb-2">
+                  <input name="photoUrl" value={form.photoUrl} onChange={handleChange} className={inputCls}
+                    placeholder="https://picsum.photos/seed/exemplo/400/400" />
+                  {form.photoUrl && (
+                    <button type="button" onClick={() => setCropSrc(form.photoUrl)}
+                      className="flex-shrink-0 px-3 border border-amber-400/40 hover:border-amber-400 text-amber-400/60 hover:text-amber-400 font-body text-[10px] tracking-widest uppercase transition-colors whitespace-nowrap">
+                      Cortar
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* File upload */}
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+              <button type="button" onClick={() => fileInputRef.current?.click()}
+                className="w-full border border-dashed border-white/20 hover:border-amber-400/50 py-3 flex items-center justify-center gap-2 text-gray-500 hover:text-amber-400/80 transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span className="font-body text-xs font-semibold tracking-widest uppercase">Selecionar do dispositivo</span>
+              </button>
+
+              {/* Preview */}
+              {form.photoUrl && (
+                <div className="mt-2 relative inline-block">
+                  <img src={form.photoUrl} alt="Preview"
+                    className="w-16 h-16 object-cover border border-white/10"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  <button type="button"
+                    onClick={() => { setForm((f) => ({ ...f, photoUrl: '' })); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                    className="absolute -top-1.5 -right-1.5 bg-black border border-white/20 text-white/50 hover:text-white p-0.5 transition-colors">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
