@@ -28,8 +28,8 @@ export default function AdminTattooForm() {
     status: existing?.status ?? 'available',
   });
 
+  // cropSrc is the image fed into the cropper modal
   const [cropSrc, setCropSrc] = useState('');
-  const [showCropper, setShowCropper] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -41,32 +41,28 @@ export default function AdminTattooForm() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
-      setCropSrc(dataUrl);
-      setShowCropper(true);
+      setCropSrc(dataUrl);          // opens the cropper modal
     };
     reader.readAsDataURL(file);
   }
 
-  function openCropperForUrl() {
-    if (form.imageUrl && !form.imageUrl.startsWith('data:')) {
-      setCropSrc(form.imageUrl);
-      setShowCropper(true);
-    }
+  function openCropper(src: string) {
+    setCropSrc(src);
   }
 
   function onCropConfirm(dataUrl: string) {
     setForm((f) => ({ ...f, imageUrl: dataUrl }));
-    setShowCropper(false);
     setCropSrc('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   function onCropCancel() {
-    // If cancelling from file, keep the raw file as imageUrl
-    if (cropSrc.startsWith('data:') && !form.imageUrl) {
+    // Keep the raw file as imageUrl if we had none before (skip crop)
+    if (!form.imageUrl && cropSrc) {
       setForm((f) => ({ ...f, imageUrl: cropSrc }));
     }
-    setShowCropper(false);
     setCropSrc('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   function handleSubmit(e: FormEvent) {
@@ -86,6 +82,19 @@ export default function AdminTattooForm() {
 
   return (
     <div className="p-4 md:p-8 max-w-2xl">
+      {/* Cropper modal — renders on top of everything */}
+      {cropSrc && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="w-full max-w-lg my-auto">
+            <ImageCropper
+              src={cropSrc}
+              onConfirm={onCropConfirm}
+              onCancel={onCropCancel}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <Link
@@ -115,102 +124,92 @@ export default function AdminTattooForm() {
         <div>
           <label className={labelCls}>Imagem *</label>
 
-          {showCropper ? (
-            <ImageCropper
-              src={cropSrc}
-              onConfirm={onCropConfirm}
-              onCancel={onCropCancel}
+          {/* URL input */}
+          <div className="flex gap-2">
+            <input
+              name="imageUrl"
+              value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl}
+              onChange={handleChange}
+              required={!form.imageUrl}
+              className={inputCls}
+              placeholder="https://picsum.photos/seed/exemplo/600/600"
             />
-          ) : (
-            <>
-              {/* URL input */}
-              <div className="flex gap-2">
-                <input
-                  name="imageUrl"
-                  value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl}
-                  onChange={handleChange}
-                  required={!form.imageUrl}
-                  className={inputCls}
-                  placeholder="https://picsum.photos/seed/exemplo/600/600"
-                />
-                {form.imageUrl && !form.imageUrl.startsWith('data:') && (
-                  <button
-                    type="button"
-                    onClick={openCropperForUrl}
-                    className="flex-shrink-0 px-3 border border-amber-400/40 hover:border-amber-400 text-amber-400/60 hover:text-amber-400 font-body text-[10px] tracking-widest uppercase transition-colors whitespace-nowrap"
-                  >
-                    Cortar
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3 my-3">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="font-body text-[10px] text-gray-600 tracking-widest uppercase">ou</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
-
-              {/* File upload */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+            {form.imageUrl && !form.imageUrl.startsWith('data:') && (
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full border border-dashed border-white/20 hover:border-white/50 py-4 flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-colors"
+                onClick={() => openCropper(form.imageUrl)}
+                className="flex-shrink-0 px-3 border border-amber-400/40 hover:border-amber-400 text-amber-400/60 hover:text-amber-400 font-body text-[10px] tracking-widest uppercase transition-colors whitespace-nowrap"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <span className="font-body text-xs font-semibold tracking-widest uppercase">
-                  Selecionar do dispositivo
-                </span>
-                <span className="font-body text-[10px] text-gray-600">
-                  Abre o recortador automaticamente
-                </span>
+                Cortar
               </button>
+            )}
+          </div>
 
-              {/* Preview */}
-              {form.imageUrl && (
-                <div className="mt-3 space-y-2">
-                  <div className="relative">
-                    <img
-                      src={form.imageUrl}
-                      alt="Preview"
-                      className="w-full aspect-square object-cover border border-white/10"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setForm((f) => ({ ...f, imageUrl: '' }));
-                        if (fileInputRef.current) fileInputRef.current.value = '';
-                      }}
-                      className="absolute top-2 right-2 bg-black/80 hover:bg-black text-white/60 hover:text-white p-1.5 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setCropSrc(form.imageUrl); setShowCropper(true); }}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 border border-amber-400/40 hover:border-amber-400 text-amber-400/70 hover:text-amber-400 font-body text-xs font-semibold tracking-widest uppercase transition-colors"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                    Ajustar recorte da imagem
-                  </button>
-                </div>
-              )}
-            </>
+          <div className="flex items-center gap-3 my-3">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="font-body text-[10px] text-gray-600 tracking-widest uppercase">ou</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* File upload */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full border border-dashed border-white/20 hover:border-white/50 py-4 flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span className="font-body text-xs font-semibold tracking-widest uppercase">
+              Selecionar do dispositivo
+            </span>
+            <span className="font-body text-[10px] text-gray-600">
+              Abre o recortador automaticamente
+            </span>
+          </button>
+
+          {/* Preview + crop button */}
+          {form.imageUrl && (
+            <div className="mt-3 space-y-2">
+              <div className="relative">
+                <img
+                  src={form.imageUrl}
+                  alt="Preview"
+                  className="w-full aspect-square object-cover border border-white/10"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm((f) => ({ ...f, imageUrl: '' }));
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="absolute top-2 right-2 bg-black/80 hover:bg-black text-white/60 hover:text-white p-1.5 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => openCropper(form.imageUrl)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 border border-amber-400/40 hover:border-amber-400 text-amber-400/70 hover:text-amber-400 font-body text-xs font-semibold tracking-widest uppercase transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                Ajustar recorte da imagem
+              </button>
+            </div>
           )}
         </div>
 
