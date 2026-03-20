@@ -38,9 +38,9 @@ const seedArtists: Artist[] = [
   },
   {
     id: 'artist-3',
-    name: 'Douglas Tatto',
+    name: 'Matheus de Oliveira',
     bio: '',
-    photoUrl: 'https://picsum.photos/seed/douglas-tatto/400/400',
+    photoUrl: '/douglastatt.jpeg',
     specialties: [],
     instagram: undefined,
     createdAt: new Date('2025-01-03').toISOString(),
