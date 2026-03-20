@@ -22,7 +22,7 @@ const seedArtists: Artist[] = [
     id: 'artist-1',
     name: 'Braian Otovicz',
     bio: '',
-    photoUrl: 'https://picsum.photos/seed/braian-otovicz/400/400',
+    photoUrl: '/braiansite.jpeg',
     specialties: [],
     instagram: undefined,
     createdAt: new Date('2025-01-01').toISOString(),
