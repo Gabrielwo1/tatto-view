@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist } from './types';
+import type { Tattoo, Artist, Merch } from './types';
 
 interface AppState {
   tattoos: Tattoo[];
   artists: Artist[];
+  merchs: Merch[];
   isAdmin: boolean;
   login: (username: string, password: string) => boolean;
   logout: () => void;
@@ -15,6 +16,8 @@ interface AppState {
   addArtist: (artist: Omit<Artist, 'id' | 'createdAt'>) => void;
   updateArtist: (id: string, artist: Partial<Artist>) => void;
   deleteArtist: (id: string) => void;
+  addMerch: (merch: Omit<Merch, 'id' | 'createdAt'>) => void;
+  deleteMerch: (id: string) => void;
 }
 
 const seedArtists: Artist[] = [
@@ -214,6 +217,7 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       tattoos: seedTattoos,
       artists: seedArtists,
+      merchs: [],
       isAdmin: false,
 
       login: (username: string, password: string) => {
@@ -274,6 +278,19 @@ export const useStore = create<AppState>()(
 
       deleteArtist: (id) => {
         set((state) => ({ artists: state.artists.filter((a) => a.id !== id) }));
+      },
+
+      addMerch: (merchData) => {
+        const merch: Merch = {
+          ...merchData,
+          id: `merch-${Date.now()}`,
+          createdAt: new Date().toISOString(),
+        };
+        set((state) => ({ merchs: [...state.merchs, merch] }));
+      },
+
+      deleteMerch: (id) => {
+        set((state) => ({ merchs: state.merchs.filter((m) => m.id !== id) }));
       },
     }),
     {
