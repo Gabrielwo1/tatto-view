@@ -26,7 +26,7 @@ export default function Navbar() {
             <img
               src="/eldude logo.png"
               alt="El Dude"
-              className="h-9 w-auto object-contain"
+              className="h-54 w-auto object-contain"
             />
           </Link>
 
@@ -48,6 +48,7 @@ export default function Navbar() {
               { to: '/', label: 'Vitrine', end: true },
               { to: '/arquivadas', label: 'Arquivadas', end: false },
               { to: '/artistas', label: 'Artistas', end: false },
+              { to: '/guests', label: 'Guests', end: false },
             ].map(({ to, label, end }) => (
               <NavLink
                 key={to}
