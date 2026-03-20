@@ -58,7 +58,7 @@ const seedArtists: Artist[] = [
     id: 'artist-5',
     name: 'João Vitor',
     bio: '',
-    photoUrl: 'https://picsum.photos/seed/jaum-tatto/400/400',
+    photoUrl: 'https://raw.githubusercontent.com/Gabrielwo1/tatto-view/claude/tattoo-shop-app-AunfI/public/jaummmm.jpeg',
     specialties: [],
     instagram: undefined,
     createdAt: new Date('2025-01-05').toISOString(),
