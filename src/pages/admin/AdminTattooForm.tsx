@@ -177,37 +177,37 @@ export default function AdminTattooForm() {
 
               {/* Preview */}
               {form.imageUrl && (
-                <div className="mt-3 relative">
-                  <img
-                    src={form.imageUrl}
-                    alt="Preview"
-                    className="w-full aspect-square object-cover border border-white/10"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                  />
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCropSrc(form.imageUrl);
-                        setShowCropper(true);
-                      }}
-                      className="bg-black/70 hover:bg-black text-amber-400/70 hover:text-amber-400 px-2 py-1 font-body text-[10px] tracking-widest uppercase transition-colors"
-                    >
-                      Recortar
-                    </button>
+                <div className="mt-3 space-y-2">
+                  <div className="relative">
+                    <img
+                      src={form.imageUrl}
+                      alt="Preview"
+                      className="w-full aspect-square object-cover border border-white/10"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
                     <button
                       type="button"
                       onClick={() => {
                         setForm((f) => ({ ...f, imageUrl: '' }));
                         if (fileInputRef.current) fileInputRef.current.value = '';
                       }}
-                      className="bg-black/70 hover:bg-black text-white/60 hover:text-white p-1 transition-colors"
+                      className="absolute top-2 right-2 bg-black/80 hover:bg-black text-white/60 hover:text-white p-1.5 transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => { setCropSrc(form.imageUrl); setShowCropper(true); }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 border border-amber-400/40 hover:border-amber-400 text-amber-400/70 hover:text-amber-400 font-body text-xs font-semibold tracking-widest uppercase transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    Ajustar recorte da imagem
+                  </button>
                 </div>
               )}
             </>
