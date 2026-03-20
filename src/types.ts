@@ -21,6 +21,15 @@ export interface Artist {
   createdAt: string;
 }
 
+export interface Merch {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  imageUrl: string;
+  createdAt: string;
+}
+
 export const TATTOO_STYLES = [
   'Realismo',
   'Blackwork',

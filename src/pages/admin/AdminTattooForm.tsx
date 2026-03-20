@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { TATTOO_STYLES } from '../../types';
@@ -15,6 +15,7 @@ export default function AdminTattooForm() {
   const updateTattoo = useStore((s) => s.updateTattoo);
 
   const existing = id ? tattoos.find((t) => t.id === id) : null;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     title: existing?.title ?? '',
@@ -28,6 +29,16 @@ export default function AdminTattooForm() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setForm((f) => ({ ...f, imageUrl: ev.target?.result as string }));
+    };
+    reader.readAsDataURL(file);
   }
 
   function handleSubmit(e: FormEvent) {
@@ -74,12 +85,52 @@ export default function AdminTattooForm() {
 
         <div>
           <label className={labelCls}>URL da Imagem *</label>
-          <input name="imageUrl" value={form.imageUrl} onChange={handleChange} required className={inputCls}
+          <input name="imageUrl" value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl} onChange={handleChange}
+            required={!form.imageUrl} className={inputCls}
             placeholder="https://picsum.photos/seed/exemplo/600/600" />
+
+          <div className="flex items-center gap-3 my-3">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="font-body text-[10px] text-gray-600 tracking-widest uppercase">ou</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full border border-dashed border-white/20 hover:border-white/50 py-4 flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-colors group"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span className="font-body text-xs font-semibold tracking-widest uppercase">
+              Selecionar do dispositivo
+            </span>
+          </button>
+
           {form.imageUrl && (
-            <img src={form.imageUrl} alt="Preview"
-              className="mt-2 w-full aspect-square object-cover border border-white/10"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <div className="mt-3 relative">
+              <img src={form.imageUrl} alt="Preview"
+                className="w-full aspect-square object-cover border border-white/10"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <button
+                type="button"
+                onClick={() => { setForm((f) => ({ ...f, imageUrl: '' })); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white/60 hover:text-white p-1 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           )}
         </div>
 
