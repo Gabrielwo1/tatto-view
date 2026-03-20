@@ -81,7 +81,7 @@ export default function AdminTattoos() {
           {filtered.map((t) => {
             const artist = artists.find((a) => a.id === t.artistId);
             return (
-              <div key={t.id} className="group relative aspect-square overflow-hidden bg-zinc-900">
+              <div key={t.id} className="group relative aspect-[3/4] overflow-hidden bg-zinc-900">
                 <img
                   src={t.imageUrl}
                   alt={t.title}

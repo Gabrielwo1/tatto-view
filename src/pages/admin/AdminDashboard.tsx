@@ -79,7 +79,7 @@ export default function AdminDashboard() {
               <Link
                 key={t.id}
                 to={`/admin/tatuagens/${t.id}/editar`}
-                className="group relative block aspect-square overflow-hidden bg-zinc-900"
+                className="group relative block aspect-[3/4] overflow-hidden bg-zinc-900"
               >
                 <img
                   src={t.imageUrl}
