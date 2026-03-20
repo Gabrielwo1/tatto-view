@@ -20,9 +20,9 @@ interface AppState {
 const seedArtists: Artist[] = [
   {
     id: 'artist-1',
-    name: 'Brain Octovics',
+    name: 'Braian Otovicz',
     bio: '',
-    photoUrl: 'https://picsum.photos/seed/brain-octovics/400/400',
+    photoUrl: 'https://picsum.photos/seed/braian-otovicz/400/400',
     specialties: [],
     instagram: undefined,
     createdAt: new Date('2025-01-01').toISOString(),
