@@ -2,6 +2,7 @@ import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { TATTOO_STYLES } from '../../types';
+import ImageCropper from '../../components/ImageCropper';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -27,6 +28,9 @@ export default function AdminTattooForm() {
     status: existing?.status ?? 'available',
   });
 
+  const [cropSrc, setCropSrc] = useState('');
+  const [showCropper, setShowCropper] = useState(false);
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
@@ -36,9 +40,33 @@ export default function AdminTattooForm() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setForm((f) => ({ ...f, imageUrl: ev.target?.result as string }));
+      const dataUrl = ev.target?.result as string;
+      setCropSrc(dataUrl);
+      setShowCropper(true);
     };
     reader.readAsDataURL(file);
+  }
+
+  function openCropperForUrl() {
+    if (form.imageUrl && !form.imageUrl.startsWith('data:')) {
+      setCropSrc(form.imageUrl);
+      setShowCropper(true);
+    }
+  }
+
+  function onCropConfirm(dataUrl: string) {
+    setForm((f) => ({ ...f, imageUrl: dataUrl }));
+    setShowCropper(false);
+    setCropSrc('');
+  }
+
+  function onCropCancel() {
+    // If cancelling from file, keep the raw file as imageUrl
+    if (cropSrc.startsWith('data:') && !form.imageUrl) {
+      setForm((f) => ({ ...f, imageUrl: cropSrc }));
+    }
+    setShowCropper(false);
+    setCropSrc('');
   }
 
   function handleSubmit(e: FormEvent) {
@@ -83,54 +111,106 @@ export default function AdminTattooForm() {
             className={`${inputCls} resize-none`} placeholder="Descreva a tatuagem..." />
         </div>
 
+        {/* Image section */}
         <div>
-          <label className={labelCls}>URL da Imagem *</label>
-          <input name="imageUrl" value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl} onChange={handleChange}
-            required={!form.imageUrl} className={inputCls}
-            placeholder="https://picsum.photos/seed/exemplo/600/600" />
+          <label className={labelCls}>Imagem *</label>
 
-          <div className="flex items-center gap-3 my-3">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="font-body text-[10px] text-gray-600 tracking-widest uppercase">ou</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
+          {showCropper ? (
+            <ImageCropper
+              src={cropSrc}
+              onConfirm={onCropConfirm}
+              onCancel={onCropCancel}
+            />
+          ) : (
+            <>
+              {/* URL input */}
+              <div className="flex gap-2">
+                <input
+                  name="imageUrl"
+                  value={form.imageUrl.startsWith('data:') ? '' : form.imageUrl}
+                  onChange={handleChange}
+                  required={!form.imageUrl}
+                  className={inputCls}
+                  placeholder="https://picsum.photos/seed/exemplo/600/600"
+                />
+                {form.imageUrl && !form.imageUrl.startsWith('data:') && (
+                  <button
+                    type="button"
+                    onClick={openCropperForUrl}
+                    className="flex-shrink-0 px-3 border border-amber-400/40 hover:border-amber-400 text-amber-400/60 hover:text-amber-400 font-body text-[10px] tracking-widest uppercase transition-colors whitespace-nowrap"
+                  >
+                    Cortar
+                  </button>
+                )}
+              </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full border border-dashed border-white/20 hover:border-white/50 py-4 flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-colors group"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <span className="font-body text-xs font-semibold tracking-widest uppercase">
-              Selecionar do dispositivo
-            </span>
-          </button>
+              <div className="flex items-center gap-3 my-3">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="font-body text-[10px] text-gray-600 tracking-widest uppercase">ou</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
 
-          {form.imageUrl && (
-            <div className="mt-3 relative">
-              <img src={form.imageUrl} alt="Preview"
-                className="w-full aspect-square object-cover border border-white/10"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              {/* File upload */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
               <button
                 type="button"
-                onClick={() => { setForm((f) => ({ ...f, imageUrl: '' })); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white/60 hover:text-white p-1 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full border border-dashed border-white/20 hover:border-white/50 py-4 flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
+                <span className="font-body text-xs font-semibold tracking-widest uppercase">
+                  Selecionar do dispositivo
+                </span>
+                <span className="font-body text-[10px] text-gray-600">
+                  Abre o recortador automaticamente
+                </span>
               </button>
-            </div>
+
+              {/* Preview */}
+              {form.imageUrl && (
+                <div className="mt-3 relative">
+                  <img
+                    src={form.imageUrl}
+                    alt="Preview"
+                    className="w-full aspect-square object-cover border border-white/10"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCropSrc(form.imageUrl);
+                        setShowCropper(true);
+                      }}
+                      className="bg-black/70 hover:bg-black text-amber-400/70 hover:text-amber-400 px-2 py-1 font-body text-[10px] tracking-widest uppercase transition-colors"
+                    >
+                      Recortar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm((f) => ({ ...f, imageUrl: '' }));
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="bg-black/70 hover:bg-black text-white/60 hover:text-white p-1 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
