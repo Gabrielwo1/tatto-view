@@ -149,7 +149,7 @@ export const useStore = create<AppState>()(
 
       // ── Tattoos ──────────────────────────────────────────────────────────
       addTattoo: (data) => {
-        const tattoo: Tattoo = { ...data, id: `tattoo-${Date.now()}`, createdAt: new Date().toISOString() };
+        const tattoo: Tattoo = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         set((s) => ({ tattoos: [tattoo, ...s.tattoos] }));
         supabase?.from('tattoos').insert({
           id: tattoo.id, title: tattoo.title, description: tattoo.description,
@@ -198,7 +198,7 @@ export const useStore = create<AppState>()(
 
       // ── Artists ──────────────────────────────────────────────────────────
       addArtist: (data) => {
-        const artist: Artist = { ...data, id: `artist-${Date.now()}`, createdAt: new Date().toISOString() };
+        const artist: Artist = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         set((s) => ({ artists: [...s.artists, artist] }));
         supabase?.from('artists').insert({
           id: artist.id, name: artist.name, bio: artist.bio, photo_url: artist.photoUrl,
@@ -228,7 +228,7 @@ export const useStore = create<AppState>()(
 
       // ── Merchs ───────────────────────────────────────────────────────────
       addMerch: (data) => {
-        const merch: Merch = { ...data, id: `merch-${Date.now()}`, createdAt: new Date().toISOString() };
+        const merch: Merch = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         set((s) => ({ merchs: [merch, ...s.merchs] }));
         supabase?.from('merchs').insert({
           id: merch.id, name: merch.name, description: merch.description,

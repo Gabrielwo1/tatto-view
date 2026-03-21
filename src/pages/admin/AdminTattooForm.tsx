@@ -67,6 +67,7 @@ export default function AdminTattooForm() {
 
   // ── Shared upload state ───────────────────────────────────────────────────
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ done: number; total: number } | null>(null);
 
   // ── Edit mode state ───────────────────────────────────────────────────────
   const editFileRef = useRef<HTMLInputElement>(null);
@@ -151,8 +152,13 @@ export default function AdminTattooForm() {
 
   async function saveAll() {
     setUploading(true);
-    const urls = await uploadImages(items.map((it) => it.imageUrl));
+    setUploadProgress({ done: 0, total: items.length });
+    const urls = await uploadImages(
+      items.map((it) => it.imageUrl),
+      (done, total) => setUploadProgress({ done, total }),
+    );
     setUploading(false);
+    setUploadProgress(null);
     items.forEach((item, i) => {
       addTattoo({
         title: item.title || 'Sem título',
@@ -487,7 +493,9 @@ export default function AdminTattooForm() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  Salvando imagens…
+                  {uploadProgress
+                    ? `Enviando ${uploadProgress.done}/${uploadProgress.total}…`
+                    : 'Salvando…'}
                 </>
               ) : (
                 <>
