@@ -139,9 +139,12 @@ export default function AdminTattoos() {
   const [confirmArchiveOpen, setConfirmArchiveOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  // IDs being deleted — removed from view instantly on confirm, before store re-renders
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
   const dragIdRef = useRef<string | null>(null);
 
   const filtered = tattoos
+    .filter((t) => !pendingDeleteIds.has(t.id))
     .filter((t) => filter === 'all' || t.status === filter)
     .filter((t) => styleFilter === 'Todos' || t.style === styleFilter);
 
@@ -149,6 +152,7 @@ export default function AdminTattoos() {
 
   function handleDelete(id: string, title: string) {
     if (confirm(`Excluir "${title}"? Esta ação não pode ser desfeita.`)) {
+      setPendingDeleteIds((prev) => { const n = new Set(prev); n.add(id); return n; });
       deleteTattoo(id);
     }
   }
@@ -175,7 +179,9 @@ export default function AdminTattoos() {
   }
 
   function confirmDeleteSelected() {
-    selected.forEach((id) => deleteTattoo(id));
+    const ids = new Set(selected);
+    setPendingDeleteIds((prev) => new Set([...prev, ...ids]));
+    ids.forEach((id) => deleteTattoo(id));
     setSelected(new Set());
     setSelecting(false);
     setConfirmDeleteOpen(false);
@@ -311,7 +317,7 @@ export default function AdminTattoos() {
             return (
               <div
                 key={t.id}
-                className={`flex flex-col bg-zinc-900 transition-all duration-150 ${isDragOver ? 'ring-2 ring-white/60 scale-[0.97]' : ''}`}
+                className={`flex flex-col bg-zinc-900 transition-[box-shadow,transform] duration-150 ${isDragOver ? 'ring-2 ring-white/60 scale-[0.97]' : ''}`}
                 draggable={!selecting}
                 onDragStart={() => { dragIdRef.current = t.id; }}
                 onDragOver={(e) => { e.preventDefault(); if (dragIdRef.current && dragIdRef.current !== t.id) setDragOverId(t.id); }}

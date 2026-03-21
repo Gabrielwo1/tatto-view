@@ -58,7 +58,21 @@ export async function uploadImage(src: string): Promise<string> {
   return src;
 }
 
-/** Uploads multiple images in parallel. */
-export async function uploadImages(srcs: string[]): Promise<string[]> {
-  return Promise.all(srcs.map(uploadImage));
+/**
+ * Uploads multiple images in sequential batches of 5 to avoid rate limits.
+ * Calls onProgress(done, total) after each batch completes.
+ */
+export async function uploadImages(
+  srcs: string[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<string[]> {
+  const BATCH = 5;
+  const results: string[] = [];
+  for (let i = 0; i < srcs.length; i += BATCH) {
+    const batch = srcs.slice(i, i + BATCH);
+    const batchResults = await Promise.all(batch.map(uploadImage));
+    results.push(...batchResults);
+    onProgress?.(Math.min(i + BATCH, srcs.length), srcs.length);
+  }
+  return results;
 }
