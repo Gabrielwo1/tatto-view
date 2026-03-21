@@ -49,7 +49,7 @@ export default function Navbar() {
               { to: '/artistas', label: 'Artistas', end: false },
               { to: '/guests', label: 'Guests', end: false },
               { to: '/merchs', label: 'Merchs', end: false },
-              { to: '/aftercare', label: 'Pós-Cuidados', end: false },
+              { to: '/aftercare', label: 'Pós Tattoo', end: false },
             ].map(({ to, label, end }) => (
               <NavLink
                 key={to}
