@@ -7,33 +7,33 @@ export default function Navbar() {
   return (
     <nav className="bg-black border-b border-white/10 sticky top-0 z-50">
       <div className="px-6 lg:px-10">
-        <div className="relative flex items-center justify-between h-16">
+        <div className="relative flex items-center justify-between h-32">
           {/* Left: Menu toggle */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2.5 text-white/50 hover:text-white transition-colors z-10"
+            className="flex items-center gap-3 text-white/50 hover:text-white transition-colors z-10"
           >
-            <div className="flex flex-col gap-1 w-5">
-              <span className="block h-px bg-current" />
-              <span className="block h-px bg-current" />
-              <span className="block h-px bg-current w-3" />
+            <div className="flex flex-col gap-[5px] w-7">
+              <span className="block h-0.5 bg-current" />
+              <span className="block h-0.5 bg-current" />
+              <span className="block h-0.5 bg-current w-5" />
             </div>
-            <span className="font-body text-xs font-semibold tracking-widest uppercase">Menu</span>
+            <span className="font-body text-sm font-semibold tracking-widest uppercase">Menu</span>
           </button>
 
           {/* Center: Logo */}
-          <Link to="/" className="absolute left-0 right-0 flex justify-center items-center pointer-events-none translate-y-8">
+          <Link to="/" className="absolute left-0 right-0 flex justify-center items-center pointer-events-none">
             <img
-              src="/eldude logo.png"
+              src="/ELDUDELOGOLOW_upscayl_16x_upscayl-standard-4x.png"
               alt="El Dude"
-              className="w-[5cm] h-auto object-contain pointer-events-auto"
+              className="w-[8cm] h-auto object-contain pointer-events-auto"
             />
           </Link>
 
           {/* Right: Admin */}
           <Link
             to="/admin"
-            className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors z-10"
+            className="font-body text-sm font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors z-10"
           >
             Admin
           </Link>
