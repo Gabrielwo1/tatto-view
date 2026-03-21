@@ -188,13 +188,14 @@ export default function AftercareePage() {
                   'Limite acompanhantes para manter o ambiente de foco e esterilização.',
                   'Use roupas confortáveis que permitam fácil acesso à área da tatuagem.',
                   'Comunique qualquer desconforto imediatamente ao seu artista.',
+                  'Mantenha o silêncio no ambiente do estúdio. Todos os artistas precisam de concentração, seja desenhando ou tatuando. Se vier acompanhado, lembre-se que nossa recepção tem tamanho limitado.',
                 ].map((item, i) => (
                   <li key={i} className="flex gap-4">
                     <span
                       className="font-display text-xs shrink-0 mt-0.5"
                       style={{ color: 'rgb(var(--ink-500))' }}
                     >
-                      {['I.', 'II.', 'III.', 'IV.'][i]}
+                      {['I.', 'II.', 'III.', 'IV.', 'V.'][i]}
                     </span>
                     <p className="font-body text-xs text-white/50 leading-relaxed">{item}</p>
                   </li>
