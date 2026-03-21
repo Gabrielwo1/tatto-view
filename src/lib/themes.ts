@@ -170,15 +170,20 @@ export const THEMES: Record<ThemeId, Theme> = {
 };
 
 // ── Subdomain → theme mapping ─────────────────────────────────────────────
-// Add entries here as new artist subdomains are created.
-// e.g. braian.eldude.com.br → violet theme
+// Domain structure: <studio>.vitrink.app
+// Each studio/client registered on vitrink.app can have its own accent theme.
+// Add an entry here when onboarding a new studio.
+//
+// Examples:
+//   eldude.vitrink.app     → ember  (default orange)
+//   inklab.vitrink.app     → violet
+//   chromestudio.vitrink.app → cyan
 export const SUBDOMAIN_THEMES: Record<string, ThemeId> = {
-  braian:  'violet',
-  luiz:    'cyan',
-  matheus: 'crimson',
-  ana:     'rose',
-  joao:    'gold',
-  marlon:  'neon',
+  eldude:       'ember',
+  // Add new studios below:
+  // inklab:    'violet',
+  // bloodink:  'crimson',
+  // goldtattoo: 'gold',
 };
 
 // ── Theme resolution ──────────────────────────────────────────────────────
@@ -188,7 +193,7 @@ export function getThemeForHostname(hostname: string): ThemeId {
   const paramTheme = params.get('theme') as ThemeId | null;
   if (paramTheme && THEMES[paramTheme]) return paramTheme;
 
-  // Extract subdomain: braian.eldude.com.br → "braian"
+  // Extract subdomain: eldude.vitrink.app → "eldude"
   const parts = hostname.split('.');
   if (parts.length >= 3) {
     const sub = parts[0].toLowerCase();
