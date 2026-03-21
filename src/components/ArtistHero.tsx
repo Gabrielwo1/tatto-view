@@ -2,6 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
+// Smooth multi-stop gradients — avoids banding artifacts
+const GRADIENT_DARK =
+  'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.82) 18%, rgba(0,0,0,0.55) 38%, rgba(0,0,0,0.28) 58%, rgba(0,0,0,0.08) 78%, rgba(0,0,0,0) 100%)';
+
+const GRADIENT_ACTIVE =
+  'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 22%, rgba(0,0,0,0.3) 45%, rgba(0,0,0,0.08) 68%, rgba(0,0,0,0) 100%)';
+
+// Top vignette — prevents harsh pixel edge where hero meets navbar
+const GRADIENT_TOP =
+  'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 18%, rgba(0,0,0,0) 40%)';
+
 export default function ArtistHero() {
   const artists = useStore((s) => s.artists);
   const navigate = useNavigate();
@@ -27,7 +38,6 @@ export default function ArtistHero() {
       {artists.map((artist, idx) => {
         const isHovered = hoveredId === artist.id;
         const anyHovered = hoveredId !== null;
-        // On mobile, treat every card as "active"
         const active = isMobile || isHovered;
 
         return (
@@ -40,20 +50,24 @@ export default function ArtistHero() {
                 : {
                     flex: anyHovered ? (isHovered ? 3 : 0.55) : 1,
                     transition: 'flex 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    // Promote each panel to its own GPU compositing layer
+                    willChange: 'flex',
+                    transform: 'translateZ(0)',
                   }
             }
             onMouseEnter={() => !isMobile && setHoveredId(artist.id)}
             onMouseLeave={() => !isMobile && setHoveredId(null)}
             onClick={() => navigate(`/artistas/${artist.id}`)}
           >
-            {/* Background image */}
+            {/* Background image — GPU-composited */}
             <img
               src={artist.photoUrl}
               alt={artist.name}
               className="absolute inset-0 w-full h-full object-cover"
               style={{
-                transform: isHovered ? 'scale(1.06)' : 'scale(1)',
+                transform: isHovered ? 'scale(1.06) translateZ(0)' : 'scale(1) translateZ(0)',
                 transition: 'transform 0.75s ease',
+                willChange: 'transform',
                 objectPosition: isMobile ? 'center 20%' : 'center',
               }}
               onError={(e) => {
@@ -61,15 +75,32 @@ export default function ArtistHero() {
               }}
             />
 
-            {/* Gradient overlay */}
+            {/* ── Gradient overlays — opacity-only transitions (GPU) ── */}
+
+            {/* Layer 1: always-on dark gradient (resting state) */}
             <div
-              className="absolute inset-0"
+              className="absolute inset-0 pointer-events-none"
               style={{
-                background: active
-                  ? 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 55%, rgba(0,0,0,0.0) 100%)'
-                  : 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.35) 100%)',
-                transition: 'background 0.5s ease',
+                background: GRADIENT_DARK,
+                opacity: active ? 0 : 1,
+                transition: 'opacity 0.55s ease',
               }}
+            />
+
+            {/* Layer 2: lighter gradient (active/hovered state) */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: GRADIENT_ACTIVE,
+                opacity: active ? 1 : 0,
+                transition: 'opacity 0.55s ease',
+              }}
+            />
+
+            {/* Layer 3: top vignette — always on, removes pixelated top edge */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: GRADIENT_TOP }}
             />
 
             {/* Separator */}
@@ -131,9 +162,9 @@ export default function ArtistHero() {
                     : isHovered
                     ? 'clamp(2.5rem, 4vw, 4.5rem)'
                     : 'clamp(1rem, 2vw, 2rem)',
-                  color: active ? '#ffffff' : 'white',
+                  color: '#ffffff',
                   opacity: !isMobile && anyHovered && !isHovered ? 0.35 : 1,
-                  transition: 'font-size 0.5s ease, color 0.35s ease, opacity 0.35s ease',
+                  transition: 'font-size 0.5s ease, opacity 0.35s ease',
                   letterSpacing: '0.02em',
                 }}
               >
