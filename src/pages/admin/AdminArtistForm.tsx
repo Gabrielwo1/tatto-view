@@ -2,6 +2,7 @@ import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import ImageCropper from '../../components/ImageCropper';
+import { uploadImage } from '../../lib/uploadImage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -16,6 +17,7 @@ export default function AdminArtistForm() {
   const existing = id ? artists.find((a) => a.id === id) : null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cropSrc, setCropSrc] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState({
     name: existing?.name ?? '',
@@ -50,12 +52,15 @@ export default function AdminArtistForm() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setUploading(true);
+    const photoUrl = await uploadImage(form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`);
+    setUploading(false);
     const data = {
       name: form.name,
       bio: form.bio,
-      photoUrl: form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`,
+      photoUrl,
       specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
       instagram: form.instagram || undefined,
       whatsapp: form.whatsapp || undefined,
@@ -179,9 +184,9 @@ export default function AdminArtistForm() {
         </div>
 
         <div className="flex gap-3 pt-2">
-          <button type="submit"
-            className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
-            {existing ? 'Salvar' : 'Criar Artista'}
+          <button type="submit" disabled={uploading}
+            className="flex-1 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
+            {uploading ? 'Enviando…' : existing ? 'Salvar' : 'Criar Artista'}
           </button>
           <Link to="/admin/artistas"
             className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors text-center">
