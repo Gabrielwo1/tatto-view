@@ -1,13 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
     <nav className="bg-black border-b border-white/10 sticky top-0 z-50">
       <div className="px-6 lg:px-10">
-        <div className="relative flex items-center justify-between h-16">
+        <div
+          className="relative flex items-center justify-between transition-all duration-500 ease-in-out"
+          style={{ height: scrolled ? '64px' : '192px' }}
+        >
           {/* Left: Menu toggle */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -22,11 +32,12 @@ export default function Navbar() {
           </button>
 
           {/* Center: Logo */}
-          <Link to="/" className="absolute left-0 right-0 flex justify-center items-center pointer-events-none translate-y-8">
+          <Link to="/" className="absolute left-0 right-0 flex justify-center items-center pointer-events-none">
             <img
               src="/eldude logo.png"
               alt="El Dude"
-              className="w-[5cm] h-auto object-contain pointer-events-auto"
+              className="h-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
+              style={{ width: scrolled ? '5cm' : '15cm' }}
             />
           </Link>
 

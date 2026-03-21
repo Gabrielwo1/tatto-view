@@ -18,6 +18,7 @@ export default function ArtistHero() {
   const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -25,14 +26,22 @@ export default function ArtistHero() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   if (artists.length === 0) return null;
+
+  const navbarHeight = scrolled ? 64 : 192;
 
   return (
     <div
-      className="flex w-full overflow-hidden"
+      className="flex w-full overflow-hidden transition-all duration-500 ease-in-out"
       style={{
         flexDirection: isMobile ? 'column' : 'row',
-        height: isMobile ? 'auto' : 'calc(100vh - 64px)',
+        height: isMobile ? 'auto' : `calc(100vh - ${navbarHeight}px)`,
       }}
     >
       {artists.map((artist, idx) => {
