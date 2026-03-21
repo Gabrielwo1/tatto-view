@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store';
 import Navbar from './components/Navbar';
@@ -32,6 +33,12 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const loadData = useStore((s) => s.loadData);
+
+  useEffect(() => {
+    loadData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <BrowserRouter>
       <Routes>
