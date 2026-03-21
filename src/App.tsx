@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store';
-import { applyTheme, getThemeForHostname } from './lib/themes';
+import { applyTheme, getThemeForHostname, THEMES } from './lib/themes';
 import Navbar from './components/Navbar';
 import ShowcasePage from './pages/ShowcasePage';
 import ArchivedPage from './pages/ArchivedPage';
@@ -14,6 +14,7 @@ import AdminTattoos from './pages/admin/AdminTattoos';
 import AdminTattooForm from './pages/admin/AdminTattooForm';
 import AdminArtists from './pages/admin/AdminArtists';
 import AdminArtistForm from './pages/admin/AdminArtistForm';
+import AdminSettings from './pages/admin/AdminSettings';
 import GuestsPage from './pages/GuestsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
@@ -35,9 +36,15 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const loadData = useStore((s) => s.loadData);
+  const themeId  = useStore((s) => s.themeId);
+
+  // Apply theme on mount and whenever the admin changes it
+  useEffect(() => {
+    const id = (themeId && THEMES[themeId]) ? themeId : getThemeForHostname(window.location.hostname);
+    applyTheme(id);
+  }, [themeId]);
 
   useEffect(() => {
-    applyTheme(getThemeForHostname(window.location.hostname));
     loadData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -115,6 +122,7 @@ export default function App() {
           <Route path="artistas" element={<AdminArtists />} />
           <Route path="artistas/novo" element={<AdminArtistForm />} />
           <Route path="artistas/:id/editar" element={<AdminArtistForm />} />
+          <Route path="configuracoes" element={<AdminSettings />} />
         </Route>
 
         {/* Fallback */}

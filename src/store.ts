@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Tattoo, Artist, Merch } from './types';
+import type { ThemeId } from './lib/themes';
 import { supabase } from './lib/supabase';
 
 // ── Row → App type converters (snake_case → camelCase) ──────────────────────
@@ -77,6 +78,9 @@ interface AppState {
   isAdmin: boolean;
   /** True once Supabase data has been loaded (or if Supabase is not configured). */
   dataLoaded: boolean;
+  /** Theme chosen by the studio admin. null = use subdomain default. */
+  themeId: ThemeId | null;
+  setTheme: (id: ThemeId | null) => void;
   loadData: () => Promise<void>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
@@ -102,6 +106,8 @@ export const useStore = create<AppState>()(
       merchs: [],
       isAdmin: false,
       dataLoaded: false,
+      themeId: null,
+      setTheme: (id) => set({ themeId: id }),
 
       // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
@@ -255,6 +261,7 @@ export const useStore = create<AppState>()(
       // but localStorage ensures data survives if Supabase is unavailable
       partialize: (state) => ({
         isAdmin: state.isAdmin,
+        themeId: state.themeId,
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
