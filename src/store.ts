@@ -4,6 +4,128 @@ import type { Tattoo, Artist, Merch } from './types';
 import type { ThemeId } from './lib/themes';
 import { supabase } from './lib/supabase';
 
+// ── Guest Page Content ───────────────────────────────────────────────────────
+export interface GuestContent {
+  hero: {
+    tagline: string;
+    titleBefore: string;
+    titleHighlight: string;
+    titleAfter: string;
+    description: string;
+    location: string;
+  };
+  commission: {
+    sectionTagline: string;
+    cardTagline: string;
+    percentage: string;
+    splitLabel: string;
+    includedLabel: string;
+    includedItems: string[];
+    studioTitle: string;
+    studioDescription: string;
+    studioFeatures: Array<{ icon: string; text: string }>;
+  };
+  environment: {
+    sectionTagline: string;
+    titleBefore: string;
+    titleHighlight: string;
+    titleAfter: string;
+    description1: string;
+    description2: string;
+    stats: Array<{ value: string; label: string }>;
+  };
+  profiles: {
+    sectionTagline: string;
+    items: Array<{ n: string; title: string; body: string }>;
+  };
+  cta: {
+    tagline: string;
+    titleLine1: string;
+    titleLine2: string;
+    footnote: string;
+    whatsapp: string;
+    email: string;
+  };
+}
+
+const defaultGuestContent: GuestContent = {
+  hero: {
+    tagline: 'Oportunidades — Artistas',
+    titleBefore: 'Tatue',
+    titleHighlight: 'com',
+    titleAfter: 'a gente',
+    description:
+      'Artistas tatuadores que querem crescer, colaborar e deixar sua marca num coletivo comprometido com excelência artística. Tatue por temporada e integre uma rede que valoriza o seu trabalho.',
+    location: 'São Paulo, Brasil',
+  },
+  commission: {
+    sectionTagline: 'Transparência — Condições',
+    cardTagline: 'Estrutura de comissão transparente',
+    percentage: '30%',
+    splitLabel: 'Split do estúdio',
+    includedLabel: 'Incluso',
+    includedItems: [
+      'Ficha de anamnese digital',
+      'Esterilização e insumos básicos',
+      'Divulgação no perfil do estúdio',
+      'Apoio no agendamento',
+    ],
+    studioTitle: 'Estúdio Estruturado',
+    studioDescription:
+      'Espaço com recepção, banheiros, impressoras térmicas e ambiente climatizado para seu conforto e precisão.',
+    studioFeatures: [
+      { icon: '◈', text: 'Wi-Fi de alta velocidade' },
+      { icon: '◉', text: 'Estação individual equipada' },
+      { icon: '◆', text: 'Iluminação profissional' },
+    ],
+  },
+  environment: {
+    sectionTagline: 'Ambiente — Excelência',
+    titleBefore: 'O ambiente',
+    titleHighlight: 'define',
+    titleAfter: 'a arte',
+    description1:
+      'Acreditamos que o espaço onde você trabalha reflete diretamente na qualidade do que você produz. Nosso estúdio é curado para eliminar distrações e maximizar a concentração.',
+    description2:
+      'Cada artista guest tem uma estação dedicada com tecnologia necessária para entregar o melhor trabalho da sua carreira.',
+    stats: [
+      { value: '+5', label: 'Anos de estúdio' },
+      { value: '100%', label: 'Agenda digital' },
+      { value: '48h', label: 'Resposta garantida' },
+      { value: '1:1', label: 'Estação por artista' },
+    ],
+  },
+  profiles: {
+    sectionTagline: 'Perfil — Quem buscamos',
+    items: [
+      {
+        n: '01',
+        title: 'Portfólio sólido',
+        body: 'Mínimo de 2 anos de experiência e portfólio consistente com pelo menos 10 peças concluídas.',
+      },
+      {
+        n: '02',
+        title: 'Comprometimento',
+        body: 'Disponibilidade mínima de 2 semanas por temporada, com agenda organizada e clientes confirmados.',
+      },
+      {
+        n: '03',
+        title: 'Postura profissional',
+        body: 'Respeito ao ambiente coletivo, pontualidade e cuidado com os espaços compartilhados.',
+      },
+    ],
+  },
+  cta: {
+    tagline: 'Pronto para evoluir?',
+    titleLine1: 'Submeta seu',
+    titleLine2: 'portfólio',
+    footnote:
+      'Certifique-se de que seu portfólio inclua pelo menos 10 exemplos de trabalhos concluídos. Respondemos a todos os candidatos aprovados em até 48 horas.',
+    whatsapp: 'https://wa.me/5511999999999',
+    email: 'contato@eldude.com',
+  },
+};
+
 // ── Row → App type converters (snake_case → camelCase) ──────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toTattoo(r: any): Tattoo {
@@ -81,6 +203,9 @@ interface AppState {
   /** Theme chosen by the studio admin. null = use subdomain default. */
   themeId: ThemeId | null;
   setTheme: (id: ThemeId | null) => void;
+  /** Guest page content editable by admin */
+  guestContent: GuestContent;
+  setGuestContent: (content: GuestContent) => void;
   loadData: () => Promise<void>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
@@ -108,6 +233,8 @@ export const useStore = create<AppState>()(
       dataLoaded: false,
       themeId: null,
       setTheme: (id) => set({ themeId: id }),
+      guestContent: defaultGuestContent,
+      setGuestContent: (content) => set({ guestContent: content }),
 
       // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
@@ -265,6 +392,7 @@ export const useStore = create<AppState>()(
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
+        guestContent: state.guestContent,
       }),
     }
   )

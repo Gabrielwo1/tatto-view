@@ -15,6 +15,7 @@ import AdminTattooForm from './pages/admin/AdminTattooForm';
 import AdminArtists from './pages/admin/AdminArtists';
 import AdminArtistForm from './pages/admin/AdminArtistForm';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminGuestPage from './pages/admin/AdminGuestPage';
 import GuestsPage from './pages/GuestsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
@@ -131,6 +132,7 @@ export default function App() {
           <Route path="artistas" element={<AdminArtists />} />
           <Route path="artistas/novo" element={<AdminArtistForm />} />
           <Route path="artistas/:id/editar" element={<AdminArtistForm />} />
+          <Route path="guests" element={<AdminGuestPage />} />
           <Route path="configuracoes" element={<AdminSettings />} />
         </Route>
 
