@@ -128,14 +128,14 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function AdminTattoos() {
   const tattoos = useStore((s) => s.tattoos);
-  const artists = useStore((s) => s.artists);
   const deleteTattoo = useStore((s) => s.deleteTattoo);
   const archiveTattoo = useStore((s) => s.archiveTattoo);
   const [filter, setFilter] = useState<'all' | 'available' | 'archived'>('all');
   const [styleFilter, setStyleFilter] = useState('Todos');
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [confirmArchiveOpen, setConfirmArchiveOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const filtered = tattoos
@@ -175,7 +175,14 @@ export default function AdminTattoos() {
     selected.forEach((id) => deleteTattoo(id));
     setSelected(new Set());
     setSelecting(false);
-    setConfirmOpen(false);
+    setConfirmDeleteOpen(false);
+  }
+
+  function confirmArchiveSelected() {
+    selected.forEach((id) => archiveTattoo(id));
+    setSelected(new Set());
+    setSelecting(false);
+    setConfirmArchiveOpen(false);
   }
 
   return (
@@ -277,79 +284,92 @@ export default function AdminTattoos() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 md:gap-2">
           {filtered.map((t) => {
-            const artist = artists.find((a) => a.id === t.artistId);
             const isSelected = selected.has(t.id);
             return (
-              <div
-                key={t.id}
-                className={`group relative aspect-[3/4] overflow-hidden bg-zinc-900 ${selecting ? 'cursor-pointer' : ''}`}
-                onClick={selecting ? () => toggleSelect(t.id) : undefined}
-              >
-                <img
-                  src={t.imageUrl}
-                  alt={t.title}
-                  className={`w-full h-full object-cover transition-all duration-500 ${
-                    selecting ? (isSelected ? 'scale-105 brightness-50' : 'group-hover:brightness-75') : 'group-hover:scale-105'
-                  }`}
-                  onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${t.id}/400/400`; }}
-                />
+              <div key={t.id} className="flex flex-col bg-zinc-900">
+                {/* Image */}
+                <div
+                  className={`relative aspect-[3/4] overflow-hidden ${selecting ? 'cursor-pointer' : ''}`}
+                  onClick={selecting ? () => toggleSelect(t.id) : undefined}
+                >
+                  <img
+                    src={t.imageUrl}
+                    alt={t.title}
+                    className={`w-full h-full object-cover transition-all duration-500 ${
+                      selecting
+                        ? isSelected ? 'scale-105 brightness-50' : 'hover:brightness-75'
+                        : ''
+                    }`}
+                    onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${t.id}/400/400`; }}
+                  />
 
-                {/* Selection overlay */}
-                {selecting && (
-                  <div className={`absolute inset-0 transition-colors duration-200 ${isSelected ? 'bg-blue-500/20' : ''}`}>
-                    <div className={`absolute top-2.5 left-2.5 w-5 h-5 border-2 flex items-center justify-center transition-colors ${
-                      isSelected ? 'bg-white border-white' : 'border-white/70 bg-black/30'
-                    }`}>
-                      {isSelected && (
-                        <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  {/* Selection overlay */}
+                  {selecting && (
+                    <div className={`absolute inset-0 transition-colors duration-200 ${isSelected ? 'bg-blue-500/20' : ''}`}>
+                      <div className={`absolute top-2.5 left-2.5 w-5 h-5 border-2 flex items-center justify-center transition-colors ${
+                        isSelected ? 'bg-white border-white' : 'border-white/70 bg-black/30'
+                      }`}>
+                        {isSelected && (
+                          <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status dot */}
+                  {!selecting && (
+                    <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${t.status === 'available' ? 'bg-white' : 'bg-white/30'}`} />
+                  )}
+                </div>
+
+                {/* Always-visible action bar */}
+                {!selecting && (
+                  <div className="flex items-center border-t border-white/8 bg-zinc-900">
+                    {/* Title */}
+                    <p className="flex-1 px-2 py-1.5 font-display text-[9px] text-white/50 uppercase tracking-wide truncate">
+                      {t.title}
+                    </p>
+                    {/* Archive / Unarchive */}
+                    <button
+                      onClick={() => archiveTattoo(t.id)}
+                      title={t.status === 'available' ? 'Arquivar' : 'Disponibilizar'}
+                      className="p-2 text-white/30 hover:text-white transition-colors border-l border-white/8"
+                    >
+                      {t.status === 'available' ? (
+                        // archive icon
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                      ) : (
+                        // unarchive icon
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12v4m0 0l-2-2m2 2l2-2" />
                         </svg>
                       )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Status dot */}
-                {!selecting && (
-                  <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${t.status === 'available' ? 'bg-white' : 'bg-white/30'}`} />
-                )}
-
-                {/* Hover overlay */}
-                {!selecting && (
-                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-2.5">
-                    <div>
-                      <p className="font-display text-xs text-white uppercase tracking-wide leading-tight line-clamp-2">{t.title}</p>
-                      <p className="font-body text-[10px] text-gray-500 mt-0.5 truncate">{artist?.name ?? 'Estúdio'}</p>
-                      {t.price && <p className="font-body text-[10px] text-gray-400">{t.price}</p>}
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => archiveTattoo(t.id)}
-                        title={t.status === 'available' ? 'Arquivar' : 'Disponibilizar'}
-                        className="flex-1 py-0.5 border border-white/30 text-white/70 hover:text-white hover:border-white text-[9px] font-body tracking-widest uppercase transition-colors text-center"
-                      >
-                        {t.status === 'available' ? 'Arquivar' : 'Ativar'}
-                      </button>
-                      {/* Edit inline */}
-                      <button
-                        onClick={() => setEditingId(t.id)}
-                        className="p-2 border border-white/20 text-white/60 hover:text-white hover:border-white transition-colors"
-                        title="Editar informações"
-                      >
-                        <svg style={{ width: '18px', height: '18px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(t.id, t.title)}
-                        className="p-2 border border-white/10 text-white/30 hover:text-white hover:border-white/60 transition-colors"
-                        title="Excluir"
-                      >
-                        <svg style={{ width: '18px', height: '18px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+                    </button>
+                    {/* Edit */}
+                    <button
+                      onClick={() => setEditingId(t.id)}
+                      title="Editar informações"
+                      className="p-2 text-white/30 hover:text-white transition-colors border-l border-white/8"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    {/* Delete */}
+                    <button
+                      onClick={() => handleDelete(t.id, t.title)}
+                      title="Excluir"
+                      className="p-2 text-white/20 hover:text-red-400 transition-colors border-l border-white/8"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   </div>
                 )}
               </div>
@@ -365,20 +385,53 @@ export default function AdminTattoos() {
             <span className="text-white font-bold">{selected.size}</span> selecionada{selected.size !== 1 ? 's' : ''}
           </span>
           <div className="w-px h-5 bg-white/20" />
+          {/* Archive selected */}
           <button
-            onClick={() => setConfirmOpen(true)}
+            onClick={() => setConfirmArchiveOpen(true)}
+            className="flex items-center gap-2 bg-zinc-700 hover:bg-zinc-600 text-white font-body font-bold text-xs tracking-widest uppercase px-5 py-2 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+            Arquivar
+          </button>
+          {/* Delete selected */}
+          <button
+            onClick={() => setConfirmDeleteOpen(true)}
             className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-body font-bold text-xs tracking-widest uppercase px-5 py-2 transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Excluir selecionadas
+            Excluir
           </button>
         </div>
       )}
 
+      {/* Confirm archive modal */}
+      {confirmArchiveOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-zinc-900 border border-white/20 p-8 max-w-sm w-full mx-4">
+            <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-2">Arquivar selecionadas</h2>
+            <p className="font-body text-sm text-gray-400 mb-6">
+              Arquivar{' '}
+              <span className="text-white font-bold">{selected.size} tatuagem{selected.size !== 1 ? 's' : ''}</span>?
+              Você pode reativar depois.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmArchiveOpen(false)} className="flex-1 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
+                Cancelar
+              </button>
+              <button onClick={confirmArchiveSelected} className="flex-1 py-3 bg-zinc-600 hover:bg-zinc-500 text-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
+                Arquivar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Confirm delete modal */}
-      {confirmOpen && (
+      {confirmDeleteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="bg-zinc-900 border border-white/20 p-8 max-w-sm w-full mx-4">
             <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-2">Confirmar exclusão</h2>
@@ -388,7 +441,7 @@ export default function AdminTattoos() {
               Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmOpen(false)} className="flex-1 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
+              <button onClick={() => setConfirmDeleteOpen(false)} className="flex-1 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
                 Cancelar
               </button>
               <button onClick={confirmDeleteSelected} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
