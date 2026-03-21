@@ -109,7 +109,7 @@ export default function AftercareePage() {
       <div className="max-w-5xl mx-auto px-6 lg:px-10">
 
         {/* ── HERO ───────────────────────────────────────────────────── */}
-        <div className="pt-16 md:pt-24 pb-16 md:pb-20 grid md:grid-cols-2 gap-8 items-end">
+        <div className="pt-16 md:pt-24 pb-16 md:pb-20 grid md:grid-cols-2 gap-8 items-center">
           <div>
             <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-6">
               Guia de Cuidados
@@ -119,8 +119,9 @@ export default function AftercareePage() {
               <span style={{ color: 'rgb(var(--ink-500))' }}>Tat</span>too
             </h1>
           </div>
-          <div className="md:pb-2">
-            <p className="font-body text-sm text-white/50 leading-relaxed">
+          <div>
+            <div className="w-8 h-px bg-white/20 mb-6" />
+            <p className="font-body text-base text-white/50 leading-relaxed">
               A arte na pele é um investimento vitalício. Este guia detalha o protocolo
               necessário para garantir uma cura perfeita e a longevidade da sua nova tatuagem.
               Siga cada etapa para preservar a qualidade do trabalho.

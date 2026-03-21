@@ -50,18 +50,20 @@ export default function GuestsPage() {
       {/* ── 01 HERO ────────────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-10 pt-16 md:pt-24 pb-16 md:pb-20 border-b border-white/8">
         <div className="max-w-5xl mx-auto">
-          <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-8">
-            {gc.hero.tagline}
-          </p>
-          <div className="grid md:grid-cols-2 gap-8 items-end">
-            <h1 className="font-display text-[clamp(3rem,10vw,7.5rem)] uppercase leading-none tracking-tight text-white">
-              {gc.hero.titleBefore}<br />
-              <span style={{ color: 'rgb(var(--ink-500))' }}>{gc.hero.titleHighlight}</span><br />
-              {gc.hero.titleAfter}
-            </h1>
-            <div className="pb-1">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-6">
+                {gc.hero.tagline}
+              </p>
+              <h1 className="font-display text-[clamp(3rem,10vw,7.5rem)] uppercase leading-none tracking-tight text-white">
+                {gc.hero.titleBefore}<br />
+                <span style={{ color: 'rgb(var(--ink-500))' }}>{gc.hero.titleHighlight}</span><br />
+                {gc.hero.titleAfter}
+              </h1>
+            </div>
+            <div>
               <div className="w-8 h-px bg-white/20 mb-6" />
-              <p className="font-body text-sm text-white/50 leading-relaxed">
+              <p className="font-body text-base text-white/50 leading-relaxed">
                 {gc.hero.description}
               </p>
               <div className="flex items-center gap-2 text-white/25 mt-6">
@@ -76,6 +78,7 @@ export default function GuestsPage() {
             </div>
           </div>
         </div>
+
       </section>
 
       {/* ── 02 COMISSÃO ────────────────────────────────────────────────────── */}
