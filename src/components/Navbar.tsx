@@ -32,7 +32,7 @@ export default function Navbar() {
           </button>
 
           {/* Center: Logo */}
-          <Link to="/" className="absolute inset-0 flex justify-center items-center pointer-events-none">
+          <Link to="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <img
               src="/eldude logo.png"
               alt="El Dude"
