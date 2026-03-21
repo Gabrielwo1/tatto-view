@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { TATTOO_STYLES } from '../../types';
 import ImageCropper from '../../components/ImageCropper';
+import { uploadImage, uploadImages } from '../../lib/uploadImage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -64,6 +65,9 @@ export default function AdminTattooForm() {
   const updateTattoo = useStore((s) => s.updateTattoo);
   const existing = id ? tattoos.find((t) => t.id === id) : null;
 
+  // ── Shared upload state ───────────────────────────────────────────────────
+  const [uploading, setUploading] = useState(false);
+
   // ── Edit mode state ───────────────────────────────────────────────────────
   const editFileRef = useRef<HTMLInputElement>(null);
   const [editCropSrc, setEditCropSrc] = useState('');
@@ -96,10 +100,14 @@ export default function AdminTattooForm() {
     setEditCropSrc('');
     if (editFileRef.current) editFileRef.current.value = '';
   }
-  function handleEditSubmit(e: FormEvent) {
+  async function handleEditSubmit(e: FormEvent) {
     e.preventDefault();
+    setUploading(true);
+    const imageUrl = await uploadImage(editForm.imageUrl);
+    setUploading(false);
     updateTattoo(existing!.id, {
       ...editForm,
+      imageUrl,
       artistId: editForm.artistId || null,
       status: editForm.status as 'available' | 'archived',
     });
@@ -141,12 +149,15 @@ export default function AdminTattooForm() {
     setItems((prev) => prev.map((it) => ({ ...it, [field]: value })));
   }
 
-  function saveAll() {
-    items.forEach((item) => {
+  async function saveAll() {
+    setUploading(true);
+    const urls = await uploadImages(items.map((it) => it.imageUrl));
+    setUploading(false);
+    items.forEach((item, i) => {
       addTattoo({
         title: item.title || 'Sem título',
         description: item.description || '',
-        imageUrl: item.imageUrl,
+        imageUrl: urls[i],
         style: item.style,
         price: item.price,
         artistId: item.artistId || null,
@@ -227,8 +238,9 @@ export default function AdminTattooForm() {
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
-                  Salvar
+                <button type="submit" disabled={uploading}
+                  className="flex-1 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
+                  {uploading ? 'Enviando…' : 'Salvar'}
                 </button>
                 <Link to="/admin/tatuagens" className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors text-center">
                   Cancelar
@@ -606,9 +618,10 @@ export default function AdminTattooForm() {
                     <button
                       type="button"
                       onClick={saveAll}
-                      className="flex-1 py-3 bg-amber-400 hover:bg-amber-300 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
+                      disabled={uploading}
+                      className="flex-1 py-3 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
                     >
-                      Salvar {items.length} arte{items.length !== 1 ? 's' : ''}
+                      {uploading ? 'Enviando imagens…' : `Salvar ${items.length} arte${items.length !== 1 ? 's' : ''}`}
                     </button>
                   )}
                 </div>
