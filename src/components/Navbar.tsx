@@ -34,7 +34,7 @@ export default function Navbar() {
           {/* Center: Logo */}
           <Link to="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
             <img
-              src="/eldude logo.png"
+              src="/eldude-nova-logo.png"
               alt="El Dude"
               className="w-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
               style={{ height: scrolled ? '160px' : '880px' }}
