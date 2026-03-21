@@ -18,6 +18,7 @@ import AdminSettings from './pages/admin/AdminSettings';
 import GuestsPage from './pages/GuestsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
+import AftercareePage from './pages/AftercareePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -97,6 +98,14 @@ export default function App() {
           element={
             <PublicLayout>
               <MerchsPage />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/aftercare"
+          element={
+            <PublicLayout>
+              <AftercareePage />
             </PublicLayout>
           }
         />
