@@ -84,6 +84,7 @@ interface AppState {
   updateTattoo: (id: string, updates: Partial<Tattoo>) => void;
   deleteTattoo: (id: string) => void;
   archiveTattoo: (id: string) => void;
+  reorderTattoos: (orderedIds: string[]) => void;
   addArtist: (artist: Omit<Artist, 'id' | 'createdAt'>) => void;
   updateArtist: (id: string, updates: Partial<Artist>) => void;
   deleteArtist: (id: string) => void;
@@ -178,6 +179,15 @@ export const useStore = create<AppState>()(
         set((s) => ({ tattoos: s.tattoos.map((t) => t.id === id ? { ...t, status } : t) }));
         supabase?.from('tattoos').update({ status }).eq('id', id)
           .then(({ error }) => { if (error) console.error('[store] archiveTattoo:', error); });
+      },
+
+      reorderTattoos: (orderedIds) => {
+        set((s) => {
+          const map = new Map(s.tattoos.map((t) => [t.id, t]));
+          const reordered = orderedIds.map((id) => map.get(id)).filter((t): t is Tattoo => !!t);
+          const rest = s.tattoos.filter((t) => !orderedIds.includes(t.id));
+          return { tattoos: [...reordered, ...rest] };
+        });
       },
 
       // ── Artists ──────────────────────────────────────────────────────────

@@ -17,12 +17,11 @@ export default function AdminDashboard() {
   const available = tattoos.filter((t) => t.status === 'available').length;
   const archived = tattoos.filter((t) => t.status === 'archived').length;
 
-  const recent = [...tattoos]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 9);
+  const allSorted = [...tattoos]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
-    <div className="p-4 md:p-8 max-w-6xl">
+    <div className="p-4 md:p-8">
       {/* Header */}
       <div className="mb-6 md:mb-10">
         <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
@@ -61,19 +60,21 @@ export default function AdminDashboard() {
 
       {/* Recent tattoos grid */}
       <div className="mb-4 flex items-baseline justify-between">
-        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-500">Artes Recentes</p>
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-500">
+          Todas as Artes <span className="text-gray-700 ml-2">{tattoos.length}</span>
+        </p>
         <Link to="/admin/tatuagens" className="font-body text-xs tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-          Ver todas →
+          Gerenciar →
         </Link>
       </div>
 
-      {recent.length === 0 ? (
+      {allSorted.length === 0 ? (
         <div className="border border-white/10 py-16 text-center">
           <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma arte cadastrada</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 md:gap-2">
-          {recent.map((t) => {
+          {allSorted.map((t) => {
             const artist = artists.find((a) => a.id === t.artistId);
             return (
               <Link

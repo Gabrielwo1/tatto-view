@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { TATTOO_STYLES, type Tattoo } from '../../types';
@@ -130,6 +130,7 @@ export default function AdminTattoos() {
   const tattoos = useStore((s) => s.tattoos);
   const deleteTattoo = useStore((s) => s.deleteTattoo);
   const archiveTattoo = useStore((s) => s.archiveTattoo);
+  const reorderTattoos = useStore((s) => s.reorderTattoos);
   const [filter, setFilter] = useState<'all' | 'available' | 'archived'>('all');
   const [styleFilter, setStyleFilter] = useState('Todos');
   const [selecting, setSelecting] = useState(false);
@@ -137,6 +138,8 @@ export default function AdminTattoos() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [confirmArchiveOpen, setConfirmArchiveOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const dragIdRef = useRef<string | null>(null);
 
   const filtered = tattoos
     .filter((t) => filter === 'all' || t.status === filter)
@@ -183,6 +186,25 @@ export default function AdminTattoos() {
     setSelected(new Set());
     setSelecting(false);
     setConfirmArchiveOpen(false);
+  }
+
+  function handleDrop(targetId: string) {
+    const sourceId = dragIdRef.current;
+    if (!sourceId || sourceId === targetId) { setDragOverId(null); return; }
+    // Reorder within the filtered view, then rebuild the full order
+    const filteredIds = filtered.map((t) => t.id);
+    const from = filteredIds.indexOf(sourceId);
+    const to = filteredIds.indexOf(targetId);
+    if (from === -1 || to === -1) { setDragOverId(null); return; }
+    filteredIds.splice(from, 1);
+    filteredIds.splice(to, 0, sourceId);
+    // Map back to full tattoos order
+    const filteredSet = new Set(filtered.map((t) => t.id));
+    let fi = 0;
+    const newFullIds = tattoos.map((t) => (filteredSet.has(t.id) ? filteredIds[fi++] : t.id));
+    reorderTattoos(newFullIds);
+    setDragOverId(null);
+    dragIdRef.current = null;
   }
 
   return (
@@ -285,11 +307,21 @@ export default function AdminTattoos() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 md:gap-2">
           {filtered.map((t) => {
             const isSelected = selected.has(t.id);
+            const isDragOver = dragOverId === t.id;
             return (
-              <div key={t.id} className="flex flex-col bg-zinc-900">
+              <div
+                key={t.id}
+                className={`flex flex-col bg-zinc-900 transition-all duration-150 ${isDragOver ? 'ring-2 ring-white/60 scale-[0.97]' : ''}`}
+                draggable={!selecting}
+                onDragStart={() => { dragIdRef.current = t.id; }}
+                onDragOver={(e) => { e.preventDefault(); if (dragIdRef.current && dragIdRef.current !== t.id) setDragOverId(t.id); }}
+                onDragLeave={() => setDragOverId(null)}
+                onDrop={() => handleDrop(t.id)}
+                onDragEnd={() => { dragIdRef.current = null; setDragOverId(null); }}
+              >
                 {/* Image */}
                 <div
-                  className={`relative aspect-[3/4] overflow-hidden ${selecting ? 'cursor-pointer' : ''}`}
+                  className={`relative aspect-[3/4] overflow-hidden ${selecting ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}`}
                   onClick={selecting ? () => toggleSelect(t.id) : undefined}
                 >
                   <img
@@ -328,7 +360,7 @@ export default function AdminTattoos() {
                 {!selecting && (
                   <div className="flex items-center border-t border-white/8 bg-zinc-900">
                     {/* Title */}
-                    <p className="flex-1 px-2 py-1.5 font-display text-[9px] text-white/50 uppercase tracking-wide truncate">
+                    <p className="flex-1 px-2 py-2 font-display text-[12px] text-white/60 uppercase tracking-wide truncate">
                       {t.title}
                     </p>
                     {/* Archive / Unarchive */}
