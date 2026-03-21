@@ -70,7 +70,7 @@ CREATE POLICY "public write images" ON storage.objects FOR INSERT WITH CHECK (bu
 -- Só insere se a tabela estiver vazia para não duplicar.
 
 INSERT INTO artists (id, name, bio, photo_url, specialties, created_at)
-SELECT id, name, bio, photo_url, specialties, created_at FROM (VALUES
+SELECT id, name, bio, photo_url, specialties, created_at::timestamptz FROM (VALUES
   ('artist-1', 'Braian Otovicz',      '', '/braiansite.jpeg',   ARRAY[]::text[], '2025-01-01T00:00:00Z'),
   ('artist-2', 'Luiz Balestro',       '', '/luiisite.jpeg',     ARRAY[]::text[], '2025-01-02T00:00:00Z'),
   ('artist-3', 'Matheus de Oliveira', '', '/douglastatt.jpeg',  ARRAY[]::text[], '2025-01-03T00:00:00Z'),
