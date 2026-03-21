@@ -16,7 +16,7 @@ export default function Navbar() {
       <div className="px-6 lg:px-10">
         <div
           className="relative flex items-center justify-between transition-all duration-500 ease-in-out"
-          style={{ height: scrolled ? '64px' : '192px' }}
+          style={{ height: scrolled ? '64px' : '280px' }}
         >
           {/* Left: Menu toggle */}
           <button
@@ -37,7 +37,7 @@ export default function Navbar() {
               src="/eldude logo.png"
               alt="El Dude"
               className="w-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
-              style={{ height: scrolled ? '40px' : '140px' }}
+              style={{ height: scrolled ? '40px' : '220px' }}
             />
           </Link>
 
