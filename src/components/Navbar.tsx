@@ -36,8 +36,8 @@ export default function Navbar() {
             <img
               src="/eldude logo.png"
               alt="El Dude"
-              className="h-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
-              style={{ width: scrolled ? '5cm' : '15cm' }}
+              className="w-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
+              style={{ height: scrolled ? '40px' : '140px' }}
             />
           </Link>
 
