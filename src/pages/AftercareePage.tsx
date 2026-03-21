@@ -112,11 +112,11 @@ export default function AftercareePage() {
         <div className="pt-16 md:pt-24 pb-16 md:pb-20 grid md:grid-cols-2 gap-8 items-end">
           <div>
             <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-6">
-              Manual de Preservação
+              Guia de Cuidados
             </p>
             <h1 className="font-display text-6xl md:text-8xl uppercase tracking-tight leading-none">
               Pós<br />
-              <span style={{ color: 'rgb(var(--ink-500))' }}>Cuida</span>dos
+              <span style={{ color: 'rgb(var(--ink-500))' }}>Tat</span>too
             </h1>
           </div>
           <div className="md:pb-2">
