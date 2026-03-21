@@ -32,7 +32,7 @@ export default function ArtistHero() {
       className="flex w-full overflow-hidden"
       style={{
         flexDirection: isMobile ? 'column' : 'row',
-        height: isMobile ? 'auto' : 'calc(100vh - 128px)',
+        height: isMobile ? 'auto' : 'calc(100vh - 64px)',
       }}
     >
       {artists.map((artist, idx) => {
