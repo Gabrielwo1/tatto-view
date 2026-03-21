@@ -117,7 +117,7 @@ export default function AdminTattooForm() {
   // ── Batch wizard state ────────────────────────────────────────────────────
   const batchFileRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<BatchItem[]>([]);
-  const [phase, setPhase] = useState<'upload' | 'details'>('upload');
+  const [phase, setPhase] = useState<'upload' | 'details' | 'review'>('upload');
   const [currentIdx, setCurrentIdx] = useState(0);
   const [cropItemId, setCropItemId] = useState<string | null>(null);
 
@@ -308,9 +308,11 @@ export default function AdminTattooForm() {
 
       {/* Step indicators */}
       <div className="flex items-center gap-3 mb-8">
-        <StepBadge n={1} label="Fotos" active={phase === 'upload'} done={phase === 'details'} />
+        <StepBadge n={1} label="Fotos"    active={phase === 'upload'}  done={phase === 'details' || phase === 'review'} />
         <div className="flex-1 h-px bg-white/10 max-w-16" />
-        <StepBadge n={2} label="Detalhes" active={phase === 'details'} done={false} />
+        <StepBadge n={2} label="Detalhes" active={phase === 'details'} done={phase === 'review'} />
+        <div className="flex-1 h-px bg-white/10 max-w-16" />
+        <StepBadge n={3} label="Salvar"   active={phase === 'review'}  done={false} />
       </div>
 
       {/* ── PHASE 1: UPLOAD ─────────────────────────────────────────────────── */}
@@ -422,6 +424,85 @@ export default function AdminTattooForm() {
             )}
           </div>
         )
+      )}
+
+      {/* ── PHASE 3: REVIEW & SAVE ──────────────────────────────────────────── */}
+      {phase === 'review' && (
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <p className="font-body text-sm text-gray-400">
+              Confira as <span className="text-white font-bold">{items.length} arte{items.length !== 1 ? 's' : ''}</span> antes de salvar
+            </p>
+            <button
+              type="button"
+              onClick={() => { setPhase('details'); setCurrentIdx(items.length - 1); }}
+              className="font-body text-[10px] text-gray-600 hover:text-white tracking-widest uppercase transition-colors"
+            >
+              ← Voltar e editar
+            </button>
+          </div>
+
+          {/* Review grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-8">
+            {items.map((item, idx) => {
+              const artist = artists.find((a) => a.id === item.artistId);
+              return (
+                <div key={item.id} className="relative group">
+                  <div className="relative aspect-[3/4] overflow-hidden bg-zinc-900">
+                    <img src={item.imageUrl} alt={item.title || `Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                      <button
+                        type="button"
+                        onClick={() => { setCurrentIdx(idx); setPhase('details'); }}
+                        className="w-full py-1.5 border border-white/40 text-white font-body text-[9px] tracking-widest uppercase hover:border-white transition-colors"
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-1.5 space-y-0.5">
+                    <p className="font-display text-xs text-white uppercase tracking-wide leading-tight truncate">
+                      {item.title || <span className="text-gray-600 italic normal-case font-body">Sem título</span>}
+                    </p>
+                    <p className="font-body text-[10px] text-gray-600 truncate">{item.style}</p>
+                    {item.price && <p className="font-body text-[10px] text-gray-500">{item.price}</p>}
+                    {artist && <p className="font-body text-[10px] text-gray-600 truncate">{artist.name}</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Save button */}
+          <div className="border-t border-white/10 pt-6">
+            <button
+              type="button"
+              onClick={saveAll}
+              disabled={uploading}
+              className="w-full py-4 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-sm tracking-widest uppercase transition-colors flex items-center justify-center gap-3"
+            >
+              {uploading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  Salvando imagens…
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Salvar {items.length} arte{items.length !== 1 ? 's' : ''}
+                </>
+              )}
+            </button>
+            <p className="text-center font-body text-[10px] text-gray-700 mt-3 tracking-widest uppercase">
+              As imagens serão salvas no localStorage e sincronizadas com o Supabase
+            </p>
+          </div>
+        </div>
       )}
 
       {/* ── PHASE 2: DETAILS ────────────────────────────────────────────────── */}
@@ -617,11 +698,10 @@ export default function AdminTattooForm() {
                   ) : (
                     <button
                       type="button"
-                      onClick={saveAll}
-                      disabled={uploading}
-                      className="flex-1 py-3 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
+                      onClick={() => setPhase('review')}
+                      className="flex-1 py-3 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors flex items-center justify-center gap-2"
                     >
-                      {uploading ? 'Enviando imagens…' : `Salvar ${items.length} arte${items.length !== 1 ? 's' : ''}`}
+                      Revisar e salvar →
                     </button>
                   )}
                 </div>
