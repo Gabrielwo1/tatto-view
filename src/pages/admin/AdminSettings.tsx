@@ -2,6 +2,8 @@ import { useStore } from '../../store';
 import { THEMES, applyTheme, getThemeForHostname } from '../../lib/themes';
 import type { ThemeId } from '../../lib/themes';
 
+const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
+
 export default function AdminSettings() {
   const themeId  = useStore((s) => s.themeId);
   const setTheme = useStore((s) => s.setTheme);
@@ -19,6 +21,8 @@ export default function AdminSettings() {
     applyTheme(subdomainDefault);
   }
 
+  const activeTheme = THEMES[active];
+
   return (
     <div className="p-4 md:p-8 max-w-3xl">
       {/* Header */}
@@ -29,90 +33,132 @@ export default function AdminSettings() {
         </h1>
       </div>
 
-      {/* ── Aparência ── */}
+      {/* ── Aparência ─────────────────────────────────────────────────────── */}
       <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Aparência
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Escolha a cor de destaque do site. A mudança é aplicada imediatamente.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {(Object.values(THEMES) as (typeof THEMES)[ThemeId][]).map((theme) => {
-            const isActive = theme.id === active;
-            return (
-              <button
-                key={theme.id}
-                type="button"
-                onClick={() => handleSelect(theme.id)}
-                className={`flex items-center gap-4 px-4 py-3.5 border text-left transition-all ${
-                  isActive
-                    ? 'border-white bg-white/5'
-                    : 'border-white/10 hover:border-white/30 hover:bg-white/[0.03]'
-                }`}
-              >
-                {/* Color swatch */}
-                <span
-                  className="w-8 h-8 rounded-full flex-shrink-0 transition-all"
-                  style={{
-                    backgroundColor: theme.accent,
-                    boxShadow: isActive ? `0 0 0 2px #09090b, 0 0 0 4px ${theme.accent}` : 'none',
-                  }}
-                />
-
-                {/* Labels */}
-                <div className="flex-1 min-w-0">
-                  <p className={`font-display text-base uppercase tracking-wide leading-none mb-0.5 ${isActive ? 'text-white' : 'text-gray-400'}`}>
-                    {theme.label}
-                  </p>
-                  <p className="font-body text-xs text-gray-600 truncate">{theme.description}</p>
-                </div>
-
-                {/* Active check */}
-                {isActive && (
-                  <svg className="w-4 h-4 flex-shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Reset */}
-        {themeId !== null && (
-          <div className="mt-4">
+        <div className="mb-6 flex items-end justify-between">
+          <div>
+            <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
+              Aparência
+            </h2>
+            <p className="font-body text-xs text-gray-500">
+              Cor de destaque aplicada em todo o site instantaneamente.
+            </p>
+          </div>
+          {themeId !== null && (
             <button
               type="button"
               onClick={handleReset}
-              className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5"
+              className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors shrink-0 ml-4"
             >
-              Restaurar padrão do subdomínio
+              ↩ Restaurar padrão
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Preview indicator */}
-        <div className="mt-6 px-4 py-3 border border-white/10 bg-black/30">
-          <p className="font-body text-xs text-gray-500">
-            Tema ativo:{' '}
-            <span className="text-white font-semibold" style={{ color: THEMES[active].accent }}>
-              {THEMES[active].label}
+        {/* Active theme hero banner */}
+        <div
+          className="mb-5 px-5 py-4 flex items-center gap-4 border border-white/10 bg-black/40 transition-all duration-300"
+          style={{ borderLeftColor: activeTheme.accent, borderLeftWidth: 3 }}
+        >
+          <span
+            className="w-10 h-10 rounded-full shrink-0 block"
+            style={{
+              backgroundColor: activeTheme.accent,
+              boxShadow: `0 0 20px ${activeTheme.accent}55`,
+            }}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-display text-lg uppercase tracking-wide text-white leading-none">
+                {activeTheme.label}
+              </p>
+              <span
+                className="font-body text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5"
+                style={{ backgroundColor: activeTheme.accent + '22', color: activeTheme.accent }}
+              >
+                Ativo
+              </span>
+              {themeId === null && (
+                <span className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-700">
+                  · padrão
+                </span>
+              )}
+            </div>
+            <p className="font-body text-xs text-gray-500">{activeTheme.description}</p>
+          </div>
+          {/* Live accent preview */}
+          <div className="hidden sm:flex flex-col items-end gap-1.5 shrink-0">
+            <span
+              className="font-display text-xs uppercase tracking-widest"
+              style={{ color: activeTheme.accent }}
+            >
+              El Dude
             </span>
-            {themeId === null && (
-              <span className="text-gray-700 ml-2">(padrão do subdomínio)</span>
-            )}
-          </p>
+            <span className="flex gap-1">
+              {[900, 700, 500, 300, 100].map((stop) => (
+                <span
+                  key={stop}
+                  className="w-4 h-2 rounded-sm"
+                  style={{
+                    backgroundColor: `rgb(var(--ink-${stop}))`,
+                    opacity: stop === 500 ? 1 : 0.8,
+                  }}
+                />
+              ))}
+            </span>
+          </div>
+        </div>
+
+        {/* Theme grid */}
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+          {THEME_ORDER.map((id) => {
+            const theme = THEMES[id];
+            const isActive = id === active;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => handleSelect(id)}
+                title={`${theme.label} — ${theme.description}`}
+                className="group flex flex-col items-center gap-2 py-3 px-1 rounded-none transition-all focus:outline-none"
+              >
+                {/* Circle swatch */}
+                <span
+                  className="relative w-10 h-10 rounded-full block transition-all duration-200"
+                  style={{
+                    backgroundColor: theme.accent,
+                    boxShadow: isActive
+                      ? `0 0 0 2px #000, 0 0 0 3px ${theme.accent}, 0 0 16px ${theme.accent}66`
+                      : `0 0 0 1px ${theme.accent}33`,
+                    transform: isActive ? 'scale(1.12)' : undefined,
+                  }}
+                >
+                  {isActive && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </span>
+                  )}
+                </span>
+                {/* Name */}
+                <span
+                  className={`font-body text-[9px] font-bold tracking-widest uppercase transition-colors leading-none ${
+                    isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-400'
+                  }`}
+                >
+                  {theme.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
       {/* ── Divider ── */}
       <div className="my-10 border-t border-white/10" />
 
-      {/* ── Informações do estúdio (read-only) ── */}
+      {/* ── Identificação ────────────────────────────────────────────────── */}
       <section>
         <div className="mb-5">
           <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">

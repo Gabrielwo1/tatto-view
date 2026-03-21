@@ -61,8 +61,14 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
-      {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex w-52 bg-black border-r border-white/10 flex-col flex-shrink-0">
+
+      {/* ── Main content ── */}
+      <main className="flex-1 overflow-auto pt-14 md:pt-0">
+        <Outlet />
+      </main>
+
+      {/* ── Desktop Sidebar (RIGHT) ── */}
+      <aside className="hidden md:flex w-52 bg-black border-l border-white/10 flex-col flex-shrink-0">
         <div className="p-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-3">
             <img src="/eldude-logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
@@ -75,7 +81,7 @@ export default function AdminLayout() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase transition-all border-l-2 ${
+                `flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase transition-all border-r-2 ${
                   isActive
                     ? 'text-white bg-white/8 border-white'
                     : 'text-gray-600 hover:text-white hover:bg-white/5 border-transparent'
@@ -111,6 +117,7 @@ export default function AdminLayout() {
           <img src="/eldude-logo.png" alt="El Dude" className="h-7 w-auto object-contain" />
         </Link>
         <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400">{currentLabel}</span>
+        {/* Hamburger — right side */}
         <button
           onClick={() => setDrawerOpen(true)}
           className="p-2 text-gray-400 hover:text-white transition-colors"
@@ -122,12 +129,10 @@ export default function AdminLayout() {
         </button>
       </div>
 
-      {/* ── Mobile: Drawer overlay ── */}
+      {/* ── Mobile: Drawer (RIGHT) ── */}
       {drawerOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
           <div className="absolute inset-0 bg-black/70" onClick={closeDrawer} />
-          {/* Drawer */}
           <aside className="relative ml-auto w-64 bg-black border-l border-white/10 flex flex-col h-full">
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <Link to="/" onClick={closeDrawer} className="flex items-center gap-3">
@@ -147,7 +152,7 @@ export default function AdminLayout() {
                   to={item.to}
                   onClick={closeDrawer}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase transition-all border-l-2 ${
+                    `flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase transition-all border-r-2 ${
                       isActive
                         ? 'text-white bg-white/8 border-white'
                         : 'text-gray-600 hover:text-white hover:bg-white/5 border-transparent'
@@ -178,11 +183,6 @@ export default function AdminLayout() {
           </aside>
         </div>
       )}
-
-      {/* ── Main content ── */}
-      <main className="flex-1 overflow-auto pt-14 md:pt-0">
-        <Outlet />
-      </main>
     </div>
   );
 }
