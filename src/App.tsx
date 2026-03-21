@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store';
+import { applyTheme, getThemeForHostname } from './lib/themes';
 import Navbar from './components/Navbar';
 import ShowcasePage from './pages/ShowcasePage';
 import ArchivedPage from './pages/ArchivedPage';
@@ -36,6 +37,7 @@ export default function App() {
   const loadData = useStore((s) => s.loadData);
 
   useEffect(() => {
+    applyTheme(getThemeForHostname(window.location.hostname));
     loadData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
