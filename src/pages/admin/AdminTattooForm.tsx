@@ -121,6 +121,7 @@ export default function AdminTattooForm() {
   const [phase, setPhase] = useState<'upload' | 'details' | 'review'>('upload');
   const [currentIdx, setCurrentIdx] = useState(0);
   const [cropItemId, setCropItemId] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   function addFiles(files: FileList) {
     const arr = Array.from(files);
@@ -144,6 +145,14 @@ export default function AdminTattooForm() {
 
   function updateItem(itemId: string, patch: Partial<BatchItem>) {
     setItems((prev) => prev.map((it) => it.id === itemId ? { ...it, ...patch } : it));
+  }
+
+  // Atualiza item atual + propaga o valor para todas as fotos seguintes
+  function updateItemAndPropagate(field: 'style' | 'artistId', value: string) {
+    setItems((prev) => {
+      const idx = prev.findIndex((it) => it.id === current?.id);
+      return prev.map((it, i) => i >= idx ? { ...it, [field]: value } : it);
+    });
   }
 
   function applyToAll(field: keyof BatchItem, value: string) {
@@ -170,7 +179,7 @@ export default function AdminTattooForm() {
         status: item.status,
       });
     });
-    navigate('/admin/tatuagens');
+    setSaved(true);
   }
 
   const current = items[currentIdx];
@@ -302,6 +311,37 @@ export default function AdminTattooForm() {
   // ══════════════════════════════════════════════════════════════════════════
   // BATCH WIZARD — NEW MODE
   // ══════════════════════════════════════════════════════════════════════════
+
+  // ── Confirmação de salvamento ───────────────────────────────────────────
+  if (saved) {
+    return (
+      <div className="p-4 md:p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-sm">
+          <div className="w-14 h-14 bg-amber-400 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-7 h-7 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="font-display text-4xl text-white uppercase tracking-wide leading-none mb-3">
+            Salvo!
+          </h2>
+          <p className="font-body text-sm text-gray-400 mb-1">
+            <span className="text-white font-bold">{items.length} arte{items.length !== 1 ? 's' : ''}</span> adicionada{items.length !== 1 ? 's' : ''} com sucesso.
+          </p>
+          <p className="font-body text-xs text-gray-600 mb-8">
+            As imagens foram salvas e já estão visíveis no portfólio.
+          </p>
+          <button
+            onClick={() => navigate('/admin/tatuagens')}
+            className="w-full py-3.5 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
+          >
+            Ver tatuagens →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-8">
       {/* Header */}
@@ -632,7 +672,7 @@ export default function AdminTattooForm() {
                     <label className={labelCls}>Estilo</label>
                     <select
                       value={current.style}
-                      onChange={(e) => updateItem(current.id, { style: e.target.value })}
+                      onChange={(e) => updateItemAndPropagate('style', e.target.value)}
                       className={`${inputCls} bg-zinc-950`}
                     >
                       {TATTOO_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -654,7 +694,7 @@ export default function AdminTattooForm() {
                     <label className={labelCls}>Artista</label>
                     <select
                       value={current.artistId}
-                      onChange={(e) => updateItem(current.id, { artistId: e.target.value })}
+                      onChange={(e) => updateItemAndPropagate('artistId', e.target.value)}
                       className={`${inputCls} bg-zinc-950`}
                     >
                       <option value="">Estúdio</option>
