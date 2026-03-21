@@ -107,23 +107,23 @@ export default function AdminTattoos() {
                     <button
                       onClick={() => archiveTattoo(t.id)}
                       title={t.status === 'available' ? 'Arquivar' : 'Disponibilizar'}
-                      className="flex-1 py-1 border border-white/30 text-white/70 hover:text-white hover:border-white text-[10px] font-body tracking-widest uppercase transition-colors text-center"
+                      className="flex-1 py-0.5 border border-white/30 text-white/70 hover:text-white hover:border-white text-[9px] font-body tracking-widest uppercase transition-colors text-center"
                     >
                       {t.status === 'available' ? 'Arquivar' : 'Ativar'}
                     </button>
                     <Link
                       to={`/admin/tatuagens/${t.id}/editar`}
-                      className="p-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white transition-colors"
+                      className="p-2 border border-white/20 text-white/60 hover:text-white hover:border-white transition-colors"
                     >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4.5 h-4.5" style={{width:'18px',height:'18px'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </Link>
                     <button
                       onClick={() => handleDelete(t.id, t.title)}
-                      className="p-1.5 border border-white/10 text-white/30 hover:text-white hover:border-white/60 transition-colors"
+                      className="p-2 border border-white/10 text-white/30 hover:text-white hover:border-white/60 transition-colors"
                     >
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg style={{width:'18px',height:'18px'}} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
