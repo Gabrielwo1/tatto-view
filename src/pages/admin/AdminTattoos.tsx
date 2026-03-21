@@ -1,8 +1,131 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
-import { TATTOO_STYLES } from '../../types';
+import { TATTOO_STYLES, type Tattoo } from '../../types';
 
+const inputCls = 'w-full bg-transparent border border-white/15 px-3 py-2 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white/60 transition-colors';
+const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1.5';
+
+// ── Inline edit modal ────────────────────────────────────────────────────────
+function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => void }) {
+  const artists = useStore((s) => s.artists);
+  const updateTattoo = useStore((s) => s.updateTattoo);
+
+  const [form, setForm] = useState({
+    title: tattoo.title,
+    description: tattoo.description,
+    style: tattoo.style,
+    price: tattoo.price ?? '',
+    artistId: tattoo.artistId ?? '',
+    status: tattoo.status,
+  });
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  }
+
+  function handleSave() {
+    updateTattoo(tattoo.id, {
+      ...form,
+      artistId: form.artistId || null,
+      status: form.status as 'available' | 'archived',
+    });
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
+      <div
+        className="bg-zinc-950 border border-white/15 w-full max-w-2xl flex flex-col sm:flex-row overflow-hidden max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Left: image */}
+        <div className="sm:w-52 flex-shrink-0 relative">
+          <img
+            src={tattoo.imageUrl}
+            alt={tattoo.title}
+            className="w-full h-48 sm:h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
+          />
+          <div className={`absolute top-2 right-2 px-2 py-0.5 text-[9px] font-body font-bold tracking-widest uppercase ${
+            form.status === 'available' ? 'bg-white text-black' : 'bg-white/20 text-white/60'
+          }`}>
+            {form.status === 'available' ? 'Disponível' : 'Arquivada'}
+          </div>
+        </div>
+
+        {/* Right: form */}
+        <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-4">
+          <div className="flex items-start justify-between">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Editar arte</p>
+            <button onClick={onClose} className="text-gray-600 hover:text-white transition-colors p-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div>
+            <label className={labelCls}>Título</label>
+            <input name="title" value={form.title} onChange={handleChange} className={inputCls} placeholder="Ex: Leão Realista" />
+          </div>
+
+          <div>
+            <label className={labelCls}>Descrição</label>
+            <textarea name="description" value={form.description} onChange={handleChange} rows={3} className={`${inputCls} resize-none`} placeholder="Descreva a tatuagem..." />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Estilo</label>
+              <select name="style" value={form.style} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
+                {TATTOO_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Preço</label>
+              <input name="price" value={form.price} onChange={handleChange} className={inputCls} placeholder="R$ 500" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Artista</label>
+              <select name="artistId" value={form.artistId} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
+                <option value="">Estúdio</option>
+                {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Status</label>
+              <select name="status" value={form.status} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
+                <option value="available">Disponível</option>
+                <option value="archived">Arquivada</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={handleSave}
+              className="flex-1 py-2.5 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
+            >
+              Salvar
+            </button>
+            <button
+              onClick={onClose}
+              className="px-5 py-2.5 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ────────────────────────────────────────────────────────────────
 export default function AdminTattoos() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
@@ -13,10 +136,13 @@ export default function AdminTattoos() {
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const filtered = tattoos
     .filter((t) => filter === 'all' || t.status === filter)
     .filter((t) => styleFilter === 'Todos' || t.style === styleFilter);
+
+  const editingTattoo = editingId ? tattoos.find((t) => t.id === editingId) ?? null : null;
 
   function handleDelete(id: string, title: string) {
     if (confirm(`Excluir "${title}"? Esta ação não pode ser desfeita.`)) {
@@ -99,9 +225,7 @@ export default function AdminTattoos() {
             className="flex items-center gap-2 text-xs font-body tracking-widest uppercase text-white/70 hover:text-white transition-colors"
           >
             <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${
-              selected.size === filtered.length && filtered.length > 0
-                ? 'bg-white border-white'
-                : 'border-white/40'
+              selected.size === filtered.length && filtered.length > 0 ? 'bg-white border-white' : 'border-white/40'
             }`}>
               {selected.size === filtered.length && filtered.length > 0 && (
                 <svg className="w-2.5 h-2.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,9 +248,7 @@ export default function AdminTattoos() {
             key={s}
             onClick={() => setFilter(s)}
             className={`px-4 py-1.5 text-xs font-body font-semibold tracking-widest uppercase transition-all border ${
-              filter === s
-                ? 'bg-white text-black border-white'
-                : 'bg-transparent text-gray-500 border-gray-700 hover:border-white hover:text-white'
+              filter === s ? 'bg-white text-black border-white' : 'bg-transparent text-gray-500 border-gray-700 hover:border-white hover:text-white'
             }`}
           >
             {s === 'all' ? 'Todas' : s === 'available' ? 'Disponíveis' : 'Arquivadas'}
@@ -139,9 +261,7 @@ export default function AdminTattoos() {
             key={s}
             onClick={() => setStyleFilter(s)}
             className={`px-3 py-1 text-[10px] font-body font-semibold tracking-widest uppercase transition-all border ${
-              styleFilter === s
-                ? 'bg-white/20 text-white border-white/40'
-                : 'bg-transparent text-gray-600 border-gray-800 hover:border-gray-600 hover:text-gray-400'
+              styleFilter === s ? 'bg-white/20 text-white border-white/40' : 'bg-transparent text-gray-600 border-gray-800 hover:border-gray-600 hover:text-gray-400'
             }`}
           >
             {s}
@@ -149,6 +269,7 @@ export default function AdminTattoos() {
         ))}
       </div>
 
+      {/* Grid */}
       {filtered.length === 0 ? (
         <div className="border border-white/10 py-20 text-center">
           <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma encontrada</p>
@@ -170,12 +291,10 @@ export default function AdminTattoos() {
                   className={`w-full h-full object-cover transition-all duration-500 ${
                     selecting ? (isSelected ? 'scale-105 brightness-50' : 'group-hover:brightness-75') : 'group-hover:scale-105'
                   }`}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${t.id}/400/400`;
-                  }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${t.id}/400/400`; }}
                 />
 
-                {/* Selection mode overlay */}
+                {/* Selection overlay */}
                 {selecting && (
                   <div className={`absolute inset-0 transition-colors duration-200 ${isSelected ? 'bg-blue-500/20' : ''}`}>
                     <div className={`absolute top-2.5 left-2.5 w-5 h-5 border-2 flex items-center justify-center transition-colors ${
@@ -190,14 +309,12 @@ export default function AdminTattoos() {
                   </div>
                 )}
 
-                {/* Status dot (hidden in select mode) */}
+                {/* Status dot */}
                 {!selecting && (
-                  <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${
-                    t.status === 'available' ? 'bg-white' : 'bg-white/30'
-                  }`} />
+                  <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${t.status === 'available' ? 'bg-white' : 'bg-white/30'}`} />
                 )}
 
-                {/* Hover overlay (hidden in select mode) */}
+                {/* Hover overlay */}
                 {!selecting && (
                   <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-2.5">
                     <div>
@@ -213,17 +330,20 @@ export default function AdminTattoos() {
                       >
                         {t.status === 'available' ? 'Arquivar' : 'Ativar'}
                       </button>
-                      <Link
-                        to={`/admin/tatuagens/${t.id}/editar`}
+                      {/* Edit inline */}
+                      <button
+                        onClick={() => setEditingId(t.id)}
                         className="p-2 border border-white/20 text-white/60 hover:text-white hover:border-white transition-colors"
+                        title="Editar informações"
                       >
                         <svg style={{ width: '18px', height: '18px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                      </Link>
+                      </button>
                       <button
                         onClick={() => handleDelete(t.id, t.title)}
                         className="p-2 border border-white/10 text-white/30 hover:text-white hover:border-white/60 transition-colors"
+                        title="Excluir"
                       >
                         <svg style={{ width: '18px', height: '18px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -238,7 +358,7 @@ export default function AdminTattoos() {
         </div>
       )}
 
-      {/* Floating action bar */}
+      {/* Floating action bar (multi-select) */}
       {selecting && selected.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-zinc-900 border border-white/20 px-6 py-3 shadow-2xl">
           <span className="font-body text-sm text-white/70">
@@ -257,7 +377,7 @@ export default function AdminTattoos() {
         </div>
       )}
 
-      {/* Confirmation modal */}
+      {/* Confirm delete modal */}
       {confirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="bg-zinc-900 border border-white/20 p-8 max-w-sm w-full mx-4">
@@ -268,21 +388,20 @@ export default function AdminTattoos() {
               Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setConfirmOpen(false)}
-                className="flex-1 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase transition-colors"
-              >
+              <button onClick={() => setConfirmOpen(false)} className="flex-1 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
                 Cancelar
               </button>
-              <button
-                onClick={confirmDeleteSelected}
-                className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-body font-bold text-xs tracking-widest uppercase transition-colors"
-              >
+              <button onClick={confirmDeleteSelected} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
                 Excluir
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Inline edit modal */}
+      {editingTattoo && (
+        <InlineEditModal tattoo={editingTattoo} onClose={() => setEditingId(null)} />
       )}
     </div>
   );
