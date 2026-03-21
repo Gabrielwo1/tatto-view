@@ -46,7 +46,6 @@ export default function Navbar() {
           <div className="px-6 lg:px-10 py-6 flex flex-col gap-1">
             {[
               { to: '/', label: 'Vitrine', end: true },
-              { to: '/arquivadas', label: 'Arquivadas', end: false },
               { to: '/artistas', label: 'Artistas', end: false },
               { to: '/guests', label: 'Guests', end: false },
               { to: '/merchs', label: 'Merchs', end: false },
