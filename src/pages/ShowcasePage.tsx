@@ -1,8 +1,40 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
 import ArtistHero from '../components/ArtistHero';
-import { TATTOO_STYLES } from '../types';
+import { TATTOO_STYLES, type Tattoo } from '../types';
+
+// Intercala artes de artistas diferentes para que nunca dois do mesmo
+// artista apareçam em sequência. Usa algoritmo guloso: sempre escolhe
+// o grupo com mais itens restantes que não seja o último selecionado.
+function interleaveByArtist(tattoos: Tattoo[]): Tattoo[] {
+  // Agrupa por artistId (null vira a string '__studio__')
+  const groupMap = new Map<string, Tattoo[]>();
+  for (const t of tattoos) {
+    const key = t.artistId ?? '__studio__';
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key)!.push(t);
+  }
+
+  const groups = Array.from(groupMap.values());
+  const result: Tattoo[] = [];
+  let lastKey: string | null = null;
+
+  while (groups.some((g) => g.length > 0)) {
+    // Ordena grupos por tamanho decrescente
+    groups.sort((a, b) => b.length - a.length);
+
+    // Pega o maior grupo que não seja o último artista
+    const nonLast = groups.find((g) => g.length > 0 && (g[0].artistId ?? '__studio__') !== lastKey);
+    const picked = nonLast ?? groups.find((g) => g.length > 0)!;
+
+    const item = picked.shift()!;
+    result.push(item);
+    lastKey = item.artistId ?? '__studio__';
+  }
+
+  return result;
+}
 
 export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
@@ -10,10 +42,14 @@ export default function ShowcasePage() {
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
 
   const available = tattoos.filter((t) => t.status === 'available');
-  const filtered =
-    selectedStyle === 'Todos'
-      ? available
-      : available.filter((t) => t.style === selectedStyle);
+
+  const filtered = useMemo(() => {
+    const pool =
+      selectedStyle === 'Todos'
+        ? available
+        : available.filter((t) => t.style === selectedStyle);
+    return interleaveByArtist(pool);
+  }, [available, selectedStyle]);
 
   return (
     <div>
