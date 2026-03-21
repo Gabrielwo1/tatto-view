@@ -241,8 +241,14 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'tattoo-shop-storage-v3',
-      // Only persist auth state — data comes from Supabase
-      partialize: (state) => ({ isAdmin: state.isAdmin }),
+      // Persist everything locally as fallback — Supabase is the source of truth
+      // but localStorage ensures data survives if Supabase is unavailable
+      partialize: (state) => ({
+        isAdmin: state.isAdmin,
+        tattoos: state.tattoos,
+        artists: state.artists,
+        merchs: state.merchs,
+      }),
     }
   )
 );
