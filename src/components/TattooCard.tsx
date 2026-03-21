@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
 
 interface TattooCardProps {
@@ -5,9 +6,11 @@ interface TattooCardProps {
   artist?: Artist | null;
 }
 
-export default function TattooCard({ tattoo, artist: _artist }: TattooCardProps) {
+export default function TattooCard({ tattoo, artist }: TattooCardProps) {
+  const href = artist ? `/artistas/${artist.id}` : '/artistas';
+
   return (
-    <div className="group cursor-pointer">
+    <Link to={href} className="group cursor-pointer block">
       {/* Image */}
       <div className="relative overflow-hidden aspect-[3/4] mb-3 bg-zinc-900">
         <img
@@ -34,6 +37,6 @@ export default function TattooCard({ tattoo, artist: _artist }: TattooCardProps)
       {tattoo.price && (
         <p className="text-gray-400 text-xs font-body">{tattoo.price}</p>
       )}
-    </div>
+    </Link>
   );
 }
