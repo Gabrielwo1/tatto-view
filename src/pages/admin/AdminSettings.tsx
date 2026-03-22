@@ -1,12 +1,59 @@
+import { useState } from 'react';
 import { useStore } from '../../store';
 import { THEMES, applyTheme, getThemeForHostname } from '../../lib/themes';
 import type { ThemeId } from '../../lib/themes';
+import { supabase } from '../../lib/supabase';
 
 const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
 export default function AdminSettings() {
   const themeId  = useStore((s) => s.themeId);
   const setTheme = useStore((s) => s.setTheme);
+  const tattoos  = useStore((s) => s.tattoos);
+  const artists  = useStore((s) => s.artists);
+  const merchs   = useStore((s) => s.merchs);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
+
+  async function handleSyncToSupabase() {
+    if (!supabase) {
+      alert('Supabase não está configurado. Verifique as variáveis de ambiente.');
+      return;
+    }
+    setSyncStatus('syncing');
+    try {
+      // Upsert all local data to Supabase
+      const artistRows = artists.map((a) => ({
+        id: a.id, name: a.name, bio: a.bio, photo_url: a.photoUrl,
+        specialties: a.specialties, instagram: a.instagram, whatsapp: a.whatsapp,
+        created_at: a.createdAt,
+      }));
+      const tattooRows = tattoos.map((t) => ({
+        id: t.id, title: t.title, description: t.description,
+        image_url: t.imageUrl, style: t.style, price: t.price,
+        artist_id: t.artistId, status: t.status, created_at: t.createdAt,
+      }));
+      const merchRows = merchs.map((m) => ({
+        id: m.id, name: m.name, description: m.description,
+        price: m.price, image_url: m.imageUrl, link: m.link, created_at: m.createdAt,
+      }));
+
+      const results = await Promise.all([
+        artistRows.length ? supabase.from('artists').upsert(artistRows) : Promise.resolve({ error: null }),
+        tattooRows.length ? supabase.from('tattoos').upsert(tattooRows) : Promise.resolve({ error: null }),
+        merchRows.length  ? supabase.from('merchs').upsert(merchRows)   : Promise.resolve({ error: null }),
+      ]);
+
+      const err = results.find((r) => r.error)?.error;
+      if (err) throw err;
+
+      setSyncStatus('ok');
+      setTimeout(() => setSyncStatus('idle'), 4000);
+    } catch (err) {
+      console.error('[sync]', err);
+      setSyncStatus('error');
+      setTimeout(() => setSyncStatus('idle'), 5000);
+    }
+  }
 
   function handleImportBackup(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -218,6 +265,60 @@ export default function AdminSettings() {
             <p className="font-body text-sm text-white font-mono">vitrink.app</p>
           </div>
         </div>
+      </section>
+
+      {/* ── Divider ── */}
+      <div className="my-10 border-t border-white/10" />
+
+      {/* ── Sincronização ─────────────────────────────────────────────────── */}
+      <section>
+        <div className="mb-5">
+          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
+            Sincronização
+          </h2>
+          <p className="font-body text-xs text-gray-500">
+            Envie todos os dados deste dispositivo para a nuvem (Supabase) e acesse em qualquer dispositivo.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSyncToSupabase}
+          disabled={syncStatus === 'syncing'}
+          className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {syncStatus === 'syncing' ? (
+            <>
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" />
+              </svg>
+              Sincronizando...
+            </>
+          ) : syncStatus === 'ok' ? (
+            <>
+              <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-green-400">Sincronizado!</span>
+            </>
+          ) : syncStatus === 'error' ? (
+            <>
+              <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span className="text-red-400">Erro — veja o console</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Sincronizar para a Nuvem
+            </>
+          )}
+        </button>
+        <p className="mt-3 font-body text-[10px] text-gray-700 tracking-wide">
+          {artists.length} artista(s) · {tattoos.length} tatuagem(ns) · {merchs.length} merch(s) neste dispositivo.
+        </p>
       </section>
 
       {/* ── Divider ── */}
