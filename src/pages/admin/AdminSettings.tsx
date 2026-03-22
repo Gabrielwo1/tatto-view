@@ -8,6 +8,26 @@ export default function AdminSettings() {
   const themeId  = useStore((s) => s.themeId);
   const setTheme = useStore((s) => s.setTheme);
 
+  function handleImportBackup(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
+        Object.entries(data).forEach(([key, value]) => {
+          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+        });
+        alert('Backup restaurado com sucesso! A página será recarregada.');
+        window.location.reload();
+      } catch {
+        alert('Arquivo inválido. Certifique-se de usar um backup gerado por este sistema.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
   function handleExportBackup() {
     const data: Record<string, unknown> = {};
     for (let i = 0; i < localStorage.length; i++) {
@@ -210,19 +230,37 @@ export default function AdminSettings() {
             Backup
           </h2>
           <p className="font-body text-xs text-gray-500">
-            Baixe todos os dados do estúdio (artistas, tatuagens, configurações) em um arquivo JSON.
+            Exporte todos os dados (artistas, tatuagens, configurações) ou restaure a partir de um backup anterior.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleExportBackup}
-          className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Baixar Backup
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleExportBackup}
+            className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Baixar Backup
+          </button>
+
+          <label className="flex items-center gap-2 px-5 py-3 border border-white/10 text-gray-500 font-body text-xs font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors cursor-pointer">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Restaurar Backup
+            <input
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleImportBackup}
+            />
+          </label>
+        </div>
+        <p className="mt-3 font-body text-[10px] text-gray-700 tracking-wide">
+          Para migrar dados: baixe o backup aqui → acesse o site publicado → restaure o backup lá.
+        </p>
       </section>
     </div>
   );
