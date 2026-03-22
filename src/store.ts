@@ -469,8 +469,6 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'tattoo-shop-storage-v3',
-      // Persist everything locally as fallback — Supabase is the source of truth
-      // but localStorage ensures data survives if Supabase is unavailable
       partialize: (state) => ({
         isAdmin: state.isAdmin,
         themeId: state.themeId,
@@ -480,6 +478,31 @@ export const useStore = create<AppState>()(
         sobreNosContent: state.sobreNosContent,
         guestContent: state.guestContent,
       }),
+      // Deep-merge sobreNosContent so new fields always get their defaults
+      // even when localStorage has an older version without those fields
+      merge: (persisted, current) => {
+        const ps = persisted as Partial<AppState>;
+        return {
+          ...current,
+          ...ps,
+          sobreNosContent: {
+            ...current.sobreNosContent,
+            ...ps.sobreNosContent,
+            hero: {
+              ...current.sobreNosContent.hero,
+              ...ps.sobreNosContent?.hero,
+            },
+            collective: {
+              ...current.sobreNosContent.collective,
+              ...ps.sobreNosContent?.collective,
+            },
+            studio: {
+              ...current.sobreNosContent.studio,
+              ...ps.sobreNosContent?.studio,
+            },
+          },
+        };
+      },
     }
   )
 );

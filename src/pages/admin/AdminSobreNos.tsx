@@ -3,6 +3,22 @@ import { useStore } from '../../store';
 import type { SobreNosContent } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
 
+/** Resize image to max 1200px and re-encode as JPEG 85% to stay within localStorage limits. */
+function compressImage(base64: string, maxPx = 1200, quality = 0.85): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = base64;
+  });
+}
+
 const inputCls =
   'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls =
@@ -15,6 +31,7 @@ export default function AdminSobreNos() {
 
   const [form, setForm] = useState<SobreNosContent>(sobreNosContent);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,19 +79,38 @@ export default function AdminSobreNos() {
     setUploadingImage(true);
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const base64 = ev.target?.result as string;
-      const url = await uploadImage(base64);
-      setForm((f) => ({ ...f, collective: { ...f.collective, image: url } }));
-      setUploadingImage(false);
+      try {
+        let src = ev.target?.result as string;
+        // Upload to cloud if possible; otherwise compress before storing locally
+        src = await uploadImage(src);
+        if (src.startsWith('data:')) {
+          src = await compressImage(src);
+        }
+        setForm((f) => ({ ...f, collective: { ...f.collective, image: src } }));
+      } catch (err) {
+        console.error('[AdminSobreNos] image upload failed:', err);
+      } finally {
+        setUploadingImage(false);
+      }
     };
     reader.readAsDataURL(file);
     e.target.value = '';
   }
 
   function handleSave() {
-    setSobreNosContent(form);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    try {
+      setSobreNosContent(form);
+      // Verify the data was actually written to localStorage
+      const stored = localStorage.getItem('tattoo-shop-storage-v3');
+      if (!stored) throw new Error('localStorage vazio após salvar');
+      setSaved(true);
+      setSaveError('');
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('[AdminSobreNos] save failed:', err);
+      setSaveError('Erro ao salvar. A foto pode ser grande demais. Tente uma imagem menor.');
+      setTimeout(() => setSaveError(''), 6000);
+    }
   }
 
   const mapAddress = encodeURIComponent([form.studio.street, form.studio.city, form.studio.cep].filter(Boolean).join(', '));
@@ -434,9 +470,9 @@ export default function AdminSobreNos() {
         </button>
       </div>
 
-      {/* ── TOAST ── */}
+      {/* ── SUCCESS TOAST ── bottom-left to avoid the right sidebar */}
       {saved && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-zinc-900 border border-green-500/40 px-5 py-4 shadow-2xl">
+        <div className="fixed bottom-6 left-6 z-[9999] flex items-center gap-3 bg-zinc-900 border border-green-500/50 px-5 py-4 shadow-2xl">
           <svg className="w-5 h-5 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
@@ -446,6 +482,23 @@ export default function AdminSobreNos() {
             </p>
             <p className="font-body text-[10px] text-gray-500 mt-0.5">
               As alterações já estão publicadas
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── ERROR TOAST ── */}
+      {saveError && (
+        <div className="fixed bottom-6 left-6 z-[9999] flex items-center gap-3 bg-zinc-900 border border-red-500/50 px-5 py-4 shadow-2xl max-w-sm">
+          <svg className="w-5 h-5 text-red-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          <div>
+            <p className="font-body text-xs font-semibold tracking-widest uppercase text-red-400">
+              Erro ao salvar
+            </p>
+            <p className="font-body text-[10px] text-gray-400 mt-0.5">
+              {saveError}
             </p>
           </div>
         </div>
