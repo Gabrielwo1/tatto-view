@@ -237,6 +237,32 @@ export default function AdminSobreNos() {
                 </div>
               </div>
             </div>
+
+            {/* ── Tamanho da imagem ── */}
+            <div>
+              <label className={labelCls}>Tamanho da foto na página</label>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: 'sm', label: 'Pequena' },
+                  { value: 'md', label: 'Média' },
+                  { value: 'lg', label: 'Grande' },
+                  { value: 'full', label: 'Coluna Inteira' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setCollective('imageSize', opt.value)}
+                    className={`px-4 py-2 font-body text-xs font-semibold tracking-widest uppercase transition-colors border ${
+                      form.collective.imageSize === opt.value
+                        ? 'bg-white text-black border-white'
+                        : 'border-white/15 text-gray-400 hover:border-white/40 hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -406,12 +432,24 @@ export default function AdminSobreNos() {
         >
           Salvar alterações
         </button>
-        {saved && (
-          <span className="font-body text-xs tracking-widest uppercase text-green-400">
-            Salvo com sucesso
-          </span>
-        )}
       </div>
+
+      {/* ── TOAST ── */}
+      {saved && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-zinc-900 border border-green-500/40 px-5 py-4 shadow-2xl">
+          <svg className="w-5 h-5 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <div>
+            <p className="font-body text-xs font-semibold tracking-widest uppercase text-green-400">
+              Salvo com sucesso
+            </p>
+            <p className="font-body text-[10px] text-gray-500 mt-0.5">
+              As alterações já estão publicadas
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -67,7 +67,7 @@ export default function Navbar() {
                 key={to}
                 to={to}
                 end={end}
-                onClick={() => setMenuOpen(false)}
+                onClick={() => { setMenuOpen(false); window.scrollTo(0, 0); }}
                 className={({ isActive }) =>
                   `font-display text-4xl uppercase tracking-wide transition-colors leading-tight ${
                     isActive ? 'text-white' : 'text-white/50 hover:text-white'
