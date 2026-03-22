@@ -3,7 +3,7 @@ import { useStore } from '../store';
 
 export default function SobreNosPage() {
   const c = useStore((s) => s.sobreNosContent);
-  const { hero, collective, quote, studio } = c;
+  const { hero, collective, quote, studio, contact } = c;
 
   const mapAddress = encodeURIComponent([studio.street, studio.city, studio.cep].filter(Boolean).join(', '));
   const mapSrc = `https://maps.google.com/maps?q=${mapAddress}&z=${studio.mapZoom || 15}&output=embed`;
@@ -162,6 +162,83 @@ export default function SobreNosPage() {
               </p>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* ── CONTATO & REDES SOCIAIS ───────────────────────────────────────── */}
+      <section className="bg-zinc-950 border-t border-white/10 px-6 lg:px-20 py-14 lg:py-20">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+
+          {/* Contato */}
+          <div>
+            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Contato</h3>
+            <div className="space-y-3 font-body text-sm text-white/60">
+              {contact.email && (
+                <p>
+                  Você pode entrar em contato pelo e-mail:{' '}
+                  <a href={`mailto:${contact.email}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                    {contact.email}
+                  </a>
+                </p>
+              )}
+              {(contact.phone1 || contact.phone2) && (
+                <p>
+                  Telefones de contato:{' '}
+                  {contact.phone1 && (
+                    <a href={contact.phone1Url || `tel:${contact.phone1}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                      {contact.phone1}
+                    </a>
+                  )}
+                  {contact.phone1 && contact.phone2 && <span> e </span>}
+                  {contact.phone2 && (
+                    <a href={contact.phone2Url || `tel:${contact.phone2}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                      {contact.phone2}
+                    </a>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Redes Sociais */}
+          <div>
+            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Redes Sociais</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {contact.instagram && (
+                <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm group">
+                  {/* Instagram icon */}
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <circle cx="12" cy="12" r="4"/>
+                    <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+                  </svg>
+                  {contact.instagram}
+                </a>
+              )}
+              {contact.tiktok && (
+                <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm group">
+                  {/* TikTok icon */}
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/>
+                  </svg>
+                  {contact.tiktok}
+                </a>
+              )}
+              {contact.twitter && (
+                <a href={contact.twitterUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm group">
+                  {/* Twitter/X icon */}
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  {contact.twitter}
+                </a>
+              )}
+            </div>
+          </div>
+
         </div>
       </section>
 

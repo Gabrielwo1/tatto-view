@@ -34,6 +34,19 @@ export interface SobreNosContent {
     mapLabel: string;
     hours: Array<{ days: string; time: string; closed: boolean }>;
   };
+  contact: {
+    email: string;
+    phone1: string;
+    phone1Url: string;
+    phone2: string;
+    phone2Url: string;
+    instagram: string;
+    instagramUrl: string;
+    tiktok: string;
+    tiktokUrl: string;
+    twitter: string;
+    twitterUrl: string;
+  };
 }
 
 const defaultSobreNosContent: SobreNosContent = {
@@ -57,6 +70,19 @@ const defaultSobreNosContent: SobreNosContent = {
     imageSize: 'md',
   },
   quote: '"A beleza da agulha está em sua natureza definitiva."',
+  contact: {
+    email: 'contatonewblack@gmail.com',
+    phone1: '(11) 3031-3881',
+    phone1Url: 'tel:+551130313881',
+    phone2: '(11) 98701-6894',
+    phone2Url: 'tel:+5511987016894',
+    instagram: '@newblackstudio',
+    instagramUrl: 'https://instagram.com/newblackstudio',
+    tiktok: '@newblackstudio',
+    tiktokUrl: 'https://tiktok.com/@newblackstudio',
+    twitter: '@newblack_studio',
+    twitterUrl: 'https://twitter.com/newblack_studio',
+  },
   studio: {
     title: 'O ESTÚDIO',
     street: 'Av. Dr. Arnaldo, 128',
@@ -551,6 +577,7 @@ export const useStore = create<AppState>()(
             hero:       { ...current.sobreNosContent.hero,       ...ps.sobreNosContent?.hero },
             collective: { ...current.sobreNosContent.collective, ...ps.sobreNosContent?.collective },
             studio:     { ...current.sobreNosContent.studio,     ...ps.sobreNosContent?.studio },
+            contact:    { ...current.sobreNosContent.contact,    ...ps.sobreNosContent?.contact },
           },
           aftercareContent: {
             ...current.aftercareContent,
