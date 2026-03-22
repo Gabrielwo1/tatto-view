@@ -29,19 +29,11 @@ const STYLE_INFO: Record<string, { icon: string; desc: string }> = {
   Minimalista:     { icon: '—', desc: 'Essência pura, menos é mais' },
 };
 
-/* ─── FAQ data ─── */
-const FAQ = [
-  { q: 'Como funciona a consulta?', a: 'A consulta é feita pelo Instagram ou WhatsApp do artista escolhido. Explicamos o projeto, discutimos referências e calculamos o valor antes de qualquer compromisso.' },
-  { q: 'Quanto tempo leva para fazer uma tatuagem?', a: 'Depende do tamanho e complexidade. Peças pequenas (2–3h), médias (4–6h), e trabalhos grandes podem ser divididos em sessões.' },
-  { q: 'A tattoo vai desbotar com o tempo?', a: 'Com os cuidados corretos — protetor solar, hidratação e retoques periódicos — a tinta mantém a qualidade por muitos anos.' },
-  { q: 'Posso trazer minha própria referência?', a: 'Sim, e encorajamos isso! Referências ajudam o artista a entender sua visão. O desenho final será personalizado para o seu corpo e estilo.' },
-  { q: 'Fazem retoque após cicatrização?', a: 'Sim. Retoques da mesma arte (dentro de 6 meses da sessão) têm condições especiais. Consulte seu artista.' },
-];
-
 export default function LandingPage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
   const sobreNos = useStore((s) => s.sobreNosContent);
+  const lc = useStore((s) => s.landingContent);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
 
   const available = tattoos.filter((t) => t.status === 'available').slice(0, 6);
@@ -78,11 +70,14 @@ export default function LandingPage() {
 
         {/* Tagline */}
         <h1 className="font-display text-6xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-6">
-          Sua história<br />na pele
+          {lc.hero.tagline.split('\n').map((line, i, arr) => (
+            <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+          ))}
         </h1>
         <p className="font-body text-base md:text-xl text-gray-400 max-w-xl mb-12 leading-relaxed">
-          Estúdio de tatuagens com artistas especializados em diferentes estilos.
-          Do traço à pele — com arte, técnica e respeito pela sua história.
+          {lc.hero.description.split('\n').map((line, i, arr) => (
+            <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
+          ))}
         </p>
 
         {/* CTAs */}
@@ -118,17 +113,11 @@ export default function LandingPage() {
         >
           <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">Manifesto</p>
           <h2 className="font-display text-5xl sm:text-7xl md:text-8xl uppercase leading-none text-white mb-10">
-            Arte que<br />permanece
+            {lc.manifesto.title1}<br />{lc.manifesto.title2}
           </h2>
           <div className="grid md:grid-cols-2 gap-8 text-gray-400 font-body text-base leading-relaxed">
-            <p>
-              No <strong className="text-white">El Dude</strong>, cada tatuagem nasce de uma conversa.
-              Ouvimos a sua história, entendemos o que você quer registrar e transformamos isso em arte permanente — feita com técnica, cuidado e respeito pelo seu corpo.
-            </p>
-            <p>
-              Trabalhamos com artistas especializados em estilos distintos, garantindo que você encontre o profissional certo para a arte que você imagina.
-              Da primeira consulta ao retoque final, você está em boas mãos.
-            </p>
+            <p>{lc.manifesto.body1}</p>
+            <p>{lc.manifesto.body2}</p>
           </div>
 
           {/* Stats */}
@@ -312,12 +301,7 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-px">
-            {[
-              { n: '01', title: 'Consulta',       desc: 'Entre em contato com o artista pelo Instagram ou WhatsApp. Sem compromisso — só uma conversa sobre a sua ideia.' },
-              { n: '02', title: 'Briefing',        desc: 'Compartilhe referências, tamanho, local no corpo e orçamento. O artista vai entender o que você precisa.' },
-              { n: '03', title: 'Agendamento',     desc: 'Confirmamos data, valor e duração da sessão. Um sinal pode ser solicitado para garantir o horário.' },
-              { n: '04', title: 'Sessão & Arte',   desc: 'Na data marcada, o artista traz o desenho. Você aprova e a tatuagem começa. Cuidamos de você do início ao fim.' },
-            ].map(({ n, title, desc }, i) => (
+            {lc.processo.map(({ n, title, desc }, i) => (
               <div
                 key={n}
                 className={`flex gap-8 p-8 bg-black border-l-2 border-transparent hover:border-ink-500 hover:bg-zinc-950 transition-all duration-500 group ${processo.visible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6'}`}
@@ -353,13 +337,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid gap-px border border-white/10">
-            {[
-              { label: 'Minimalista',              range: 'A partir de R$ 250',   detail: 'Peças pequenas, traço simples' },
-              { label: 'Old School · Tribal',      range: 'R$ 400 – R$ 900',     detail: 'Tamanho médio, cores sólidas' },
-              { label: 'Blackwork · Geométrico',   range: 'R$ 500 – R$ 1.200',   detail: 'Depende da área e preenchimento' },
-              { label: 'Neo-Tradicional · Aquarela', range: 'R$ 600 – R$ 1.500', detail: 'Coloração e detalhamento elevados' },
-              { label: 'Realismo',                 range: 'R$ 800 – R$ 2.500+',  detail: 'Alta complexidade, múltiplas sessões' },
-            ].map(({ label, range, detail }, i) => (
+            {lc.precos.map(({ label, range, detail }, i) => (
               <div
                 key={label}
                 className={`flex items-center justify-between px-6 py-5 bg-zinc-950 hover:bg-zinc-900 transition-all duration-700 group ${precos.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
@@ -396,7 +374,7 @@ export default function LandingPage() {
           </div>
 
           <div className="space-y-px">
-            {FAQ.map(({ q, a }, i) => (
+            {lc.faq.map(({ q, a }, i) => (
               <div key={i} className="border-b border-white/10">
                 <button
                   type="button"
@@ -425,13 +403,12 @@ export default function LandingPage() {
         </p>
 
         <div className="relative z-10 max-w-2xl mx-auto">
-          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-6">Vamos começar</p>
+          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-6">{lc.cta.tagline}</p>
           <h2 className="font-display text-6xl sm:text-8xl md:text-9xl uppercase leading-none text-white mb-8">
-            Pronto para<br />sua arte?
+            {lc.cta.title1}<br />{lc.cta.title2}
           </h2>
           <p className="font-body text-base text-gray-500 mb-12 leading-relaxed">
-            Escolha seu artista, fale sobre sua ideia e dê o próximo passo.
-            A consulta é gratuita e sem compromisso.
+            {lc.cta.description}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

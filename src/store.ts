@@ -4,6 +4,55 @@ import type { Tattoo, Artist, Merch } from './types';
 import type { ThemeId } from './lib/themes';
 import { supabase } from './lib/supabase';
 
+// ── Landing Page Content ──────────────────────────────────────────────────────
+export interface LandingContent {
+  hero: { tagline: string; description: string };
+  manifesto: { title1: string; title2: string; body1: string; body2: string };
+  processo: Array<{ n: string; title: string; desc: string }>;
+  precos: Array<{ label: string; range: string; detail: string }>;
+  faq: Array<{ q: string; a: string }>;
+  cta: { tagline: string; title1: string; title2: string; description: string };
+}
+
+const defaultLandingContent: LandingContent = {
+  hero: {
+    tagline: 'Sua história\nna pele',
+    description: 'Estúdio de tatuagens com artistas especializados em diferentes estilos.\nDo traço à pele — com arte, técnica e respeito pela sua história.',
+  },
+  manifesto: {
+    title1: 'Arte que',
+    title2: 'permanece',
+    body1: 'No El Dude, cada tatuagem nasce de uma conversa. Ouvimos a sua história, entendemos o que você quer registrar e transformamos isso em arte permanente — feita com técnica, cuidado e respeito pelo seu corpo.',
+    body2: 'Trabalhamos com artistas especializados em estilos distintos, garantindo que você encontre o profissional certo para a arte que você imagina. Da primeira consulta ao retoque final, você está em boas mãos.',
+  },
+  processo: [
+    { n: '01', title: 'Consulta',      desc: 'Entre em contato com o artista pelo Instagram ou WhatsApp. Sem compromisso — só uma conversa sobre a sua ideia.' },
+    { n: '02', title: 'Briefing',      desc: 'Compartilhe referências, tamanho, local no corpo e orçamento. O artista vai entender o que você precisa.' },
+    { n: '03', title: 'Agendamento',   desc: 'Confirmamos data, valor e duração da sessão. Um sinal pode ser solicitado para garantir o horário.' },
+    { n: '04', title: 'Sessão & Arte', desc: 'Na data marcada, o artista traz o desenho. Você aprova e a tatuagem começa. Cuidamos de você do início ao fim.' },
+  ],
+  precos: [
+    { label: 'Minimalista',               range: 'A partir de R$ 250',   detail: 'Peças pequenas, traço simples' },
+    { label: 'Old School · Tribal',       range: 'R$ 400 – R$ 900',     detail: 'Tamanho médio, cores sólidas' },
+    { label: 'Blackwork · Geométrico',    range: 'R$ 500 – R$ 1.200',   detail: 'Depende da área e preenchimento' },
+    { label: 'Neo-Tradicional · Aquarela', range: 'R$ 600 – R$ 1.500', detail: 'Coloração e detalhamento elevados' },
+    { label: 'Realismo',                  range: 'R$ 800 – R$ 2.500+',  detail: 'Alta complexidade, múltiplas sessões' },
+  ],
+  faq: [
+    { q: 'Como funciona a consulta?',             a: 'A consulta é feita pelo Instagram ou WhatsApp do artista escolhido. Explicamos o projeto, discutimos referências e calculamos o valor antes de qualquer compromisso.' },
+    { q: 'Quanto tempo leva para fazer uma tatuagem?', a: 'Depende do tamanho e complexidade. Peças pequenas (2–3h), médias (4–6h), e trabalhos grandes podem ser divididos em sessões.' },
+    { q: 'A tattoo vai desbotar com o tempo?',    a: 'Com os cuidados corretos — protetor solar, hidratação e retoques periódicos — a tinta mantém a qualidade por muitos anos.' },
+    { q: 'Posso trazer minha própria referência?', a: 'Sim, e encorajamos isso! Referências ajudam o artista a entender sua visão. O desenho final será personalizado para o seu corpo e estilo.' },
+    { q: 'Fazem retoque após cicatrização?',      a: 'Sim. Retoques da mesma arte (dentro de 6 meses da sessão) têm condições especiais. Consulte seu artista.' },
+  ],
+  cta: {
+    tagline: 'Vamos começar',
+    title1: 'Pronto para',
+    title2: 'sua arte?',
+    description: 'Escolha seu artista, fale sobre sua ideia e dê o próximo passo. A consulta é gratuita e sem compromisso.',
+  },
+};
+
 // ── Sobre Nós Content ────────────────────────────────────────────────────────
 export interface SobreNosContent {
   hero: {
@@ -353,6 +402,9 @@ interface AppState {
   /** Theme chosen by the studio admin. null = use subdomain default. */
   themeId: ThemeId | null;
   setTheme: (id: ThemeId | null) => void;
+  /** Landing page content editable by admin */
+  landingContent: LandingContent;
+  setLandingContent: (content: LandingContent) => void;
   /** Sobre Nós page content editable by admin */
   sobreNosContent: SobreNosContent;
   setSobreNosContent: (content: SobreNosContent) => void;
@@ -390,6 +442,8 @@ export const useStore = create<AppState>()(
       dataLoaded: false,
       themeId: null,
       setTheme: (id) => set({ themeId: id }),
+      landingContent: defaultLandingContent,
+      setLandingContent: (content) => set({ landingContent: content }),
       sobreNosContent: defaultSobreNosContent,
       setSobreNosContent: (content) => set({ sobreNosContent: content }),
       guestContent: defaultGuestContent,
@@ -560,6 +614,7 @@ export const useStore = create<AppState>()(
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
+        landingContent: state.landingContent,
         sobreNosContent: state.sobreNosContent,
         guestContent: state.guestContent,
         aftercareContent: state.aftercareContent,
@@ -571,6 +626,13 @@ export const useStore = create<AppState>()(
         return {
           ...current,
           ...ps,
+          landingContent: {
+            ...current.landingContent,
+            ...ps.landingContent,
+            hero:      { ...current.landingContent.hero,      ...ps.landingContent?.hero },
+            manifesto: { ...current.landingContent.manifesto, ...ps.landingContent?.manifesto },
+            cta:       { ...current.landingContent.cta,       ...ps.landingContent?.cta },
+          },
           sobreNosContent: {
             ...current.sobreNosContent,
             ...ps.sobreNosContent,
