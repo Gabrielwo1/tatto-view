@@ -59,7 +59,8 @@ export default function AdminSobreNos() {
     setTimeout(() => setSaved(false), 2500);
   }
 
-  const mapPreviewSrc = `https://maps.google.com/maps?q=${form.studio.mapLat},${form.studio.mapLng}&z=${form.studio.mapZoom}&output=embed`;
+  const mapAddress = encodeURIComponent([form.studio.street, form.studio.city, form.studio.cep].filter(Boolean).join(', '));
+  const mapPreviewSrc = `https://maps.google.com/maps?q=${mapAddress}&z=${form.studio.mapZoom || 15}&output=embed`;
 
   return (
     <div className="p-6 lg:p-10 max-w-3xl">
@@ -239,46 +240,16 @@ export default function AdminSobreNos() {
             Mapa — Localização
           </h2>
           <p className="font-body text-[10px] text-gray-600 mb-5">
-            Insira as coordenadas GPS do estúdio para apontar o local correto no mapa.
-            Use o Google Maps: clique com o botão direito no local → copie as coordenadas.
+            O mapa usa automaticamente o endereço preenchido acima. Ajuste o zoom se necessário.
           </p>
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className={labelCls}>Latitude</label>
-                <input
-                  className={inputCls}
-                  placeholder="-23.5505"
-                  value={form.studio.mapLat}
-                  onChange={(e) => setStudio('mapLat', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className={labelCls}>Longitude</label>
-                <input
-                  className={inputCls}
-                  placeholder="-46.6333"
-                  value={form.studio.mapLng}
-                  onChange={(e) => setStudio('mapLng', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className={labelCls}>Zoom (1–20)</label>
-                <input
-                  className={inputCls}
-                  placeholder="15"
-                  value={form.studio.mapZoom}
-                  onChange={(e) => setStudio('mapZoom', e.target.value)}
-                />
-              </div>
-            </div>
-            <div>
-              <label className={labelCls}>Label do mapa</label>
+            <div className="w-32">
+              <label className={labelCls}>Zoom (1–20)</label>
               <input
                 className={inputCls}
-                placeholder="Sumaré District"
-                value={form.studio.mapLabel}
-                onChange={(e) => setStudio('mapLabel', e.target.value)}
+                placeholder="15"
+                value={form.studio.mapZoom}
+                onChange={(e) => setStudio('mapZoom', e.target.value)}
               />
             </div>
 

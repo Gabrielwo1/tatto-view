@@ -5,7 +5,8 @@ export default function SobreNosPage() {
   const c = useStore((s) => s.sobreNosContent);
   const { hero, collective, quote, studio } = c;
 
-  const mapSrc = `https://maps.google.com/maps?q=${studio.mapLat},${studio.mapLng}&z=${studio.mapZoom}&output=embed`;
+  const mapAddress = encodeURIComponent([studio.street, studio.city, studio.cep].filter(Boolean).join(', '));
+  const mapSrc = `https://maps.google.com/maps?q=${mapAddress}&z=${studio.mapZoom || 15}&output=embed`;
 
   return (
     <div className="bg-black text-white">
