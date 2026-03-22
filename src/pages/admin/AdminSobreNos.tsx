@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import type { SobreNosContent } from '../../store';
+import { uploadImage } from '../../lib/uploadImage';
 
 const inputCls =
   'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
@@ -14,6 +15,8 @@ export default function AdminSobreNos() {
 
   const [form, setForm] = useState<SobreNosContent>(sobreNosContent);
   const [saved, setSaved] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   function setHero(field: keyof SobreNosContent['hero'], value: string) {
     setForm((f) => ({ ...f, hero: { ...f.hero, [field]: value } }));
@@ -51,6 +54,21 @@ export default function AdminSobreNos() {
       ...f,
       studio: { ...f.studio, hours: f.studio.hours.filter((_, i) => i !== index) },
     }));
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target?.result as string;
+      const url = await uploadImage(base64);
+      setForm((f) => ({ ...f, collective: { ...f.collective, image: url } }));
+      setUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   }
 
   function handleSave() {
@@ -100,6 +118,15 @@ export default function AdminSobreNos() {
                 rows={3}
                 value={form.hero.description}
                 onChange={(e) => setHero('description', e.target.value)}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Linha de fundação (Ex: Est. 2018 — Francisco Beltrão)</label>
+              <input
+                className={inputCls}
+                value={form.hero.estLabel}
+                onChange={(e) => setHero('estLabel', e.target.value)}
+                placeholder="Est. 2018 — Francisco Beltrão"
               />
             </div>
           </div>
@@ -164,6 +191,50 @@ export default function AdminSobreNos() {
                   value={form.collective.imageCaption}
                   onChange={(e) => setCollective('imageCaption', e.target.value)}
                 />
+              </div>
+            </div>
+
+            {/* ── Imagem do Estúdio ── */}
+            <div>
+              <label className={labelCls}>Foto do Estúdio</label>
+              <div className="flex gap-4 items-start">
+                {/* Preview */}
+                <div className="w-28 aspect-[3/4] bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center border border-white/10">
+                  {form.collective.image ? (
+                    <img src={form.collective.image} alt="Estúdio" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-body text-[9px] tracking-widest uppercase text-white/20 text-center px-2">
+                      Sem imagem
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={uploadingImage}
+                    className="px-4 py-2 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50"
+                  >
+                    {uploadingImage ? 'Enviando...' : 'Selecionar foto'}
+                  </button>
+                  {form.collective.image && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, collective: { ...f.collective, image: '' } }))}
+                      className="px-4 py-2 border border-white/10 text-gray-500 font-body text-xs font-semibold tracking-widest uppercase hover:border-red-500/50 hover:text-red-400 transition-colors"
+                    >
+                      Remover foto
+                    </button>
+                  )}
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </div>
               </div>
             </div>
           </div>
