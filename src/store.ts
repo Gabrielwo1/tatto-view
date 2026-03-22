@@ -10,6 +10,7 @@ export interface SobreNosContent {
     title1: string;
     title2: string;
     description: string;
+    estLabel: string;
   };
   collective: {
     title: string;
@@ -18,6 +19,7 @@ export interface SobreNosContent {
     body3: string;
     ctaLabel: string;
     imageCaption: string;
+    image: string;
   };
   quote: string;
   studio: {
@@ -39,6 +41,7 @@ const defaultSobreNosContent: SobreNosContent = {
     title2: 'PELO DESIGN',
     description:
       'Somos um santuário para quem enxerga o corpo como tela para alta arte e precisão arquitetônica. EL DUDE TATTOO é mais do que um estúdio. É um coletivo de visionários dedicados à permanência da intenção criativa.',
+    estLabel: 'Est. 2018 — Francisco Beltrão',
   },
   collective: {
     title: 'O COLETIVO',
@@ -49,6 +52,7 @@ const defaultSobreNosContent: SobreNosContent = {
     body3: '',
     ctaLabel: 'Conheça os Artistas',
     imageCaption: 'SÉRIE BOTÂNICA 04',
+    image: '',
   },
   quote: '"A beleza da agulha está em sua natureza definitiva."',
   studio: {

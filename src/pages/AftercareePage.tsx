@@ -105,7 +105,7 @@ const IconNoTight = () => (
 
 export default function AftercareePage() {
   return (
-    <div className="bg-black min-h-screen text-white">
+    <div className="bg-zinc-900 min-h-screen text-white">
       <div className="max-w-5xl mx-auto px-6 lg:px-10">
 
         {/* ── HERO ───────────────────────────────────────────────────── */}

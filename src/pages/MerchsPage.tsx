@@ -141,7 +141,7 @@ export default function MerchsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 lg:px-10 py-16">
+    <div className="min-h-screen bg-zinc-900 text-white px-6 lg:px-10 py-16">
       {/* Header */}
       <div className="flex items-end justify-between mb-10">
         <div>

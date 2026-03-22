@@ -55,7 +55,7 @@ export default function LandingPage() {
   const faq      = useVisible();
 
   return (
-    <div className="bg-black text-white overflow-x-hidden">
+    <div className="bg-zinc-900 text-white overflow-x-hidden">
 
       {/* ══════════════════════════════════════════════════
           HERO

@@ -9,7 +9,7 @@ export default function SobreNosPage() {
   const mapSrc = `https://maps.google.com/maps?q=${mapAddress}&z=${studio.mapZoom || 15}&output=embed`;
 
   return (
-    <div className="bg-black text-white">
+    <div className="bg-zinc-900 text-white">
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative min-h-[70vh] flex flex-col justify-end overflow-hidden">
@@ -19,9 +19,11 @@ export default function SobreNosPage() {
         <div className="absolute inset-0 bg-zinc-900" />
 
         <div className="relative z-20 px-6 lg:px-20 pb-16 lg:pb-24">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/40 mb-6">
-            Est. 2018 — Francisco Beltrão
-          </p>
+          {hero.estLabel && (
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/40 mb-6">
+              {hero.estLabel}
+            </p>
+          )}
           <h1 className="font-display text-6xl sm:text-7xl lg:text-9xl uppercase leading-none tracking-tight">
             {hero.title1}
             <br />
@@ -55,12 +57,20 @@ export default function SobreNosPage() {
             </Link>
           </div>
 
-          {/* Image placeholder */}
+          {/* Studio image */}
           <div className="relative">
-            <div className="aspect-[3/4] bg-zinc-800 w-full max-w-sm ml-auto flex items-center justify-center">
-              <span className="font-body text-[10px] tracking-widest uppercase text-white/20">
-                Imagem do Estúdio
-              </span>
+            <div className="aspect-[3/4] bg-zinc-800 w-full max-w-sm ml-auto overflow-hidden flex items-center justify-center">
+              {collective.image ? (
+                <img
+                  src={collective.image}
+                  alt={collective.imageCaption || 'Estúdio'}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="font-body text-[10px] tracking-widest uppercase text-white/20">
+                  Imagem do Estúdio
+                </span>
+              )}
             </div>
             {collective.imageCaption && (
               <p className="mt-2 text-right font-body text-[10px] tracking-widest uppercase text-ink-500">
