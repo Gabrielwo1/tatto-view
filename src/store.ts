@@ -281,6 +281,7 @@ interface AppState {
   deleteTattoo: (id: string) => void;
   archiveTattoo: (id: string) => void;
   reorderTattoos: (orderedIds: string[]) => void;
+  reorderArtists: (orderedIds: string[]) => void;
   addArtist: (artist: Omit<Artist, 'id' | 'createdAt'>) => void;
   updateArtist: (id: string, updates: Partial<Artist>) => void;
   deleteArtist: (id: string) => void;
@@ -389,6 +390,15 @@ export const useStore = create<AppState>()(
           const reordered = orderedIds.map((id) => map.get(id)).filter((t): t is Tattoo => !!t);
           const rest = s.tattoos.filter((t) => !orderedIds.includes(t.id));
           return { tattoos: [...reordered, ...rest] };
+        });
+      },
+
+      reorderArtists: (orderedIds) => {
+        set((s) => {
+          const map = new Map(s.artists.map((a) => [a.id, a]));
+          const reordered = orderedIds.map((id) => map.get(id)).filter((a): a is Artist => !!a);
+          const rest = s.artists.filter((a) => !orderedIds.includes(a.id));
+          return { artists: [...reordered, ...rest] };
         });
       },
 
