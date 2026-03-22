@@ -74,6 +74,60 @@ const defaultSobreNosContent: SobreNosContent = {
   },
 };
 
+// ── Aftercare Page Content ────────────────────────────────────────────────────
+export interface AftercareContent {
+  hero: { tagline: string; description: string };
+  preSession: Array<{ title: string; body: string }>;
+  daySession: string[];
+  postSession: {
+    hygieneTitle: string;
+    hygieneBody: string;
+    forbiddenTitle: string;
+    forbiddenItems: string[];
+    alertText: string;
+  };
+  cta: { tagline: string; title1: string; title2: string; description: string };
+}
+
+const defaultAftercareContent: AftercareContent = {
+  hero: {
+    tagline: 'Guia de Cuidados',
+    description:
+      'A arte na pele é um investimento vitalício. Este guia detalha o protocolo necessário para garantir uma cura perfeita e a longevidade da sua nova tatuagem. Siga cada etapa para preservar a qualidade do trabalho.',
+  },
+  preSession: [
+    { title: 'Evite Álcool', body: 'Não consuma bebidas alcoólicas 24 horas antes. O álcool afina o sangue, prejudicando a pigmentação.' },
+    { title: 'Hidratação',   body: 'Beba muita água e hidrate a área com loção neutra nos dias que antecedem a sessão para uma pele mais receptiva.' },
+    { title: 'Preparação',   body: 'Certifique-se de que a área esteja limpa e livre de irritações ou queimaduras solares. Evite depilação agressiva.' },
+    { title: 'Descanso & Nutrição', body: 'Tenha uma noite de sono completa e faça uma refeição reforçada antes da sua sessão de tatuagem.' },
+  ],
+  daySession: [
+    'Chegue pontualmente. O tempo do artista é rigorosamente planejado.',
+    'Limite acompanhantes para manter o ambiente de foco e esterilização.',
+    'Use roupas confortáveis que permitam fácil acesso à área da tatuagem.',
+    'Comunique qualquer desconforto imediatamente ao seu artista.',
+    'Mantenha o silêncio no ambiente do estúdio. Todos os artistas precisam de concentração, seja desenhando ou tatuando. Se vier acompanhado, lembre-se que nossa recepção tem tamanho limitado.',
+  ],
+  postSession: {
+    hygieneTitle: 'Higiene & Hidratação',
+    hygieneBody: 'Lave com sabonete neutro 2 a 3 vezes ao dia. Seque delicadamente com toalha de papel descartável. Aplique uma camada fina da pomada recomendada pelo estúdio.',
+    forbiddenTitle: 'Zonas Proibidas',
+    forbiddenItems: [
+      'SEM sol direto por 30 dias.',
+      'SEM imersão em água (piscinas, mar, banheiras).',
+      'SEM coçar ou remover cascas.',
+      'SEM roupas apertadas ou sintéticas na área.',
+    ],
+    alertText: 'Em caso de inflamação severa, contacte o estúdio imediatamente.',
+  },
+  cta: {
+    tagline: 'Pronto para começar?',
+    title1: 'Agende sua',
+    title2: 'sessão',
+    description: 'Nossa equipe está pronta para orientar cada passo do seu processo artístico.',
+  },
+};
+
 // ── Guest Page Content ───────────────────────────────────────────────────────
 export interface GuestContent {
   hero: {
@@ -279,6 +333,9 @@ interface AppState {
   /** Guest page content editable by admin */
   guestContent: GuestContent;
   setGuestContent: (content: GuestContent) => void;
+  /** Aftercare page content editable by admin */
+  aftercareContent: AftercareContent;
+  setAftercareContent: (content: AftercareContent) => void;
   loadData: () => Promise<void>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
@@ -311,6 +368,8 @@ export const useStore = create<AppState>()(
       setSobreNosContent: (content) => set({ sobreNosContent: content }),
       guestContent: defaultGuestContent,
       setGuestContent: (content) => set({ guestContent: content }),
+      aftercareContent: defaultAftercareContent,
+      setAftercareContent: (content) => set({ aftercareContent: content }),
 
       // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
@@ -477,8 +536,9 @@ export const useStore = create<AppState>()(
         merchs: state.merchs,
         sobreNosContent: state.sobreNosContent,
         guestContent: state.guestContent,
+        aftercareContent: state.aftercareContent,
       }),
-      // Deep-merge sobreNosContent so new fields always get their defaults
+      // Deep-merge nested content objects so new fields always get their defaults
       // even when localStorage has an older version without those fields
       merge: (persisted, current) => {
         const ps = persisted as Partial<AppState>;
@@ -488,18 +548,16 @@ export const useStore = create<AppState>()(
           sobreNosContent: {
             ...current.sobreNosContent,
             ...ps.sobreNosContent,
-            hero: {
-              ...current.sobreNosContent.hero,
-              ...ps.sobreNosContent?.hero,
-            },
-            collective: {
-              ...current.sobreNosContent.collective,
-              ...ps.sobreNosContent?.collective,
-            },
-            studio: {
-              ...current.sobreNosContent.studio,
-              ...ps.sobreNosContent?.studio,
-            },
+            hero:       { ...current.sobreNosContent.hero,       ...ps.sobreNosContent?.hero },
+            collective: { ...current.sobreNosContent.collective, ...ps.sobreNosContent?.collective },
+            studio:     { ...current.sobreNosContent.studio,     ...ps.sobreNosContent?.studio },
+          },
+          aftercareContent: {
+            ...current.aftercareContent,
+            ...ps.aftercareContent,
+            hero:        { ...current.aftercareContent.hero,        ...ps.aftercareContent?.hero },
+            postSession: { ...current.aftercareContent.postSession, ...ps.aftercareContent?.postSession },
+            cta:         { ...current.aftercareContent.cta,         ...ps.aftercareContent?.cta },
           },
         };
       },

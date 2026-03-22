@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useStore } from '../store';
 
 /* ─── small helpers ──────────────────────────────────────────────────────── */
 
@@ -104,6 +105,8 @@ const IconNoTight = () => (
 /* ─── main page ──────────────────────────────────────────────────────────── */
 
 export default function AftercareePage() {
+  const c = useStore((s) => s.aftercareContent);
+
   return (
     <div className="bg-zinc-900 min-h-screen text-white">
       <div className="max-w-5xl mx-auto px-6 lg:px-10">
@@ -112,7 +115,7 @@ export default function AftercareePage() {
         <div className="pt-16 md:pt-24 pb-16 md:pb-20 grid md:grid-cols-2 gap-8 items-center">
           <div>
             <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-6">
-              Guia de Cuidados
+              {c.hero.tagline}
             </p>
             <h1 className="font-display text-6xl md:text-8xl uppercase tracking-tight leading-none">
               Pós<br />
@@ -122,9 +125,7 @@ export default function AftercareePage() {
           <div>
             <div className="w-8 h-px bg-white/20 mb-6" />
             <p className="font-body text-base text-white/50 leading-relaxed">
-              A arte na pele é um investimento vitalício. Este guia detalha o protocolo
-              necessário para garantir uma cura perfeita e a longevidade da sua nova tatuagem.
-              Siga cada etapa para preservar a qualidade do trabalho.
+              {c.hero.description}
             </p>
           </div>
         </div>
@@ -137,36 +138,18 @@ export default function AftercareePage() {
           <SectionNumber n="01" />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/8">
-            {[
-              {
-                icon: <IconNoDrink />,
-                title: 'Evite Álcool',
-                body: 'Não consuma bebidas alcoólicas 24 horas antes. O álcool afina o sangue, prejudicando a pigmentação.',
-              },
-              {
-                icon: <IconDrop />,
-                title: 'Hidratação',
-                body: 'Beba muita água e hidrate a área com loção neutra nos dias que antecedem a sessão para uma pele mais receptiva.',
-              },
-              {
-                icon: <IconScissors />,
-                title: 'Preparação',
-                body: 'Certifique-se de que a área esteja limpa e livre de irritações ou queimaduras solares. Evite depilação agressiva.',
-              },
-              {
-                icon: <IconRest />,
-                title: 'Descanso & Nutrição',
-                body: 'Tenha uma noite de sono completa e faça uma refeição reforçada antes da sua sessão de tatuagem.',
-              },
-            ].map((card) => (
-              <div key={card.title} className="bg-black p-6 md:p-8">
-                <CardIcon>{card.icon}</CardIcon>
-                <p className="font-body text-xs font-semibold tracking-widest uppercase text-white mb-3">
-                  {card.title}
-                </p>
-                <p className="font-body text-xs text-white/40 leading-relaxed">{card.body}</p>
-              </div>
-            ))}
+            {[<IconNoDrink />, <IconDrop />, <IconScissors />, <IconRest />].map((icon, i) => {
+              const card = c.preSession[i] ?? { title: '', body: '' };
+              return (
+                <div key={i} className="bg-black p-6 md:p-8">
+                  <CardIcon>{icon}</CardIcon>
+                  <p className="font-body text-xs font-semibold tracking-widest uppercase text-white mb-3">
+                    {card.title}
+                  </p>
+                  <p className="font-body text-xs text-white/40 leading-relaxed">{card.body}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -184,19 +167,13 @@ export default function AftercareePage() {
               </p>
               <div className="w-8 h-px bg-white/20 mb-6" />
               <ol className="space-y-4">
-                {[
-                  'Chegue pontualmente. O tempo do artista é rigorosamente planejado.',
-                  'Limite acompanhantes para manter o ambiente de foco e esterilização.',
-                  'Use roupas confortáveis que permitam fácil acesso à área da tatuagem.',
-                  'Comunique qualquer desconforto imediatamente ao seu artista.',
-                  'Mantenha o silêncio no ambiente do estúdio. Todos os artistas precisam de concentração, seja desenhando ou tatuando. Se vier acompanhado, lembre-se que nossa recepção tem tamanho limitado.',
-                ].map((item, i) => (
+                {c.daySession.map((item, i) => (
                   <li key={i} className="flex gap-4">
                     <span
                       className="font-display text-xs shrink-0 mt-0.5"
                       style={{ color: 'rgb(var(--ink-500))' }}
                     >
-                      {['I.', 'II.', 'III.', 'IV.', 'V.'][i]}
+                      {['I.', 'II.', 'III.', 'IV.', 'V.'][i] ?? `${i + 1}.`}
                     </span>
                     <p className="font-body text-xs text-white/50 leading-relaxed">{item}</p>
                   </li>
@@ -214,14 +191,12 @@ export default function AftercareePage() {
               <div className="border border-white/10 p-7 md:p-8">
                 <div className="flex items-start justify-between mb-4">
                   <p className="font-body text-xs font-semibold tracking-[0.3em] uppercase text-white leading-snug">
-                    Higiene &<br />Hidratação
+                    {c.postSession.hygieneTitle}
                   </p>
                   <CardIcon><IconHand /></CardIcon>
                 </div>
                 <p className="font-body text-xs text-white/50 leading-relaxed">
-                  Lave com sabonete neutro 2 a 3 vezes ao dia. Seque delicadamente com
-                  toalha de papel descartável. Aplique uma camada fina da pomada
-                  recomendada pelo estúdio.
+                  {c.postSession.hygieneBody}
                 </p>
               </div>
 
@@ -229,7 +204,7 @@ export default function AftercareePage() {
               <div className="border border-white/10 p-7 md:p-8">
                 <div className="flex items-start justify-between mb-4">
                   <p className="font-body text-xs font-semibold tracking-[0.3em] uppercase text-white">
-                    Zonas Proibidas
+                    {c.postSession.forbiddenTitle}
                   </p>
                   <div className="text-red-500/70">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
@@ -239,15 +214,12 @@ export default function AftercareePage() {
                   </div>
                 </div>
                 <ul className="space-y-2.5">
-                  {[
-                    { icon: <IconNoSun />, text: 'SEM sol direto por 30 dias.' },
-                    { icon: <IconNoWater />, text: 'SEM imersão em água (piscinas, mar, banheiras).' },
-                    { icon: <IconNoScratch />, text: 'SEM coçar ou remover cascas.' },
-                    { icon: <IconNoTight />, text: 'SEM roupas apertadas ou sintéticas na área.' },
-                  ].map((item, i) => (
+                  {[<IconNoSun />, <IconNoWater />, <IconNoScratch />, <IconNoTight />].map((icon, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <span className="shrink-0 mt-0.5 text-red-500/60">{item.icon}</span>
-                      <span className="font-body text-xs text-white/50 leading-relaxed">{item.text}</span>
+                      <span className="shrink-0 mt-0.5 text-red-500/60">{icon}</span>
+                      <span className="font-body text-xs text-white/50 leading-relaxed">
+                        {c.postSession.forbiddenItems[i] ?? ''}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -265,7 +237,7 @@ export default function AftercareePage() {
                   className="font-body text-[10px] font-semibold tracking-widest uppercase leading-relaxed"
                   style={{ color: 'rgb(var(--ink-400))' }}
                 >
-                  Em caso de inflamação severa, contacte o estúdio imediatamente.
+                  {c.postSession.alertText}
                 </p>
               </div>
             </div>
@@ -276,14 +248,14 @@ export default function AftercareePage() {
         <div className="mt-24 md:mt-32 pb-20 md:pb-28 text-center">
           <div className="border-t border-white/10 pt-16 md:pt-20">
             <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-6">
-              Pronto para começar?
+              {c.cta.tagline}
             </p>
             <h2 className="font-display text-5xl md:text-7xl uppercase tracking-tight text-white mb-6">
-              Agende sua<br />
-              <span style={{ color: 'rgb(var(--ink-500))' }}>sessão</span>
+              {c.cta.title1}<br />
+              <span style={{ color: 'rgb(var(--ink-500))' }}>{c.cta.title2}</span>
             </h2>
             <p className="font-body text-sm text-white/40 max-w-sm mx-auto mb-10 leading-relaxed">
-              Nossa equipe está pronta para orientar cada passo do seu processo artístico.
+              {c.cta.description}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
