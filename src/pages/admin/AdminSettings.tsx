@@ -3,6 +3,16 @@ import { useStore } from '../../store';
 import { THEMES, applyTheme, getThemeForHostname } from '../../lib/themes';
 import type { ThemeId } from '../../lib/themes';
 import { supabase } from '../../lib/supabase';
+import { uploadImage } from '../../lib/uploadImage';
+
+interface StorageDiag {
+  usedKB: number;
+  limitKB: number;
+  base64Count: number;
+  base64KB: number;
+  supabaseOk: boolean | null; // null = not tested yet
+  bucketExists: boolean | null;
+}
 
 const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
@@ -13,6 +23,10 @@ export default function AdminSettings() {
   const artists  = useStore((s) => s.artists);
   const merchs   = useStore((s) => s.merchs);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
+  const [diag, setDiag] = useState<StorageDiag | null>(null);
+  const [diagLoading, setDiagLoading] = useState(false);
+  const [reuploadStatus, setReuploadStatus] = useState<'idle' | 'running' | 'ok' | 'error'>('idle');
+  const [reuploadProgress, setReuploadProgress] = useState({ done: 0, total: 0 });
 
   async function handleSyncToSupabase() {
     if (!supabase) {
@@ -52,6 +66,86 @@ export default function AdminSettings() {
       console.error('[sync]', err);
       setSyncStatus('error');
       setTimeout(() => setSyncStatus('idle'), 5000);
+    }
+  }
+
+  async function runDiagnostic() {
+    setDiagLoading(true);
+    try {
+      // LocalStorage usage
+      let totalBytes = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const v = localStorage.getItem(localStorage.key(i)!) ?? '';
+        totalBytes += v.length * 2;
+      }
+
+      // Count base64 images in tattoos, artists, merchs
+      const allImages = [
+        ...tattoos.map((t) => t.imageUrl),
+        ...artists.map((a) => a.photoUrl),
+        ...merchs.map((m) => m.imageUrl),
+      ];
+      const base64Images = allImages.filter((u) => u?.startsWith('data:'));
+      const base64Bytes = base64Images.reduce((acc, u) => acc + (u?.length ?? 0) * 2, 0);
+
+      // Test Supabase bucket
+      let supabaseOk: boolean | null = null;
+      let bucketExists: boolean | null = null;
+      if (supabase) {
+        try {
+          const { error } = await supabase.storage.from('images').list('', { limit: 1 });
+          supabaseOk = true;
+          bucketExists = !error;
+        } catch {
+          supabaseOk = false;
+          bucketExists = false;
+        }
+      }
+
+      setDiag({
+        usedKB: Math.round(totalBytes / 1024),
+        limitKB: 5120, // ~5MB typical localStorage limit
+        base64Count: base64Images.length,
+        base64KB: Math.round(base64Bytes / 1024),
+        supabaseOk,
+        bucketExists,
+      });
+    } finally {
+      setDiagLoading(false);
+    }
+  }
+
+  async function handleReuploadBase64() {
+    setReuploadStatus('running');
+    const updateTattoo = useStore.getState().updateTattoo;
+    const updateArtist = useStore.getState().updateArtist;
+
+    const base64Tattoos = tattoos.filter((t) => t.imageUrl?.startsWith('data:'));
+    const base64Artists = artists.filter((a) => a.photoUrl?.startsWith('data:'));
+    const total = base64Tattoos.length + base64Artists.length;
+    let done = 0;
+    setReuploadProgress({ done: 0, total });
+
+    try {
+      for (const t of base64Tattoos) {
+        const url = await uploadImage(t.imageUrl);
+        if (!url.startsWith('data:')) updateTattoo(t.id, { imageUrl: url });
+        done++;
+        setReuploadProgress({ done, total });
+      }
+      for (const a of base64Artists) {
+        const url = await uploadImage(a.photoUrl);
+        if (!url.startsWith('data:')) updateArtist(a.id, { photoUrl: url });
+        done++;
+        setReuploadProgress({ done, total });
+      }
+      setReuploadStatus('ok');
+      await runDiagnostic();
+      setTimeout(() => setReuploadStatus('idle'), 5000);
+    } catch (err) {
+      console.error('[reupload]', err);
+      setReuploadStatus('error');
+      setTimeout(() => setReuploadStatus('idle'), 5000);
     }
   }
 
@@ -319,6 +413,158 @@ export default function AdminSettings() {
         <p className="mt-3 font-body text-[10px] text-gray-700 tracking-wide">
           {artists.length} artista(s) · {tattoos.length} tatuagem(ns) · {merchs.length} merch(s) neste dispositivo.
         </p>
+      </section>
+
+      {/* ── Divider ── */}
+      <div className="my-10 border-t border-white/10" />
+
+      {/* ── Armazenamento ─────────────────────────────────────────────────── */}
+      <section>
+        <div className="mb-5">
+          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
+            Armazenamento
+          </h2>
+          <p className="font-body text-xs text-gray-500">
+            Diagnóstico de uso do localStorage e do Supabase Storage.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={runDiagnostic}
+          disabled={diagLoading}
+          className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50"
+        >
+          {diagLoading ? (
+            <>
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" />
+              </svg>
+              Verificando...
+            </>
+          ) : (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6M4 20h16" />
+              </svg>
+              Verificar Armazenamento
+            </>
+          )}
+        </button>
+
+        {diag && (
+          <div className="mt-4 space-y-3">
+            {/* localStorage bar */}
+            <div className="px-4 py-3 border border-white/10 bg-black/30">
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">
+                  LocalStorage
+                </p>
+                <p className={`font-body text-xs font-mono font-semibold ${
+                  diag.usedKB > diag.limitKB * 0.8 ? 'text-red-400' :
+                  diag.usedKB > diag.limitKB * 0.5 ? 'text-amber-400' : 'text-green-400'
+                }`}>
+                  {diag.usedKB} KB / {diag.limitKB} KB
+                </p>
+              </div>
+              <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    diag.usedKB > diag.limitKB * 0.8 ? 'bg-red-500' :
+                    diag.usedKB > diag.limitKB * 0.5 ? 'bg-amber-400' : 'bg-green-500'
+                  }`}
+                  style={{ width: `${Math.min(100, (diag.usedKB / diag.limitKB) * 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* base64 images */}
+            <div className={`px-4 py-3 border ${diag.base64Count > 0 ? 'border-amber-500/40 bg-amber-900/10' : 'border-white/10 bg-black/30'}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">
+                    Imagens em base64 (local)
+                  </p>
+                  {diag.base64Count > 0 && (
+                    <p className="font-body text-[10px] text-amber-400 mt-0.5">
+                      {diag.base64Count} imagem(ns) ocupando ~{diag.base64KB} KB no localStorage
+                    </p>
+                  )}
+                </div>
+                <p className={`font-body text-sm font-mono font-bold ${diag.base64Count > 0 ? 'text-amber-400' : 'text-green-400'}`}>
+                  {diag.base64Count}
+                </p>
+              </div>
+            </div>
+
+            {/* Supabase status */}
+            <div className={`px-4 py-3 border ${
+              diag.supabaseOk === null ? 'border-white/10 bg-black/30' :
+              diag.supabaseOk && diag.bucketExists ? 'border-green-500/40 bg-green-900/10' :
+              'border-red-500/40 bg-red-900/10'
+            }`}>
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1">
+                Supabase Storage
+              </p>
+              {diag.supabaseOk === null && (
+                <p className="font-body text-xs text-gray-600">Não testado</p>
+              )}
+              {diag.supabaseOk === false && (
+                <p className="font-body text-xs text-red-400">
+                  Não foi possível conectar ao Supabase. Verifique as credenciais.
+                </p>
+              )}
+              {diag.supabaseOk === true && !diag.bucketExists && (
+                <div className="space-y-1">
+                  <p className="font-body text-xs text-red-400 font-semibold">
+                    Bucket "images" não encontrado — este é o motivo das fotos ficarem no localStorage!
+                  </p>
+                  <p className="font-body text-[10px] text-gray-500 leading-relaxed">
+                    Acesse o Supabase Dashboard → Storage → New bucket → nome: <span className="font-mono text-white/60">images</span> → marque "Public" → Save.
+                  </p>
+                </div>
+              )}
+              {diag.supabaseOk === true && diag.bucketExists && (
+                <p className="font-body text-xs text-green-400">
+                  Conectado e bucket "images" acessível. Uploads de novas imagens irão para a nuvem.
+                </p>
+              )}
+            </div>
+
+            {/* Re-upload button */}
+            {diag.base64Count > 0 && diag.supabaseOk && diag.bucketExists && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleReuploadBase64}
+                  disabled={reuploadStatus === 'running'}
+                  className="flex items-center gap-2 px-5 py-3 border border-amber-500/40 text-amber-400 font-body text-xs font-semibold tracking-widest uppercase hover:bg-amber-400 hover:text-black transition-colors disabled:opacity-50"
+                >
+                  {reuploadStatus === 'running' ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" />
+                      </svg>
+                      Enviando {reuploadProgress.done}/{reuploadProgress.total}...
+                    </>
+                  ) : reuploadStatus === 'ok' ? (
+                    <span className="text-green-400">Imagens migradas para a nuvem!</span>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      Migrar imagens locais para a nuvem
+                    </>
+                  )}
+                </button>
+                <p className="mt-2 font-body text-[10px] text-gray-600">
+                  Re-envia as {diag.base64Count} imagem(ns) em base64 para o Supabase e libera o localStorage.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* ── Divider ── */}
