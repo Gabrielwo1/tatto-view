@@ -241,29 +241,6 @@ export default function SobreNosPage() {
         </div>
       </section>
 
-      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-      <footer className="border-t border-white/10 px-6 lg:px-20 py-8">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-body text-[10px] tracking-widest uppercase text-white/20">
-            © 2024 El Dude Tattoo. Permanência pelo Design.
-          </p>
-          <div className="flex gap-6">
-            {[
-              { to: '/artistas', label: 'Artistas' },
-              { to: '/sobre-nos', label: 'Estúdio' },
-              { to: '/aftercare', label: 'Cuidados' },
-            ].map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                className="font-body text-[10px] tracking-widest uppercase text-white/30 hover:text-white transition-colors"
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
