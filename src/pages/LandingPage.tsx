@@ -457,51 +457,59 @@ export default function LandingPage() {
           CONTATO & REDES SOCIAIS
       ══════════════════════════════════════════════════ */}
       <section className="bg-zinc-950 border-t border-white/10 px-6 lg:px-20 py-14 lg:py-20">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-10 sm:divide-x sm:divide-white/5">
 
-          {/* Contato + Endereço */}
-          <div>
-            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Contato</h3>
-            <div className="space-y-3 font-body text-sm text-white/60 mb-8">
+          {/* Contato */}
+          <div className="sm:pr-10">
+            <h3 className="font-display text-xs uppercase tracking-widest text-white mb-4">Contato</h3>
+            <div className="space-y-4 font-body text-sm text-white/60">
               {sobreNos.contact.email && (
                 <p>
-                  Você pode entrar em contato pelo e-mail:{' '}
-                  <a href={`mailto:${sobreNos.contact.email}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                  <span className="text-white/30 text-xs">E-mail</span><br />
+                  <a href={`mailto:${sobreNos.contact.email}`} className="text-ink-500 hover:text-white transition-colors">
                     {sobreNos.contact.email}
                   </a>
                 </p>
               )}
               {sobreNos.contact.phone1 && (
                 <p>
-                  Telefones de contato:{' '}
-                  <a href={sobreNos.contact.phone1Url || `tel:${sobreNos.contact.phone1}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                  <span className="text-white/30 text-xs">Telefone</span><br />
+                  <a href={sobreNos.contact.phone1Url || `tel:${sobreNos.contact.phone1}`} className="text-ink-500 hover:text-white transition-colors">
                     {sobreNos.contact.phone1}
                   </a>
                   {sobreNos.contact.phone2 && (
-                    <> e <a href={sobreNos.contact.phone2Url || `tel:${sobreNos.contact.phone2}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">{sobreNos.contact.phone2}</a></>
+                    <>
+                      <br />
+                      <a href={sobreNos.contact.phone2Url || `tel:${sobreNos.contact.phone2}`} className="text-ink-500 hover:text-white transition-colors">
+                        {sobreNos.contact.phone2}
+                      </a>
+                    </>
                   )}
                 </p>
               )}
             </div>
-
-            {(sobreNos.studio.street || sobreNos.studio.city) && (
-              <div>
-                <p className="font-body text-[10px] font-bold tracking-widest uppercase text-white/40 mb-3">Endereço</p>
-                <p className="font-display text-lg uppercase tracking-wide text-white">{sobreNos.studio.street}</p>
-                <p className="font-display text-lg uppercase tracking-wide text-white">{sobreNos.studio.city}</p>
-                {sobreNos.studio.cep && <p className="font-display text-lg uppercase tracking-wide text-white">{sobreNos.studio.cep}</p>}
-              </div>
-            )}
           </div>
 
+          {/* Endereço */}
+          {(sobreNos.studio.street || sobreNos.studio.city) && (
+            <div className="sm:px-10">
+              <h3 className="font-display text-xs uppercase tracking-widest text-white mb-4">Endereço</h3>
+              <div className="font-body text-sm text-white/60 space-y-1">
+                {sobreNos.studio.street && <p>{sobreNos.studio.street}</p>}
+                {sobreNos.studio.city   && <p>{sobreNos.studio.city}</p>}
+                {sobreNos.studio.cep    && <p>CEP {sobreNos.studio.cep}</p>}
+              </div>
+            </div>
+          )}
+
           {/* Redes Sociais */}
-          <div>
-            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Redes Sociais</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="sm:pl-10">
+            <h3 className="font-display text-xs uppercase tracking-widest text-white mb-4">Redes Sociais</h3>
+            <div className="flex flex-col gap-3">
               {sobreNos.contact.instagram && (
                 <a href={sobreNos.contact.instagramUrl} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
                     <circle cx="12" cy="12" r="4"/>
                     <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
@@ -512,7 +520,7 @@ export default function LandingPage() {
               {sobreNos.contact.tiktok && (
                 <a href={sobreNos.contact.tiktokUrl} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/>
                   </svg>
                   {sobreNos.contact.tiktok}
