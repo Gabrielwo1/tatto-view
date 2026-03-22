@@ -35,35 +35,35 @@ export interface SobreNosContent {
 
 const defaultSobreNosContent: SobreNosContent = {
   hero: {
-    title1: 'PERMANENCE',
-    title2: 'BY DESIGN',
+    title1: 'PERMANÊNCIA',
+    title2: 'PELO DESIGN',
     description:
-      'We are a sanctuary for those who view the body as a canvas for high-art and architectural precision. EL DUDE TATTOO is more than a studio. It is a collective of visionaries dedicated to the permanence of creative intent.',
+      'Somos um santuário para quem enxerga o corpo como tela para alta arte e precisão arquitetônica. EL DUDE TATTOO é mais do que um estúdio. É um coletivo de visionários dedicados à permanência da intenção criativa.',
   },
   collective: {
-    title: 'THE COLLECTIVE',
+    title: 'O COLETIVO',
     body1:
-      'At the heart of El Dude is an artistic collective — a curated group of creators who believe that every line serves a purpose. We reject the generic, opting instead for a connection-first approach that transforms ideas into timeless icons.',
+      'No coração do El Dude existe um coletivo artístico — um grupo criterioso de criadores que acreditam que cada traço tem um propósito. Rejeitamos o genérico, optando por uma abordagem que prioriza a conexão e transforma ideias em ícones atemporais.',
     body2:
-      'Our space in São Paulo was designed to bridge the gap between traditional craft and modern minimalism. It is a sterile yet soulful environment where creativity is nurtured through raw expression and technical mastery.',
+      'Nosso espaço foi projetado para unir o artesanato tradicional ao minimalismo moderno. Um ambiente ao mesmo tempo preciso e sensível, onde a criatividade é cultivada através da expressão bruta e da maestria técnica.',
     body3: '',
-    ctaLabel: 'Meet the Artists',
-    imageCaption: 'BOTANICAL SERIES 04',
+    ctaLabel: 'Conheça os Artistas',
+    imageCaption: 'SÉRIE BOTÂNICA 04',
   },
-  quote: '"The beauty of the needle lies in its definitive nature."',
+  quote: '"A beleza da agulha está em sua natureza definitiva."',
   studio: {
-    title: 'THE STUDIO',
+    title: 'O ESTÚDIO',
     street: 'Av. Dr. Arnaldo, 128',
     city: 'Sumaré, São Paulo — SP',
     cep: '01255-000',
     mapLat: '-23.5505',
     mapLng: '-46.6333',
     mapZoom: '15',
-    mapLabel: 'Sumaré District',
+    mapLabel: 'Bairro Sumaré',
     hours: [
-      { days: 'Tue — Fri', time: '11:00 — 20:00', closed: false },
-      { days: 'Saturday', time: '10:00 — 18:00', closed: false },
-      { days: 'Sun — Mon', time: 'Closed', closed: true },
+      { days: 'Ter — Sex', time: '11:00 — 20:00', closed: false },
+      { days: 'Sábado', time: '10:00 — 18:00', closed: false },
+      { days: 'Dom — Seg', time: 'Fechado', closed: true },
     ],
   },
 };

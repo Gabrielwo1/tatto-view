@@ -20,7 +20,7 @@ export default function SobreNosPage() {
 
         <div className="relative z-20 px-6 lg:px-20 pb-16 lg:pb-24">
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/40 mb-6">
-            Est. 2018 — São Paulo
+            Est. 2018 — Francisco Beltrão
           </p>
           <h1 className="font-display text-6xl sm:text-7xl lg:text-9xl uppercase leading-none tracking-tight">
             {hero.title1}
@@ -59,7 +59,7 @@ export default function SobreNosPage() {
           <div className="relative">
             <div className="aspect-[3/4] bg-zinc-800 w-full max-w-sm ml-auto flex items-center justify-center">
               <span className="font-body text-[10px] tracking-widest uppercase text-white/20">
-                Studio Image
+                Imagem do Estúdio
               </span>
             </div>
             {collective.imageCaption && (
@@ -102,7 +102,7 @@ export default function SobreNosPage() {
 
             <div>
               <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/40 mb-4">
-                Hours
+                Horários
               </p>
               <div className="space-y-3">
                 {studio.hours.map((h, i) => (
@@ -154,13 +154,13 @@ export default function SobreNosPage() {
       <footer className="border-t border-white/10 px-6 lg:px-20 py-8">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-body text-[10px] tracking-widest uppercase text-white/20">
-            © 2024 El Dude Tattoo. Permanence by Design.
+            © 2024 El Dude Tattoo. Permanência pelo Design.
           </p>
           <div className="flex gap-6">
             {[
-              { to: '/artistas', label: 'Artists' },
-              { to: '/sobre-nos', label: 'Studio' },
-              { to: '/aftercare', label: 'Aftercare' },
+              { to: '/artistas', label: 'Artistas' },
+              { to: '/sobre-nos', label: 'Estúdio' },
+              { to: '/aftercare', label: 'Cuidados' },
             ].map(({ to, label }) => (
               <Link
                 key={to}
