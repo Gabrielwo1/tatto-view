@@ -45,7 +45,7 @@ export default function GuestsPage() {
   const gc = useStore((s) => s.guestContent);
 
   return (
-    <div className="bg-black text-white overflow-x-hidden">
+    <div className="bg-zinc-900 text-white overflow-x-hidden">
 
       {/* ── 01 HERO ────────────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-10 pt-16 md:pt-24 pb-16 md:pb-20 border-b border-white/8">
