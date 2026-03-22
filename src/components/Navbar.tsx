@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useStore } from '../store';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const isAdmin = useStore((s) => s.isAdmin);
+  const logout = useStore((s) => s.logout);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -41,13 +45,34 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Right: Admin */}
-          <Link
-            to="/admin"
-            className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors z-10"
-          >
-            Admin
-          </Link>
+          {/* Right: Admin / Logout */}
+          {isAdmin ? (
+            <div className="flex items-center gap-4 z-10">
+              <Link
+                to="/admin"
+                className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
+              >
+                Admin
+              </Link>
+              <button
+                onClick={() => { logout(); navigate('/'); }}
+                className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-red-400 transition-colors"
+                title="Sair"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sair
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/admin"
+              className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors z-10"
+            >
+              Admin
+            </Link>
+          )}
         </div>
       </div>
 

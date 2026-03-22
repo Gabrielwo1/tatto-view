@@ -40,6 +40,15 @@ const navItems = [
     ),
   },
   {
+    to: '/admin/aftercare',
+    label: 'Pós Tattoo',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+    ),
+  },
+  {
     to: '/admin/sobre-nos',
     label: 'Sobre Nós',
     icon: (
@@ -89,7 +98,7 @@ export default function AdminLayout() {
       <aside className="hidden md:flex w-52 bg-black border-l border-white/10 flex-col flex-shrink-0">
         <div className="p-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/eldude-logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
+            <img src="/eldude-nova-logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
           </Link>
         </div>
@@ -154,7 +163,7 @@ export default function AdminLayout() {
           <aside className="relative ml-auto w-64 bg-black border-l border-white/10 flex flex-col h-full">
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <Link to="/" onClick={closeDrawer} className="flex items-center gap-3">
-                <img src="/eldude-logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
+                <img src="/eldude-nova-logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
                 <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
               </Link>
               <button onClick={closeDrawer} className="p-1 text-gray-600 hover:text-white">
