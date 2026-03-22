@@ -12,13 +12,13 @@ export default function SobreNosPage() {
     <div className="bg-zinc-900 text-white">
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[70vh] flex flex-col justify-end overflow-hidden">
+      <section className="relative min-h-[70vh] flex flex-col items-center justify-center overflow-hidden">
         {/* background overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black z-10" />
         {/* bg image placeholder — dark texture */}
         <div className="absolute inset-0 bg-zinc-900" />
 
-        <div className="relative z-20 px-6 lg:px-20 pb-16 lg:pb-24">
+        <div className="relative z-20 px-6 lg:px-20 py-16 lg:py-24 text-center w-full max-w-6xl mx-auto">
           {hero.estLabel && (
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/40 mb-6">
               {hero.estLabel}
@@ -29,8 +29,8 @@ export default function SobreNosPage() {
             <br />
             {hero.title2}
           </h1>
-          <div className="mt-6 w-12 h-0.5 bg-ink-500" />
-          <p className="mt-6 max-w-sm text-white/60 font-body text-sm leading-relaxed">
+          <div className="mt-6 w-12 h-0.5 bg-ink-500 mx-auto" />
+          <p className="mt-6 max-w-sm text-white/60 font-body text-sm leading-relaxed mx-auto">
             {hero.description}
           </p>
         </div>
@@ -59,7 +59,12 @@ export default function SobreNosPage() {
 
           {/* Studio image */}
           <div className="relative">
-            <div className="aspect-[3/4] bg-zinc-800 w-full max-w-sm ml-auto overflow-hidden flex items-center justify-center">
+            <div className={`aspect-[3/4] bg-zinc-800 overflow-hidden flex items-center justify-center ml-auto ${
+              collective.imageSize === 'sm'   ? 'max-w-xs w-full' :
+              collective.imageSize === 'lg'   ? 'max-w-lg w-full' :
+              collective.imageSize === 'full' ? 'w-full' :
+                                                'max-w-sm w-full'
+            }`}>
               {collective.image ? (
                 <img
                   src={collective.image}

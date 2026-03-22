@@ -20,6 +20,7 @@ export interface SobreNosContent {
     ctaLabel: string;
     imageCaption: string;
     image: string;
+    imageSize: string;
   };
   quote: string;
   studio: {
@@ -53,6 +54,7 @@ const defaultSobreNosContent: SobreNosContent = {
     ctaLabel: 'Conheça os Artistas',
     imageCaption: 'SÉRIE BOTÂNICA 04',
     image: '',
+    imageSize: 'md',
   },
   quote: '"A beleza da agulha está em sua natureza definitiva."',
   studio: {
