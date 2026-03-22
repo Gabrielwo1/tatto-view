@@ -274,16 +274,11 @@ export default function LandingPage() {
 
           {available.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-px border border-white/10">
-              {available.map((tattoo, i) => {
-                /* Pattern: positions 5 and 11 span 2 cols for visual variety */
-                const isWide = i === 5 || i === 11;
-                return (
+              {available.map((tattoo, i) => (
                   <Link
                     key={tattoo.id}
                     to="/"
-                    className={`group relative overflow-hidden bg-zinc-900 block transition-all duration-700
-                      ${isWide ? 'sm:col-span-2 aspect-[2/1]' : 'aspect-[3/4]'}
-                      ${galeria.visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                    className={`group relative overflow-hidden aspect-[3/4] bg-zinc-900 block transition-all duration-700 ${galeria.visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                     style={{ transitionDelay: `${i * 50}ms` }}
                   >
                     <img
@@ -299,8 +294,7 @@ export default function LandingPage() {
                       {tattoo.price && <p className="font-body text-sm text-white mt-1">{tattoo.price}</p>}
                     </div>
                   </Link>
-                );
-              })}
+              ))}
             </div>
           ) : (
             <div className="text-center py-20 border border-white/10">
