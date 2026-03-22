@@ -23,6 +23,7 @@ import AftercareePage from './pages/AftercareePage';
 import SobreNosPage from './pages/SobreNosPage';
 import AdminSobreNos from './pages/admin/AdminSobreNos';
 import AdminAftercare from './pages/admin/AdminAftercare';
+import AdminLandingPage from './pages/admin/AdminLandingPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -146,6 +147,7 @@ export default function App() {
           <Route path="guests" element={<AdminGuestPage />} />
           <Route path="aftercare" element={<AdminAftercare />} />
           <Route path="sobre-nos" element={<AdminSobreNos />} />
+          <Route path="landing" element={<AdminLandingPage />} />
           <Route path="configuracoes" element={<AdminSettings />} />
         </Route>
 
