@@ -8,6 +8,25 @@ export default function AdminSettings() {
   const themeId  = useStore((s) => s.themeId);
   const setTheme = useStore((s) => s.setTheme);
 
+  function handleExportBackup() {
+    const data: Record<string, unknown> = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)!;
+      try {
+        data[key] = JSON.parse(localStorage.getItem(key)!);
+      } catch {
+        data[key] = localStorage.getItem(key);
+      }
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup-eldude-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const subdomainDefault = getThemeForHostname(window.location.hostname);
   const active = themeId ?? subdomainDefault;
 
@@ -179,6 +198,31 @@ export default function AdminSettings() {
             <p className="font-body text-sm text-white font-mono">vitrink.app</p>
           </div>
         </div>
+      </section>
+
+      {/* ── Divider ── */}
+      <div className="my-10 border-t border-white/10" />
+
+      {/* ── Backup ───────────────────────────────────────────────────────── */}
+      <section>
+        <div className="mb-5">
+          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
+            Backup
+          </h2>
+          <p className="font-body text-xs text-gray-500">
+            Baixe todos os dados do estúdio (artistas, tatuagens, configurações) em um arquivo JSON.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleExportBackup}
+          className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Baixar Backup
+        </button>
       </section>
     </div>
   );
