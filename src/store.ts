@@ -4,6 +4,70 @@ import type { Tattoo, Artist, Merch } from './types';
 import type { ThemeId } from './lib/themes';
 import { supabase } from './lib/supabase';
 
+// ── Sobre Nós Content ────────────────────────────────────────────────────────
+export interface SobreNosContent {
+  hero: {
+    title1: string;
+    title2: string;
+    description: string;
+  };
+  collective: {
+    title: string;
+    body1: string;
+    body2: string;
+    body3: string;
+    ctaLabel: string;
+    imageCaption: string;
+  };
+  quote: string;
+  studio: {
+    title: string;
+    street: string;
+    city: string;
+    cep: string;
+    mapLat: string;
+    mapLng: string;
+    mapZoom: string;
+    mapLabel: string;
+    hours: Array<{ days: string; time: string; closed: boolean }>;
+  };
+}
+
+const defaultSobreNosContent: SobreNosContent = {
+  hero: {
+    title1: 'PERMANENCE',
+    title2: 'BY DESIGN',
+    description:
+      'We are a sanctuary for those who view the body as a canvas for high-art and architectural precision. EL DUDE TATTOO is more than a studio. It is a collective of visionaries dedicated to the permanence of creative intent.',
+  },
+  collective: {
+    title: 'THE COLLECTIVE',
+    body1:
+      'At the heart of El Dude is an artistic collective — a curated group of creators who believe that every line serves a purpose. We reject the generic, opting instead for a connection-first approach that transforms ideas into timeless icons.',
+    body2:
+      'Our space in São Paulo was designed to bridge the gap between traditional craft and modern minimalism. It is a sterile yet soulful environment where creativity is nurtured through raw expression and technical mastery.',
+    body3: '',
+    ctaLabel: 'Meet the Artists',
+    imageCaption: 'BOTANICAL SERIES 04',
+  },
+  quote: '"The beauty of the needle lies in its definitive nature."',
+  studio: {
+    title: 'THE STUDIO',
+    street: 'Av. Dr. Arnaldo, 128',
+    city: 'Sumaré, São Paulo — SP',
+    cep: '01255-000',
+    mapLat: '-23.5505',
+    mapLng: '-46.6333',
+    mapZoom: '15',
+    mapLabel: 'Sumaré District',
+    hours: [
+      { days: 'Tue — Fri', time: '11:00 — 20:00', closed: false },
+      { days: 'Saturday', time: '10:00 — 18:00', closed: false },
+      { days: 'Sun — Mon', time: 'Closed', closed: true },
+    ],
+  },
+};
+
 // ── Guest Page Content ───────────────────────────────────────────────────────
 export interface GuestContent {
   hero: {
@@ -203,6 +267,9 @@ interface AppState {
   /** Theme chosen by the studio admin. null = use subdomain default. */
   themeId: ThemeId | null;
   setTheme: (id: ThemeId | null) => void;
+  /** Sobre Nós page content editable by admin */
+  sobreNosContent: SobreNosContent;
+  setSobreNosContent: (content: SobreNosContent) => void;
   /** Guest page content editable by admin */
   guestContent: GuestContent;
   setGuestContent: (content: GuestContent) => void;
@@ -233,6 +300,8 @@ export const useStore = create<AppState>()(
       dataLoaded: false,
       themeId: null,
       setTheme: (id) => set({ themeId: id }),
+      sobreNosContent: defaultSobreNosContent,
+      setSobreNosContent: (content) => set({ sobreNosContent: content }),
       guestContent: defaultGuestContent,
       setGuestContent: (content) => set({ guestContent: content }),
 
@@ -392,6 +461,7 @@ export const useStore = create<AppState>()(
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
+        sobreNosContent: state.sobreNosContent,
         guestContent: state.guestContent,
       }),
     }

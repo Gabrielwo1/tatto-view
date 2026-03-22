@@ -20,6 +20,8 @@ import GuestsPage from './pages/GuestsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
 import AftercareePage from './pages/AftercareePage';
+import SobreNosPage from './pages/SobreNosPage';
+import AdminSobreNos from './pages/admin/AdminSobreNos';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -110,6 +112,14 @@ export default function App() {
             </PublicLayout>
           }
         />
+        <Route
+          path="/sobre-nos"
+          element={
+            <PublicLayout>
+              <SobreNosPage />
+            </PublicLayout>
+          }
+        />
 
         {/* Landing page — standalone, no Navbar */}
         <Route path="/landingpage" element={<LandingPage />} />
@@ -133,6 +143,7 @@ export default function App() {
           <Route path="artistas/novo" element={<AdminArtistForm />} />
           <Route path="artistas/:id/editar" element={<AdminArtistForm />} />
           <Route path="guests" element={<AdminGuestPage />} />
+          <Route path="sobre-nos" element={<AdminSobreNos />} />
           <Route path="configuracoes" element={<AdminSettings />} />
         </Route>
 

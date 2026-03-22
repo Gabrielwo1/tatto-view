@@ -61,6 +61,7 @@ export default function Navbar() {
               { to: '/guests', label: 'Guests', end: false },
               { to: '/merchs', label: 'Merchs', end: false },
               { to: '/aftercare', label: 'Pós Tattoo', end: false },
+              { to: '/sobre-nos', label: 'Sobre Nós', end: false },
             ].map(({ to, label, end }) => (
               <NavLink
                 key={to}
