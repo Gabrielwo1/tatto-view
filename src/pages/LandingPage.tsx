@@ -70,7 +70,7 @@ export default function LandingPage() {
 
         {/* Logo */}
         <img
-          src="/eldude-logo.png"
+          src="/logosemo-3.png"
           alt="El Dude"
           className="w-40 md:w-56 mb-10 opacity-90"
         />
@@ -455,7 +455,7 @@ export default function LandingPage() {
       ══════════════════════════════════════════════════ */}
       <footer className="bg-zinc-950 border-t border-white/10 py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <img src="/eldude-logo.png" alt="El Dude" className="h-10 opacity-60 hover:opacity-100 transition-opacity" />
+          <img src="/logosemo-3.png" alt="El Dude" className="h-10 opacity-60 hover:opacity-100 transition-opacity" />
 
           <nav className="flex flex-wrap gap-x-8 gap-y-3 justify-center">
             {[

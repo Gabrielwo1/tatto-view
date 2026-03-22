@@ -47,6 +47,10 @@ export default function AdminSobreNos() {
     setForm((f) => ({ ...f, studio: { ...f.studio, [field]: value } }));
   }
 
+  function setContact(field: keyof SobreNosContent['contact'], value: string) {
+    setForm((f) => ({ ...f, contact: { ...f.contact, [field]: value } }));
+  }
+
   function setHour(index: number, field: 'days' | 'time' | 'closed', value: string | boolean) {
     setForm((f) => {
       const hours = f.studio.hours.map((h, i) =>
@@ -403,6 +407,133 @@ export default function AdminSobreNos() {
               <p className="font-body text-[10px] text-gray-600 mt-2">
                 Salve as alterações para atualizar o mapa na página pública.
               </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="border-t border-white/8" />
+
+        {/* ── CONTATO & REDES SOCIAIS ── */}
+        <section>
+          <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
+            Contato & Redes Sociais
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className={labelCls}>E-mail de contato</label>
+              <input
+                className={inputCls}
+                type="email"
+                placeholder="contato@studio.com"
+                value={form.contact.email}
+                onChange={(e) => setContact('email', e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Telefone 1 (exibição)</label>
+                <input
+                  className={inputCls}
+                  placeholder="(11) 3031-3881"
+                  value={form.contact.phone1}
+                  onChange={(e) => setContact('phone1', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Telefone 1 (link tel:)</label>
+                <input
+                  className={inputCls}
+                  placeholder="tel:+551130313881"
+                  value={form.contact.phone1Url}
+                  onChange={(e) => setContact('phone1Url', e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelCls}>Telefone 2 (exibição)</label>
+                <input
+                  className={inputCls}
+                  placeholder="(11) 98701-6894"
+                  value={form.contact.phone2}
+                  onChange={(e) => setContact('phone2', e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Telefone 2 (link tel:)</label>
+                <input
+                  className={inputCls}
+                  placeholder="tel:+5511987016894"
+                  value={form.contact.phone2Url}
+                  onChange={(e) => setContact('phone2Url', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-white/5 pt-4">
+              <p className="font-body text-[10px] text-gray-600 mb-3">Redes Sociais</p>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Instagram (handle)</label>
+                    <input
+                      className={inputCls}
+                      placeholder="@studio"
+                      value={form.contact.instagram}
+                      onChange={(e) => setContact('instagram', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Instagram (URL)</label>
+                    <input
+                      className={inputCls}
+                      placeholder="https://instagram.com/studio"
+                      value={form.contact.instagramUrl}
+                      onChange={(e) => setContact('instagramUrl', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>TikTok (handle)</label>
+                    <input
+                      className={inputCls}
+                      placeholder="@studio"
+                      value={form.contact.tiktok}
+                      onChange={(e) => setContact('tiktok', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>TikTok (URL)</label>
+                    <input
+                      className={inputCls}
+                      placeholder="https://tiktok.com/@studio"
+                      value={form.contact.tiktokUrl}
+                      onChange={(e) => setContact('tiktokUrl', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelCls}>Twitter/X (handle)</label>
+                    <input
+                      className={inputCls}
+                      placeholder="@studio"
+                      value={form.contact.twitter}
+                      onChange={(e) => setContact('twitter', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Twitter/X (URL)</label>
+                    <input
+                      className={inputCls}
+                      placeholder="https://twitter.com/studio"
+                      value={form.contact.twitterUrl}
+                      onChange={(e) => setContact('twitterUrl', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
