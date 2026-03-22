@@ -13,6 +13,9 @@ export default function AdminSettings() {
   const artists  = useStore((s) => s.artists);
   const merchs   = useStore((s) => s.merchs);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [connStatus, setConnStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
+  const [connError, setConnError] = useState<string | null>(null);
 
   async function handleSyncToSupabase() {
     if (!supabase) {
@@ -47,11 +50,32 @@ export default function AdminSettings() {
       if (err) throw err;
 
       setSyncStatus('ok');
+      setSyncError(null);
       setTimeout(() => setSyncStatus('idle'), 4000);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('[sync]', err);
       setSyncStatus('error');
-      setTimeout(() => setSyncStatus('idle'), 5000);
+      setSyncError(err instanceof Error ? err.message : JSON.stringify(err));
+      setTimeout(() => { setSyncStatus('idle'); setSyncError(null); }, 8000);
+    }
+  }
+
+  async function handleTestConnection() {
+    if (!supabase) {
+      setConnStatus('error');
+      setConnError('Variáveis VITE_SUPABASE_URL e/ou VITE_SUPABASE_ANON_KEY não configuradas.');
+      return;
+    }
+    setConnStatus('testing');
+    setConnError(null);
+    try {
+      const { error } = await supabase.from('artists').select('count', { count: 'exact', head: true });
+      if (error) throw error;
+      setConnStatus('ok');
+      setTimeout(() => setConnStatus('idle'), 5000);
+    } catch (err: unknown) {
+      setConnStatus('error');
+      setConnError(err instanceof Error ? err.message : JSON.stringify(err));
     }
   }
 
@@ -280,43 +304,73 @@ export default function AdminSettings() {
             Envie todos os dados deste dispositivo para a nuvem (Supabase) e acesse em qualquer dispositivo.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleSyncToSupabase}
-          disabled={syncStatus === 'syncing'}
-          className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {syncStatus === 'syncing' ? (
-            <>
-              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" />
-              </svg>
-              Sincronizando...
-            </>
-          ) : syncStatus === 'ok' ? (
-            <>
-              <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="text-green-400">Sincronizado!</span>
-            </>
-          ) : syncStatus === 'error' ? (
-            <>
-              <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <span className="text-red-400">Erro — veja o console</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Sincronizar para a Nuvem
-            </>
-          )}
-        </button>
-        <p className="mt-3 font-body text-[10px] text-gray-700 tracking-wide">
+
+        {/* Connection info */}
+        <div className="mb-4 px-4 py-3 border border-white/10 bg-black/30">
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">Supabase</p>
+          <p className="font-mono text-xs text-gray-400 truncate">
+            {import.meta.env.VITE_SUPABASE_URL || <span className="text-red-400">não configurado</span>}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3 mb-3">
+          {/* Test Connection */}
+          <button
+            type="button"
+            onClick={handleTestConnection}
+            disabled={connStatus === 'testing'}
+            className="flex items-center gap-2 px-5 py-3 border border-white/10 text-gray-400 font-body text-xs font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {connStatus === 'testing' ? (
+              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Testando...</>
+            ) : connStatus === 'ok' ? (
+              <><svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-green-400">Conectado!</span></>
+            ) : connStatus === 'error' ? (
+              <><svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg><span className="text-red-400">Falhou</span></>
+            ) : (
+              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>Testar Conexão</>
+            )}
+          </button>
+
+          {/* Sync button */}
+          <button
+            type="button"
+            onClick={handleSyncToSupabase}
+            disabled={syncStatus === 'syncing'}
+            className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {syncStatus === 'syncing' ? (
+              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Sincronizando...</>
+            ) : syncStatus === 'ok' ? (
+              <><svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-green-400">Sincronizado!</span></>
+            ) : syncStatus === 'error' ? (
+              <><svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg><span className="text-red-400">Erro ao sincronizar</span></>
+            ) : (
+              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Sincronizar para a Nuvem</>
+            )}
+          </button>
+        </div>
+
+        {/* Error messages */}
+        {connError && (
+          <div className="mb-3 px-4 py-3 border border-red-500/30 bg-red-500/10">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-red-400 mb-1">Erro de Conexão</p>
+            <p className="font-mono text-xs text-red-300 break-all">{connError}</p>
+            {connError.toLowerCase().includes('relation') && (
+              <p className="mt-2 font-body text-xs text-red-300/70">
+                → As tabelas não existem. Execute o <span className="font-mono">supabase/setup.sql</span> no SQL Editor do Supabase.
+              </p>
+            )}
+          </div>
+        )}
+        {syncError && (
+          <div className="mb-3 px-4 py-3 border border-red-500/30 bg-red-500/10">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-red-400 mb-1">Erro de Sincronização</p>
+            <p className="font-mono text-xs text-red-300 break-all">{syncError}</p>
+          </div>
+        )}
+
+        <p className="font-body text-[10px] text-gray-700 tracking-wide">
           {artists.length} artista(s) · {tattoos.length} tatuagem(ns) · {merchs.length} merch(s) neste dispositivo.
         </p>
       </section>
