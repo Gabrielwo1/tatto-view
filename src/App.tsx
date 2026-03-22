@@ -24,6 +24,7 @@ import SobreNosPage from './pages/SobreNosPage';
 import AdminSobreNos from './pages/admin/AdminSobreNos';
 import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
+import SiteFooter from './components/SiteFooter';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -33,9 +34,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-zinc-900 text-white">
+    <div className="min-h-screen bg-zinc-900 text-white flex flex-col">
       <Navbar />
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
+      <SiteFooter />
     </div>
   );
 }
