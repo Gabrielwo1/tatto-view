@@ -1,7 +1,29 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
-import { TATTOO_STYLES } from '../types';
+import { TATTOO_STYLES, type Tattoo } from '../types';
+
+/* ─── interleave by artist (same algorithm as ShowcasePage) ─── */
+function interleaveByArtist(tattoos: Tattoo[]): Tattoo[] {
+  const groupMap = new Map<string, Tattoo[]>();
+  for (const t of tattoos) {
+    const key = t.artistId ?? '__studio__';
+    if (!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key)!.push(t);
+  }
+  const groups = Array.from(groupMap.values());
+  const result: Tattoo[] = [];
+  let lastKey: string | null = null;
+  while (groups.some((g) => g.length > 0)) {
+    groups.sort((a, b) => b.length - a.length);
+    const nonLast = groups.find((g) => g.length > 0 && (g[0].artistId ?? '__studio__') !== lastKey);
+    const picked = nonLast ?? groups.find((g) => g.length > 0)!;
+    const item = picked.shift()!;
+    result.push(item);
+    lastKey = item.artistId ?? '__studio__';
+  }
+  return result;
+}
 
 /* ─── tiny hook: element is visible ─── */
 function useVisible(threshold = 0.15) {
@@ -36,7 +58,10 @@ export default function LandingPage() {
   const lc = useStore((s) => s.landingContent);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
 
-  const available = tattoos.filter((t) => t.status === 'available').slice(0, 6);
+  const available = useMemo(
+    () => interleaveByArtist(tattoos.filter((t) => t.status === 'available')).slice(0, 15),
+    [tattoos]
+  );
 
   /* section visibility hooks */
   const sobre    = useVisible();
@@ -249,27 +274,33 @@ export default function LandingPage() {
 
           {available.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-px border border-white/10">
-              {available.map((tattoo, i) => (
-                <Link
-                  key={tattoo.id}
-                  to="/"
-                  className={`group relative overflow-hidden aspect-[3/4] bg-zinc-900 block transition-all duration-700 ${galeria.visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
-                  style={{ transitionDelay: `${i * 60}ms` }}
-                >
-                  <img
-                    src={tattoo.imageUrl}
-                    alt={tattoo.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/600`; }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    <p className="font-display text-base uppercase tracking-wide text-white">{tattoo.title}</p>
-                    <p className="font-body text-[10px] tracking-widest uppercase text-gray-400">{tattoo.style}</p>
-                    {tattoo.price && <p className="font-body text-sm text-white mt-1">{tattoo.price}</p>}
-                  </div>
-                </Link>
-              ))}
+              {available.map((tattoo, i) => {
+                /* Pattern: positions 5 and 11 span 2 cols for visual variety */
+                const isWide = i === 5 || i === 11;
+                return (
+                  <Link
+                    key={tattoo.id}
+                    to="/"
+                    className={`group relative overflow-hidden bg-zinc-900 block transition-all duration-700
+                      ${isWide ? 'sm:col-span-2 aspect-[2/1]' : 'aspect-[3/4]'}
+                      ${galeria.visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                    style={{ transitionDelay: `${i * 50}ms` }}
+                  >
+                    <img
+                      src={tattoo.imageUrl}
+                      alt={tattoo.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/600`; }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <p className="font-display text-base uppercase tracking-wide text-white">{tattoo.title}</p>
+                      <p className="font-body text-[10px] tracking-widest uppercase text-gray-400">{tattoo.style}</p>
+                      {tattoo.price && <p className="font-body text-sm text-white mt-1">{tattoo.price}</p>}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-20 border border-white/10">
