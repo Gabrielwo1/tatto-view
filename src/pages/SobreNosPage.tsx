@@ -90,10 +90,9 @@ export default function SobreNosPage() {
       <div className="w-full h-px bg-white/5" />
 
       {/* ── QUOTE ────────────────────────────────────────────────────────── */}
-      <section className="px-6 lg:px-20 py-20 lg:py-32 bg-zinc-950">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="text-ink-500 text-4xl font-serif leading-none mb-6">"</div>
-          <blockquote className="font-display text-3xl sm:text-4xl lg:text-5xl uppercase leading-tight tracking-wide italic">
+      <section className="px-6 lg:px-20 py-20 lg:py-32 bg-zinc-950 overflow-hidden">
+        <div className="max-w-6xl mx-auto text-center">
+          <blockquote className="font-display text-3xl sm:text-5xl lg:text-6xl uppercase leading-tight tracking-wide italic whitespace-nowrap">
             {quote.replace(/^"|"$/g, '')}
           </blockquote>
         </div>

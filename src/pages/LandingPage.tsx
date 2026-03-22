@@ -41,6 +41,7 @@ const FAQ = [
 export default function LandingPage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
+  const sobreNos = useStore((s) => s.sobreNosContent);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
 
   const available = tattoos.filter((t) => t.status === 'available').slice(0, 6);
@@ -195,12 +196,12 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px border border-white/10">
+          <div className="grid grid-cols-3 gap-px border border-white/10">
             {artists.map((artist, i) => (
               <Link
                 key={artist.id}
                 to={`/artistas/${artist.id}`}
-                className={`group relative overflow-hidden aspect-[3/4] bg-zinc-900 block transition-all duration-700 ${team.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                className={`group relative overflow-hidden aspect-[2/3] bg-zinc-900 block transition-all duration-700 ${team.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                 style={{ transitionDelay: `${i * 80}ms` }}
               >
                 <img
@@ -447,6 +448,77 @@ export default function LandingPage() {
               Ver portfólio
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
+          CONTATO & REDES SOCIAIS
+      ══════════════════════════════════════════════════ */}
+      <section className="bg-zinc-950 border-t border-white/10 px-6 lg:px-20 py-14 lg:py-20">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+
+          {/* Contato + Endereço */}
+          <div>
+            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Contato</h3>
+            <div className="space-y-3 font-body text-sm text-white/60 mb-8">
+              {sobreNos.contact.email && (
+                <p>
+                  Você pode entrar em contato pelo e-mail:{' '}
+                  <a href={`mailto:${sobreNos.contact.email}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                    {sobreNos.contact.email}
+                  </a>
+                </p>
+              )}
+              {sobreNos.contact.phone1 && (
+                <p>
+                  Telefones de contato:{' '}
+                  <a href={sobreNos.contact.phone1Url || `tel:${sobreNos.contact.phone1}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                    {sobreNos.contact.phone1}
+                  </a>
+                  {sobreNos.contact.phone2 && (
+                    <> e <a href={sobreNos.contact.phone2Url || `tel:${sobreNos.contact.phone2}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">{sobreNos.contact.phone2}</a></>
+                  )}
+                </p>
+              )}
+            </div>
+
+            {(sobreNos.studio.street || sobreNos.studio.city) && (
+              <div>
+                <p className="font-body text-[10px] font-bold tracking-widest uppercase text-white/40 mb-3">Endereço</p>
+                <p className="font-display text-lg uppercase tracking-wide text-white">{sobreNos.studio.street}</p>
+                <p className="font-display text-lg uppercase tracking-wide text-white">{sobreNos.studio.city}</p>
+                {sobreNos.studio.cep && <p className="font-display text-lg uppercase tracking-wide text-white">{sobreNos.studio.cep}</p>}
+              </div>
+            )}
+          </div>
+
+          {/* Redes Sociais */}
+          <div>
+            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Redes Sociais</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {sobreNos.contact.instagram && (
+                <a href={sobreNos.contact.instagramUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <circle cx="12" cy="12" r="4"/>
+                    <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+                  </svg>
+                  {sobreNos.contact.instagram}
+                </a>
+              )}
+              {sobreNos.contact.tiktok && (
+                <a href={sobreNos.contact.tiktokUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/>
+                  </svg>
+                  {sobreNos.contact.tiktok}
+                </a>
+              )}
+            </div>
+          </div>
+
         </div>
       </section>
 
