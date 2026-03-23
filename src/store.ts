@@ -325,6 +325,39 @@ const defaultGuestContent: GuestContent = {
   },
 };
 
+// ── Ficha de Anamnese Config ──────────────────────────────────────────────────
+export interface FichaConfig {
+  tatuadores: string[];
+  conditions: string[];
+}
+
+const defaultFichaConfig: FichaConfig = {
+  tatuadores: [
+    'Bruna Lopes',
+    'Dionatan Lacerda',
+    'Kodai Muniz',
+    'Lucas Vasconcellos',
+    'Luiza Vasconcellos',
+    'Marília Garcia',
+    'Rafaella Golio',
+    'Outro',
+  ],
+  conditions: [
+    'Alteração na pressão',
+    'Epilepsia / Convulsão / Desmaio constante',
+    'Diabetes / Hipoglicemia',
+    'Hemofilia',
+    'Soropositivo',
+    'Hepatite A B C',
+    'Dificuldade de cicatrização',
+    'Alergias',
+    'Faz uso de medicamentos',
+    'Tem alguma doença crônica',
+    'Gestante',
+    'Alimentou-se bem hoje',
+  ],
+};
+
 // ── Row → App type converters (snake_case → camelCase) ──────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toTattoo(r: any): Tattoo {
@@ -414,6 +447,9 @@ interface AppState {
   /** Aftercare page content editable by admin */
   aftercareContent: AftercareContent;
   setAftercareContent: (content: AftercareContent) => void;
+  /** Ficha de Anamnese config editable by admin */
+  fichaConfig: FichaConfig;
+  setFichaConfig: (config: FichaConfig) => void;
   loadData: () => Promise<void>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
@@ -470,6 +506,12 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert({ key: 'aftercareContent', value: content, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setAftercareContent:', error); });
       },
+      fichaConfig: defaultFichaConfig,
+      setFichaConfig: (config) => {
+        set({ fichaConfig: config });
+        supabase?.from('site_config').upsert({ key: 'fichaConfig', value: config, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setFichaConfig:', error); });
+      },
 
       // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
@@ -501,6 +543,7 @@ export const useStore = create<AppState>()(
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent     ? { guestContent:     config.guestContent     as typeof defaultGuestContent }     : {}),
             ...(config.aftercareContent ? { aftercareContent: config.aftercareContent as typeof defaultAftercareContent } : {}),
+            ...(config.fichaConfig      ? { fichaConfig:      config.fichaConfig      as FichaConfig }                   : {}),
             ...(config.themeId !== undefined ? { themeId: config.themeId as ThemeId | null } : {}),
             dataLoaded: true,
           });
