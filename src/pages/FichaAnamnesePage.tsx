@@ -1,27 +1,61 @@
 import { useState } from 'react';
 
-const CONDITIONS = [
-  'ALERGIAS CONHECIDAS',
-  'DIABETES',
-  'PROBLEMAS DE CICATRIZAÇÃO',
-  'DOENÇAS CRÔNICAS',
-  'USO DE MEDICAMENTOS',
-  'GESTAÇÃO / LACTAÇÃO',
+const TATUADORES = [
+  'Bruna Lopes',
+  'Dionatan Lacerda',
+  'Kodai Muniz',
+  'Lucas Vasconcellos',
+  'Luiza Vasconcellos',
+  'Marília Garcia',
+  'Rafaella Golio',
+  'Outro',
 ];
+
+const CONDITIONS: { label: string }[] = [
+  { label: 'Alteração na pressão' },
+  { label: 'Epilepsia / Convulsão / Desmaio constante' },
+  { label: 'Diabetes / Hipoglicemia' },
+  { label: 'Hemofilia' },
+  { label: 'Soropositivo' },
+  { label: 'Hepatite A B C' },
+  { label: 'Dificuldade de cicatrização' },
+  { label: 'Alergias' },
+  { label: 'Faz uso de medicamentos' },
+  { label: 'Tem alguma doença crônica' },
+  { label: 'Gestante' },
+  { label: 'Alimentou-se bem hoje' },
+];
+
+type ConditionAnswer = 'sim' | 'nao' | null;
 
 export default function FichaAnamnesePage() {
   const [form, setForm] = useState({
+    email: '',
     nome: '',
     dataNascimento: '',
     cpf: '',
+    endereco: '',
+    cidade: '',
+    cep: '',
     telefone: '',
-    observacoes: '',
-    assinatura: '',
-    concordo: false,
+    localCorpo: '',
+    valorAcordado: '',
+    detalhesCondicoes: '',
+    telefoneEmergencia: '',
+    dataAssinatura: '',
+    concordo1: false,
+    concordo2: false,
+    concordo3: false,
   });
-  const [conditions, setConditions] = useState<Record<string, boolean>>(
-    Object.fromEntries(CONDITIONS.map((c) => [c, false]))
+
+  const [tatuadores, setTatuadores] = useState<Record<string, boolean>>(
+    Object.fromEntries(TATUADORES.map((t) => [t, false]))
   );
+
+  const [conditions, setConditions] = useState<Record<string, ConditionAnswer>>(
+    Object.fromEntries(CONDITIONS.map((c) => [c.label, null]))
+  );
+
   const [submitted, setSubmitted] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -32,14 +66,23 @@ export default function FichaAnamnesePage() {
     }));
   }
 
-  function toggleCondition(label: string) {
-    setConditions((prev) => ({ ...prev, [label]: !prev[label] }));
+  function toggleTatuador(name: string) {
+    setTatuadores((prev) => ({ ...prev, [name]: !prev[name] }));
+  }
+
+  function setCondition(label: string, answer: 'sim' | 'nao') {
+    setConditions((prev) => ({
+      ...prev,
+      [label]: prev[label] === answer ? null : answer,
+    }));
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
   }
+
+  const allTermsAccepted = form.concordo1 && form.concordo2 && form.concordo3;
 
   if (submitted) {
     return (
@@ -84,7 +127,19 @@ export default function FichaAnamnesePage() {
           </p>
 
           <div className="flex flex-col gap-5">
-            <Field label="NOME COMPLETO">
+            <Field label="E-MAIL *">
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="seu@email.com"
+                required
+                className="input-field"
+              />
+            </Field>
+
+            <Field label="NOME COMPLETO *">
               <input
                 type="text"
                 name="nome"
@@ -96,7 +151,7 @@ export default function FichaAnamnesePage() {
               />
             </Field>
 
-            <Field label="DATA DE NASCIMENTO">
+            <Field label="DATA DE NASCIMENTO *">
               <input
                 type="date"
                 name="dataNascimento"
@@ -107,7 +162,7 @@ export default function FichaAnamnesePage() {
               />
             </Field>
 
-            <Field label="CPF">
+            <Field label="CPF *">
               <input
                 type="text"
                 name="cpf"
@@ -119,7 +174,41 @@ export default function FichaAnamnesePage() {
               />
             </Field>
 
-            <Field label="TELEFONE / WHATSAPP">
+            <Field label="ENDEREÇO">
+              <input
+                type="text"
+                name="endereco"
+                value={form.endereco}
+                onChange={handleChange}
+                placeholder="Rua, número, bairro"
+                className="input-field"
+              />
+            </Field>
+
+            <Field label="CIDADE *">
+              <input
+                type="text"
+                name="cidade"
+                value={form.cidade}
+                onChange={handleChange}
+                placeholder="Sua cidade"
+                required
+                className="input-field"
+              />
+            </Field>
+
+            <Field label="CEP">
+              <input
+                type="text"
+                name="cep"
+                value={form.cep}
+                onChange={handleChange}
+                placeholder="00000-000"
+                className="input-field"
+              />
+            </Field>
+
+            <Field label="TELEFONE *">
               <input
                 type="tel"
                 name="telefone"
@@ -133,63 +222,190 @@ export default function FichaAnamnesePage() {
           </div>
         </div>
 
-        {/* ── Divider ── */}
         <div className="h-px bg-white/10 mx-6" />
 
-        {/* ── 02. Histórico Clínico ── */}
+        {/* ── 02. Procedimento ── */}
         <div className="px-6 py-10">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl font-black" style={{ color: '#e63737' }}>02.</span>
+            <span className="text-base font-black uppercase tracking-widest">PROCEDIMENTO</span>
+          </div>
+          <p className="text-xs text-white/50 mb-6">
+            Informações sobre o tatuador e o procedimento a ser realizado.
+          </p>
+
+          <div className="flex flex-col gap-5">
+            <Field label="TATUADOR *">
+              <div className="flex flex-col gap-3 mt-2">
+                {TATUADORES.map((t) => (
+                  <button
+                    type="button"
+                    key={t}
+                    onClick={() => toggleTatuador(t)}
+                    className="flex items-center gap-4 text-left"
+                  >
+                    <span
+                      className="w-5 h-5 flex-shrink-0 border flex items-center justify-center transition-colors"
+                      style={{
+                        borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
+                        backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
+                      }}
+                    >
+                      {tatuadores[t] && (
+                        <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
+                          <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="text-sm font-semibold tracking-wide text-white/80">{t}</span>
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label="LOCAL DO CORPO">
+              <input
+                type="text"
+                name="localCorpo"
+                value={form.localCorpo}
+                onChange={handleChange}
+                placeholder="Ex: antebraço direito"
+                className="input-field"
+              />
+            </Field>
+
+            <Field label="VALOR ACORDADO *">
+              <input
+                type="text"
+                name="valorAcordado"
+                value={form.valorAcordado}
+                onChange={handleChange}
+                placeholder="R$ 0,00"
+                required
+                className="input-field"
+              />
+            </Field>
+          </div>
+        </div>
+
+        <div className="h-px bg-white/10 mx-6" />
+
+        {/* ── 03. Histórico Clínico ── */}
+        <div className="px-6 py-10">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl font-black" style={{ color: '#e63737' }}>03.</span>
             <span className="text-base font-black uppercase tracking-widest">HISTÓRICO CLÍNICO</span>
           </div>
           <p className="text-xs text-white/50 mb-6">
-            Informações vitais para o processo de cicatrização e pigmentação.
+            Apresenta algum dos problemas relacionados abaixo? *
           </p>
 
-          <div className="flex flex-col gap-4 mb-8">
-            {CONDITIONS.map((label) => (
-              <button
-                type="button"
-                key={label}
-                onClick={() => toggleCondition(label)}
-                className="flex items-center gap-4 text-left"
-              >
-                <span
-                  className="w-5 h-5 flex-shrink-0 border flex items-center justify-center transition-colors"
-                  style={{
-                    borderColor: conditions[label] ? '#e63737' : 'rgba(255,255,255,0.3)',
-                    backgroundColor: conditions[label] ? '#e63737' : 'transparent',
-                  }}
+          {/* Table header */}
+          <div className="flex items-center mb-3">
+            <div className="flex-1" />
+            <div className="w-12 text-center text-[10px] font-bold tracking-widest text-white/40 uppercase">SIM</div>
+            <div className="w-12 text-center text-[10px] font-bold tracking-widest text-white/40 uppercase">NÃO</div>
+          </div>
+
+          <div className="flex flex-col gap-0 mb-8">
+            {CONDITIONS.map(({ label }) => (
+              <div key={label} className="flex items-center border-b border-white/5 py-3">
+                <span className="flex-1 text-sm text-white/80 pr-2">{label}</span>
+                {/* SIM */}
+                <button
+                  type="button"
+                  onClick={() => setCondition(label, 'sim')}
+                  className="w-12 flex justify-center"
                 >
-                  {conditions[label] && (
-                    <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
-                      <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </span>
-                <span className="text-sm font-semibold tracking-wide text-white/80">{label}</span>
-              </button>
+                  <span
+                    className="w-5 h-5 border flex items-center justify-center transition-colors"
+                    style={{
+                      borderColor: conditions[label] === 'sim' ? '#e63737' : 'rgba(255,255,255,0.3)',
+                      backgroundColor: conditions[label] === 'sim' ? '#e63737' : 'transparent',
+                    }}
+                  >
+                    {conditions[label] === 'sim' && (
+                      <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
+                        <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                </button>
+                {/* NÃO */}
+                <button
+                  type="button"
+                  onClick={() => setCondition(label, 'nao')}
+                  className="w-12 flex justify-center"
+                >
+                  <span
+                    className="w-5 h-5 border flex items-center justify-center transition-colors"
+                    style={{
+                      borderColor: conditions[label] === 'nao' ? '#e63737' : 'rgba(255,255,255,0.3)',
+                      backgroundColor: conditions[label] === 'nao' ? '#e63737' : 'transparent',
+                    }}
+                  >
+                    {conditions[label] === 'nao' && (
+                      <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
+                        <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                </button>
+              </div>
             ))}
           </div>
 
-          <Field label="ESPECIFICAÇÕES E OBSERVAÇÕES">
-            <textarea
-              name="observacoes"
-              value={form.observacoes}
-              onChange={handleChange}
-              placeholder="Caso haja alguma das condições acima, descreva para garantia do seu procedimento."
-              rows={5}
-              className="input-field resize-none"
-            />
-          </Field>
+          <div className="flex flex-col gap-5">
+            <Field label="EM CASO DE ALERGIAS, MEDICAMENTOS OU DOENÇAS CRÔNICAS DIGA QUAIS">
+              <textarea
+                name="detalhesCondicoes"
+                value={form.detalhesCondicoes}
+                onChange={handleChange}
+                placeholder="Descreva aqui..."
+                rows={4}
+                className="input-field resize-none"
+              />
+            </Field>
+
+            <Field label="TELEFONE PARA EMERGÊNCIA">
+              <input
+                type="tel"
+                name="telefoneEmergencia"
+                value={form.telefoneEmergencia}
+                onChange={handleChange}
+                placeholder="(00) 00000-0000"
+                className="input-field"
+              />
+            </Field>
+          </div>
         </div>
 
-        {/* ── Divider ── */}
+        <div className="h-px bg-white/10 mx-6" />
+
+        {/* ── Informamos que ── */}
+        <div className="px-6 py-10">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl font-black" style={{ color: '#e63737' }}>!</span>
+            <span className="text-base font-black uppercase tracking-widest">INFORMAMOS QUE:</span>
+          </div>
+          <ul className="flex flex-col gap-3">
+            {[
+              'Não tatuamos menores de 18 (dezoito) anos completos, nem mesmo mediante autorização dos responsáveis legais.',
+              'É permitida a presença de apenas 1 (um) acompanhante durante o procedimento (consultar tatuador).',
+              'Não é permitido o uso de entorpecentes no estúdio.',
+            ].map((item) => (
+              <li key={item} className="flex gap-3 text-xs text-white/60 leading-relaxed">
+                <span className="mt-0.5 flex-shrink-0" style={{ color: '#e63737' }}>•</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <div className="h-px bg-white/10 mx-6" />
 
         {/* ── Termo de Responsabilidade ── */}
         <div className="px-6 py-10">
-          {/* Icon */}
           <div className="flex justify-center mb-6">
             <svg viewBox="0 0 48 48" className="w-12 h-12" fill="none">
               <path
@@ -213,60 +429,44 @@ export default function FichaAnamnesePage() {
             TERMO DE<br />RESPONSABILIDADE
           </h2>
 
-          <div className="text-xs text-white/50 leading-relaxed space-y-4 mb-8 text-justify">
-            <p>
-              Eu declaro, para os devidos fins, que fui devidamente orientado(a) sobre o procedimento de
-              tatuagem, riscos envolvidos e cuidados pós-procedimento. Confirmo que as informações prestadas
-              acima são verdadeiras e assumo total responsabilidade por omitir qualquer condição clínica.
-            </p>
-            <p>
-              Entendo que o resultado final depende estritamente do cumprimento das normas de assepsia e
-              cuidados pós-procedimento indicados pelo artista. Autorizo o uso de imagens do meu procedimento
-              para fins de portfólio e divulgação profissional do El Dude Tattoo.
-            </p>
+          <div className="flex flex-col gap-4 mb-8">
+            {/* Checkbox 1 */}
+            <TermCheckbox
+              checked={form.concordo1}
+              onToggle={() => setForm((p) => ({ ...p, concordo1: !p.concordo1 }))}
+              text="Declaro serem verdadeiras as informações acima prestadas e de minha inteira responsabilidade se houver omissão dessas."
+            />
+
+            {/* Checkbox 2 */}
+            <TermCheckbox
+              checked={form.concordo2}
+              onToggle={() => setForm((p) => ({ ...p, concordo2: !p.concordo2 }))}
+              text="Responsabilizo-me pelos cuidados que deverei ter no período posterior ao procedimento, estando ciente de que o sucesso da operação depende diretamente destes. Declaro também estar ciente de que a tatuagem é definitiva e de que o desenho/escrita está de acordo com o combinado com o artista. Assim sendo, isento neste ato o profissional responsável e o El Dude Tattoo por eventuais problemas posteriores."
+            />
+
+            {/* Checkbox 3 */}
+            <TermCheckbox
+              checked={form.concordo3}
+              onToggle={() => setForm((p) => ({ ...p, concordo3: !p.concordo3 }))}
+              text="Autorizo também o uso de minha imagem para portfólio e redes sociais do artista/estúdio."
+            />
           </div>
 
-          {/* Concordo checkbox */}
-          <button
-            type="button"
-            onClick={() => setForm((p) => ({ ...p, concordo: !p.concordo }))}
-            className="flex items-start gap-4 mb-8 text-left w-full"
-          >
-            <span
-              className="w-5 h-5 flex-shrink-0 border mt-0.5 flex items-center justify-center transition-colors"
-              style={{
-                borderColor: form.concordo ? '#e63737' : 'rgba(255,255,255,0.3)',
-                backgroundColor: form.concordo ? '#e63737' : 'transparent',
-              }}
-            >
-              {form.concordo && (
-                <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
-                  <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </span>
-            <span className="text-xs text-white/70 leading-relaxed">
-              Li e concordo com os termos acima citados e com as políticas de privacidade do estúdio.
-            </span>
-          </button>
-
-          {/* Assinatura */}
-          <Field label="ASSINATURA DIGITAL (NOME COMPLETO)">
+          <Field label="SÃO PAULO, DATA *">
             <input
-              type="text"
-              name="assinatura"
-              value={form.assinatura}
+              type="date"
+              name="dataAssinatura"
+              value={form.dataAssinatura}
               onChange={handleChange}
-              placeholder="ASSINE AQUI"
               required
-              className="input-field italic"
+              className="input-field"
             />
           </Field>
 
           {/* Submit */}
           <button
             type="submit"
-            disabled={!form.concordo}
+            disabled={!allTermsAccepted}
             className="w-full mt-8 py-5 text-sm font-black tracking-[0.25em] uppercase transition-opacity disabled:opacity-40"
             style={{ backgroundColor: 'white', color: 'black' }}
           >
@@ -331,6 +531,31 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </label>
       {children}
     </div>
+  );
+}
+
+function TermCheckbox({ checked, onToggle, text }: { checked: boolean; onToggle: () => void; text: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="flex items-start gap-4 text-left w-full"
+    >
+      <span
+        className="w-5 h-5 flex-shrink-0 border mt-0.5 flex items-center justify-center transition-colors"
+        style={{
+          borderColor: checked ? '#e63737' : 'rgba(255,255,255,0.3)',
+          backgroundColor: checked ? '#e63737' : 'transparent',
+        }}
+      >
+        {checked && (
+          <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
+            <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span className="text-xs text-white/70 leading-relaxed">{text}</span>
+    </button>
   );
 }
 
