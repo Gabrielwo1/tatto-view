@@ -129,7 +129,7 @@ export default function VitrinLandingPage() {
               🎨 Ver site demo
             </a>
             <a
-              href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre o Vitrink.app"
+              href="https://wa.me/5546999704747?text=Olá! Quero saber mais sobre o Vitrink.app"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg border border-zinc-700 hover:border-orange-500 transition-colors"
@@ -371,7 +371,7 @@ export default function VitrinLandingPage() {
                     🔗 Acessar eldude.vitrink.app
                   </a>
                   <a
-                    href="https://wa.me/5500000000000?text=Olá! Vi o Vitrink.app e quero um site para meu estúdio."
+                    href="https://wa.me/5546999704747?text=Olá! Vi o Vitrink.app e quero um site para meu estúdio."
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg border border-zinc-600 hover:border-orange-500 transition-colors"
@@ -430,7 +430,7 @@ export default function VitrinLandingPage() {
             Ver demo
           </a>
           <a
-            href="https://wa.me/5500000000000?text=Olá! Quero saber mais sobre o Vitrink.app"
+            href="https://wa.me/5546999704747?text=Olá! Quero saber mais sobre o Vitrink.app"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-orange-400 transition-colors"
