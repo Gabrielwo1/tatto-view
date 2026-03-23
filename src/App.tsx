@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { trackPageView } from './lib/analytics';
 import { useStore } from './store';
 import { applyTheme, getThemeForHostname, THEMES } from './lib/themes';
 import Navbar from './components/Navbar';
@@ -41,6 +42,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function PageTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    // Don't track admin pages
+    if (!location.pathname.startsWith('/admin')) {
+      trackPageView(location.pathname);
+    }
+  }, [location.pathname]);
+  return null;
+}
+
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-zinc-900 text-white flex flex-col">
@@ -72,6 +84,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <PageTracker />
       <Routes>
         {/* Public routes */}
         <Route
