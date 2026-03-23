@@ -32,6 +32,7 @@ type ConditionAnswer = 'sim' | 'nao' | null;
 
 export default function FichaAnamnesePage() {
   const fichaConfig = useStore((s) => s.fichaConfig);
+  const addFichaSubmission = useStore((s) => s.addFichaSubmission);
   const TATUADORES = fichaConfig?.tatuadores ?? DEFAULT_TATUADORES;
   const CONDITIONS = fichaConfig?.conditions ?? DEFAULT_CONDITIONS;
 
@@ -82,6 +83,24 @@ export default function FichaAnamnesePage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    addFichaSubmission({
+      email: form.email,
+      nome: form.nome,
+      dataNascimento: form.dataNascimento,
+      cpf: form.cpf,
+      endereco: form.endereco,
+      cidade: form.cidade,
+      cep: form.cep,
+      telefone: form.telefone,
+      tatuadoresSelecionados: Object.keys(tatuadores).filter((k) => tatuadores[k]),
+      outroTatuador,
+      localCorpo: form.localCorpo,
+      valorAcordado: form.valorAcordado,
+      conditions,
+      detalhesCondicoes: form.detalhesCondicoes,
+      telefoneEmergencia: form.telefoneEmergencia,
+      dataAssinatura: form.dataAssinatura,
+    });
     setSubmitted(true);
   }
 
