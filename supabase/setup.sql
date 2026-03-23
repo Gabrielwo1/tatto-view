@@ -66,6 +66,18 @@ DROP POLICY IF EXISTS "public write images" ON storage.objects;
 CREATE POLICY "public read images"  ON storage.objects FOR SELECT USING (bucket_id = 'images');
 CREATE POLICY "public write images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'images');
 
+-- ── Configurações do site (conteúdo das páginas) ──────────────────────────
+
+CREATE TABLE IF NOT EXISTS site_config (
+  key        TEXT PRIMARY KEY,
+  value      JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "public_all" ON site_config;
+CREATE POLICY "public_all" ON site_config FOR ALL USING (true) WITH CHECK (true);
+
 -- ── Dados iniciais (artistas) ──────────────────────────────────────────────
 -- Só insere se a tabela estiver vazia para não duplicar.
 

@@ -441,15 +441,35 @@ export const useStore = create<AppState>()(
       isAdmin: false,
       dataLoaded: false,
       themeId: null,
-      setTheme: (id) => set({ themeId: id }),
+      setTheme: (id) => {
+        set({ themeId: id });
+        supabase?.from('site_config').upsert({ key: 'themeId', value: id, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setTheme:', error); });
+      },
       landingContent: defaultLandingContent,
-      setLandingContent: (content) => set({ landingContent: content }),
+      setLandingContent: (content) => {
+        set({ landingContent: content });
+        supabase?.from('site_config').upsert({ key: 'landingContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setLandingContent:', error); });
+      },
       sobreNosContent: defaultSobreNosContent,
-      setSobreNosContent: (content) => set({ sobreNosContent: content }),
+      setSobreNosContent: (content) => {
+        set({ sobreNosContent: content });
+        supabase?.from('site_config').upsert({ key: 'sobreNosContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setSobreNosContent:', error); });
+      },
       guestContent: defaultGuestContent,
-      setGuestContent: (content) => set({ guestContent: content }),
+      setGuestContent: (content) => {
+        set({ guestContent: content });
+        supabase?.from('site_config').upsert({ key: 'guestContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setGuestContent:', error); });
+      },
       aftercareContent: defaultAftercareContent,
-      setAftercareContent: (content) => set({ aftercareContent: content }),
+      setAftercareContent: (content) => {
+        set({ aftercareContent: content });
+        supabase?.from('site_config').upsert({ key: 'aftercareContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setAftercareContent:', error); });
+      },
 
       // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
@@ -458,19 +478,30 @@ export const useStore = create<AppState>()(
           return;
         }
         try {
-          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }] =
+          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }] =
             await Promise.all([
               supabase.from('tattoos').select('*').order('created_at', { ascending: false }),
               supabase.from('artists').select('*').order('created_at', { ascending: true }),
               supabase.from('merchs').select('*').order('created_at', { ascending: false }),
+              supabase.from('site_config').select('*'),
             ]);
           if (te) throw te;
           if (ae) throw ae;
           if (me) throw me;
+          // site_config may not exist yet — ignore error silently
+          const config: Record<string, unknown> = {};
+          if (!cfge && cfg) {
+            for (const row of cfg) config[row.key] = row.value;
+          }
           set({
-            tattoos: (t ?? []).map(toTattoo),
-            artists: (a ?? []).map(toArtist),
-            merchs: (m ?? []).map(toMerch),
+            tattoos:          (t ?? []).map(toTattoo),
+            artists:          (a ?? []).map(toArtist),
+            merchs:           (m ?? []).map(toMerch),
+            ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
+            ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
+            ...(config.guestContent     ? { guestContent:     config.guestContent     as typeof defaultGuestContent }     : {}),
+            ...(config.aftercareContent ? { aftercareContent: config.aftercareContent as typeof defaultAftercareContent } : {}),
+            ...(config.themeId !== undefined ? { themeId: config.themeId as string | null } : {}),
             dataLoaded: true,
           });
         } catch (err) {
