@@ -87,6 +87,7 @@ export default function Navbar() {
               { to: '/merchs', label: 'Merchs', end: false },
               { to: '/aftercare', label: 'Pós Tattoo', end: false },
               { to: '/sobre-nos', label: 'Sobre Nós', end: false },
+              { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
             ].map(({ to, label, end }) => (
               <NavLink
                 key={to}
