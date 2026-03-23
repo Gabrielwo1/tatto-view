@@ -25,6 +25,13 @@ import AdminSobreNos from './pages/admin/AdminSobreNos';
 import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
 import SiteFooter from './components/SiteFooter';
+import VitrinLandingPage from './pages/VitrinLandingPage';
+
+// Returns true when the current hostname is the root vitrink.app marketing domain.
+function isMarketingDomain() {
+  const h = window.location.hostname.toLowerCase().replace(/^www\./, '');
+  return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */;
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -55,6 +62,11 @@ export default function App() {
   useEffect(() => {
     loadData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Show marketing landing page on vitrink.app root domain
+  if (isMarketingDomain()) {
+    return <VitrinLandingPage />;
+  }
 
   return (
     <BrowserRouter>
