@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useStore } from '../store';
 
-const TATUADORES = [
+const DEFAULT_TATUADORES = [
   'Bruna Lopes',
   'Dionatan Lacerda',
   'Kodai Muniz',
@@ -11,24 +12,28 @@ const TATUADORES = [
   'Outro',
 ];
 
-const CONDITIONS: { label: string }[] = [
-  { label: 'Alteração na pressão' },
-  { label: 'Epilepsia / Convulsão / Desmaio constante' },
-  { label: 'Diabetes / Hipoglicemia' },
-  { label: 'Hemofilia' },
-  { label: 'Soropositivo' },
-  { label: 'Hepatite A B C' },
-  { label: 'Dificuldade de cicatrização' },
-  { label: 'Alergias' },
-  { label: 'Faz uso de medicamentos' },
-  { label: 'Tem alguma doença crônica' },
-  { label: 'Gestante' },
-  { label: 'Alimentou-se bem hoje' },
+const DEFAULT_CONDITIONS = [
+  'Alteração na pressão',
+  'Epilepsia / Convulsão / Desmaio constante',
+  'Diabetes / Hipoglicemia',
+  'Hemofilia',
+  'Soropositivo',
+  'Hepatite A B C',
+  'Dificuldade de cicatrização',
+  'Alergias',
+  'Faz uso de medicamentos',
+  'Tem alguma doença crônica',
+  'Gestante',
+  'Alimentou-se bem hoje',
 ];
 
 type ConditionAnswer = 'sim' | 'nao' | null;
 
 export default function FichaAnamnesePage() {
+  const fichaConfig = useStore((s) => s.fichaConfig);
+  const TATUADORES = fichaConfig?.tatuadores ?? DEFAULT_TATUADORES;
+  const CONDITIONS = fichaConfig?.conditions ?? DEFAULT_CONDITIONS;
+
   const [form, setForm] = useState({
     email: '',
     nome: '',
@@ -48,13 +53,8 @@ export default function FichaAnamnesePage() {
     concordo3: false,
   });
 
-  const [tatuadores, setTatuadores] = useState<Record<string, boolean>>(
-    Object.fromEntries(TATUADORES.map((t) => [t, false]))
-  );
-
-  const [conditions, setConditions] = useState<Record<string, ConditionAnswer>>(
-    Object.fromEntries(CONDITIONS.map((c) => [c.label, null]))
-  );
+  const [tatuadores, setTatuadores] = useState<Record<string, boolean>>({});
+  const [conditions, setConditions] = useState<Record<string, ConditionAnswer>>({});
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -302,20 +302,19 @@ export default function FichaAnamnesePage() {
 
           {/* Table header */}
           <div className="flex items-center mb-3">
-            <div className="flex-1" />
             <div className="w-12 text-center text-[10px] font-bold tracking-widest text-white/40 uppercase">SIM</div>
             <div className="w-12 text-center text-[10px] font-bold tracking-widest text-white/40 uppercase">NÃO</div>
+            <div className="flex-1" />
           </div>
 
           <div className="flex flex-col gap-0 mb-8">
-            {CONDITIONS.map(({ label }) => (
+            {CONDITIONS.map((label) => (
               <div key={label} className="flex items-center border-b border-white/5 py-3">
-                <span className="flex-1 text-sm text-white/80 pr-2">{label}</span>
                 {/* SIM */}
                 <button
                   type="button"
                   onClick={() => setCondition(label, 'sim')}
-                  className="w-12 flex justify-center"
+                  className="w-12 flex justify-center flex-shrink-0"
                 >
                   <span
                     className="w-5 h-5 border flex items-center justify-center transition-colors"
@@ -335,7 +334,7 @@ export default function FichaAnamnesePage() {
                 <button
                   type="button"
                   onClick={() => setCondition(label, 'nao')}
-                  className="w-12 flex justify-center"
+                  className="w-12 flex justify-center flex-shrink-0"
                 >
                   <span
                     className="w-5 h-5 border flex items-center justify-center transition-colors"
@@ -351,6 +350,7 @@ export default function FichaAnamnesePage() {
                     )}
                   </span>
                 </button>
+                <span className="flex-1 text-sm text-white/80 pl-2">{label}</span>
               </div>
             ))}
           </div>

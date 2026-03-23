@@ -24,6 +24,7 @@ import SobreNosPage from './pages/SobreNosPage';
 import AdminSobreNos from './pages/admin/AdminSobreNos';
 import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
+import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
@@ -166,6 +167,7 @@ export default function App() {
           <Route path="aftercare" element={<AdminAftercare />} />
           <Route path="sobre-nos" element={<AdminSobreNos />} />
           <Route path="landing" element={<AdminLandingPage />} />
+          <Route path="ficha-anamnese" element={<AdminFichaAnamnese />} />
           <Route path="configuracoes" element={<AdminSettings />} />
         </Route>
 
