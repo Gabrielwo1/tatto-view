@@ -26,6 +26,7 @@ import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
+import FichaAnamnesePage from './pages/FichaAnamnesePage';
 
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
@@ -139,6 +140,9 @@ export default function App() {
 
         {/* Landing page — standalone, no Navbar */}
         <Route path="/landingpage" element={<LandingPage />} />
+
+        {/* Ficha de Anamnese — standalone, no Navbar */}
+        <Route path="/ficha-anamnese" element={<FichaAnamnesePage />} />
 
         {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
