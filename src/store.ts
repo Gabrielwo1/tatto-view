@@ -501,7 +501,7 @@ export const useStore = create<AppState>()(
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent     ? { guestContent:     config.guestContent     as typeof defaultGuestContent }     : {}),
             ...(config.aftercareContent ? { aftercareContent: config.aftercareContent as typeof defaultAftercareContent } : {}),
-            ...(config.themeId !== undefined ? { themeId: config.themeId as string | null } : {}),
+            ...(config.themeId !== undefined ? { themeId: config.themeId as ThemeId | null } : {}),
             dataLoaded: true,
           });
         } catch (err) {
