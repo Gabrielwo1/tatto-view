@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import { THEMES, applyTheme, getThemeForHostname } from '../../lib/themes';
 import type { ThemeId } from '../../lib/themes';
 import { supabase } from '../../lib/supabase';
+import { uploadImage } from '../../lib/uploadImage';
 
 const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
@@ -18,8 +19,14 @@ export default function AdminSettings() {
   const aftercareContent = useStore((s) => s.aftercareContent);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncProgress, setSyncProgress] = useState<string | null>(null);
   const [connStatus, setConnStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
   const [connError, setConnError] = useState<string | null>(null);
+
+  const updateArtist = useStore((s) => s.updateArtist);
+  const updateTattoo = useStore((s) => s.updateTattoo);
+  const updateMerch  = useStore((s) => s.updateMerch);
+  const setSobreNosContent = useStore((s) => s.setSobreNosContent);
 
   async function handleSyncToSupabase() {
     if (!supabase) {
@@ -27,26 +34,64 @@ export default function AdminSettings() {
       return;
     }
     setSyncStatus('syncing');
+    setSyncError(null);
+
     try {
-      // Upsert all local data to Supabase
-      const artistRows = artists.map((a) => ({
+      // ── Re-upload base64 images to Supabase Storage ──────────────────────
+      setSyncProgress('Fazendo upload das imagens...');
+
+      const processedArtists = await Promise.all(artists.map(async (a) => {
+        if (!a.photoUrl?.startsWith('data:')) return a;
+        const url = await uploadImage(a.photoUrl);
+        if (url !== a.photoUrl) updateArtist(a.id, { photoUrl: url });
+        return { ...a, photoUrl: url };
+      }));
+
+      const processedTattoos = await Promise.all(tattoos.map(async (t) => {
+        if (!t.imageUrl?.startsWith('data:')) return t;
+        const url = await uploadImage(t.imageUrl);
+        if (url !== t.imageUrl) updateTattoo(t.id, { imageUrl: url });
+        return { ...t, imageUrl: url };
+      }));
+
+      const processedMerchs = await Promise.all(merchs.map(async (m) => {
+        if (!m.imageUrl?.startsWith('data:')) return m;
+        const url = await uploadImage(m.imageUrl);
+        if (url !== m.imageUrl) updateMerch(m.id, { imageUrl: url });
+        return { ...m, imageUrl: url };
+      }));
+
+      // Re-upload collective image in sobreNosContent if base64
+      let finalSobreNos = sobreNosContent;
+      if (sobreNosContent.collective?.image?.startsWith('data:')) {
+        const url = await uploadImage(sobreNosContent.collective.image);
+        if (url !== sobreNosContent.collective.image) {
+          finalSobreNos = { ...sobreNosContent, collective: { ...sobreNosContent.collective, image: url } };
+          setSobreNosContent(finalSobreNos);
+        }
+      }
+
+      setSyncProgress('Sincronizando dados...');
+
+      // ── Build rows ────────────────────────────────────────────────────────
+      const artistRows = processedArtists.map((a) => ({
         id: a.id, name: a.name, bio: a.bio, photo_url: a.photoUrl,
         specialties: a.specialties, instagram: a.instagram, whatsapp: a.whatsapp,
         created_at: a.createdAt,
       }));
-      const tattooRows = tattoos.map((t) => ({
+      const tattooRows = processedTattoos.map((t) => ({
         id: t.id, title: t.title, description: t.description,
         image_url: t.imageUrl, style: t.style, price: t.price,
         artist_id: t.artistId, status: t.status, created_at: t.createdAt,
       }));
-      const merchRows = merchs.map((m) => ({
+      const merchRows = processedMerchs.map((m) => ({
         id: m.id, name: m.name, description: m.description,
         price: m.price, image_url: m.imageUrl, link: m.link, created_at: m.createdAt,
       }));
 
       const configRows = [
-        { key: 'landingContent',   value: landingContent,   updated_at: new Date().toISOString() },
-        { key: 'sobreNosContent',  value: sobreNosContent,  updated_at: new Date().toISOString() },
+        { key: 'landingContent',   value: landingContent,    updated_at: new Date().toISOString() },
+        { key: 'sobreNosContent',  value: finalSobreNos,     updated_at: new Date().toISOString() },
         { key: 'guestContent',     value: guestContent,     updated_at: new Date().toISOString() },
         { key: 'aftercareContent', value: aftercareContent, updated_at: new Date().toISOString() },
         { key: 'themeId',          value: themeId,          updated_at: new Date().toISOString() },
@@ -64,10 +109,12 @@ export default function AdminSettings() {
 
       setSyncStatus('ok');
       setSyncError(null);
+      setSyncProgress(null);
       setTimeout(() => setSyncStatus('idle'), 4000);
     } catch (err: unknown) {
       console.error('[sync]', err);
       setSyncStatus('error');
+      setSyncProgress(null);
       setSyncError(err instanceof Error ? err.message : JSON.stringify(err));
       setTimeout(() => { setSyncStatus('idle'); setSyncError(null); }, 8000);
     }
@@ -353,7 +400,7 @@ export default function AdminSettings() {
             className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {syncStatus === 'syncing' ? (
-              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Sincronizando...</>
+              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>{syncProgress ?? 'Sincronizando...'}</>
             ) : syncStatus === 'ok' ? (
               <><svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-green-400">Sincronizado!</span></>
             ) : syncStatus === 'error' ? (
