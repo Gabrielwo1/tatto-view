@@ -117,266 +117,174 @@ export default function FichaAnamnesePage() {
 
       <form onSubmit={handleSubmit}>
         {/* ── 01. Identificação ── */}
-        <div className="px-6 pb-10">
+        <div className="px-6 pb-8">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl font-black" style={{ color: '#e63737' }}>01.</span>
             <span className="text-base font-black uppercase tracking-widest">IDENTIFICAÇÃO</span>
           </div>
-          <p className="text-xs text-white/50 mb-6">
+          <p className="text-xs text-white/50 mb-4">
             Dados fundamentais para registro civil e contato pós-procedimento.
           </p>
 
-          <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             <Field label="E-MAIL *">
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="seu@email.com"
-                required
-                className="input-field"
-              />
+              <input type="email" name="email" value={form.email} onChange={handleChange}
+                placeholder="seu@email.com" required className="input-field" />
             </Field>
 
             <Field label="NOME COMPLETO *">
-              <input
-                type="text"
-                name="nome"
-                value={form.nome}
-                onChange={handleChange}
-                placeholder="DIGITE SEU NOME"
-                required
-                className="input-field"
-              />
+              <input type="text" name="nome" value={form.nome} onChange={handleChange}
+                placeholder="Seu nome" required className="input-field" />
             </Field>
 
             <Field label="DATA DE NASCIMENTO *">
-              <input
-                type="date"
-                name="dataNascimento"
-                value={form.dataNascimento}
-                onChange={handleChange}
-                required
-                className="input-field"
-              />
+              <input type="date" name="dataNascimento" value={form.dataNascimento}
+                onChange={handleChange} required className="input-field" />
             </Field>
 
             <Field label="CPF *">
-              <input
-                type="text"
-                name="cpf"
-                value={form.cpf}
-                onChange={handleChange}
-                placeholder="000.000.000-00"
-                required
-                className="input-field"
-              />
+              <input type="text" name="cpf" value={form.cpf} onChange={handleChange}
+                placeholder="000.000.000-00" required className="input-field" />
             </Field>
 
             <Field label="ENDEREÇO">
-              <input
-                type="text"
-                name="endereco"
-                value={form.endereco}
-                onChange={handleChange}
-                placeholder="Rua, número, bairro"
-                className="input-field"
-              />
+              <input type="text" name="endereco" value={form.endereco} onChange={handleChange}
+                placeholder="Rua, número, bairro" className="input-field" />
             </Field>
 
             <Field label="CIDADE *">
-              <input
-                type="text"
-                name="cidade"
-                value={form.cidade}
-                onChange={handleChange}
-                placeholder="Sua cidade"
-                required
-                className="input-field"
-              />
+              <input type="text" name="cidade" value={form.cidade} onChange={handleChange}
+                placeholder="Sua cidade" required className="input-field" />
             </Field>
 
             <Field label="CEP">
-              <input
-                type="text"
-                name="cep"
-                value={form.cep}
-                onChange={handleChange}
-                placeholder="00000-000"
-                className="input-field"
-              />
+              <input type="text" name="cep" value={form.cep} onChange={handleChange}
+                placeholder="00000-000" className="input-field" />
             </Field>
 
             <Field label="TELEFONE *">
-              <input
-                type="tel"
-                name="telefone"
-                value={form.telefone}
-                onChange={handleChange}
-                placeholder="(00) 00000-0000"
-                required
-                className="input-field"
-              />
+              <input type="tel" name="telefone" value={form.telefone} onChange={handleChange}
+                placeholder="(00) 00000-0000" required className="input-field" />
             </Field>
           </div>
         </div>
 
         <div className="h-px bg-white/10 mx-6" />
 
-        {/* ── 02. Procedimento ── */}
-        <div className="px-6 py-10">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl font-black" style={{ color: '#e63737' }}>02.</span>
-            <span className="text-base font-black uppercase tracking-widest">PROCEDIMENTO</span>
-          </div>
-          <p className="text-xs text-white/50 mb-6">
-            Informações sobre o tatuador e o procedimento a ser realizado.
-          </p>
+        {/* ── 02. Procedimento + 03. Histórico Clínico (lado a lado) ── */}
+        <div className="flex divide-x divide-white/10">
 
-          <div className="flex flex-col gap-5">
-            <Field label="TATUADOR *">
-              <div className="flex flex-col gap-3 mt-2">
-                {TATUADORES.map((t) => (
-                  <button
-                    type="button"
-                    key={t}
-                    onClick={() => toggleTatuador(t)}
-                    className="flex items-center gap-4 text-left"
-                  >
+          {/* 02. Procedimento */}
+          <div className="flex-1 px-6 py-8 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl font-black" style={{ color: '#e63737' }}>02.</span>
+              <span className="text-sm font-black uppercase tracking-widest">PROCEDIMENTO</span>
+            </div>
+            <p className="text-xs text-white/50 mb-4">Tatuador e procedimento.</p>
+
+            <div className="flex flex-col gap-4">
+              <Field label="TATUADOR *">
+                <div className="flex flex-col gap-2 mt-1">
+                  {TATUADORES.map((t) => (
+                    <button type="button" key={t} onClick={() => toggleTatuador(t)}
+                      className="flex items-center gap-3 text-left">
+                      <span
+                        className="w-4 h-4 flex-shrink-0 border flex items-center justify-center transition-colors"
+                        style={{
+                          borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
+                          backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
+                        }}
+                      >
+                        {tatuadores[t] && (
+                          <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
+                            <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className="text-xs font-semibold text-white/80">{t}</span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="LOCAL DO CORPO">
+                <input type="text" name="localCorpo" value={form.localCorpo} onChange={handleChange}
+                  placeholder="Ex: antebraço direito" className="input-field" />
+              </Field>
+
+              <Field label="VALOR ACORDADO *">
+                <input type="text" name="valorAcordado" value={form.valorAcordado} onChange={handleChange}
+                  placeholder="R$ 0,00" required className="input-field" />
+              </Field>
+            </div>
+          </div>
+
+          {/* 03. Histórico Clínico */}
+          <div className="flex-1 px-6 py-8 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl font-black" style={{ color: '#e63737' }}>03.</span>
+              <span className="text-sm font-black uppercase tracking-widest">HISTÓRICO CLÍNICO</span>
+            </div>
+            <p className="text-xs text-white/50 mb-4">Problemas de saúde? *</p>
+
+            {/* Table header */}
+            <div className="flex items-center mb-2">
+              <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">S</div>
+              <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">N</div>
+              <div className="flex-1" />
+            </div>
+
+            <div className="flex flex-col mb-4">
+              {CONDITIONS.map((label) => (
+                <div key={label} className="flex items-center border-b border-white/5 py-2">
+                  <button type="button" onClick={() => setCondition(label, 'sim')}
+                    className="w-8 flex justify-center flex-shrink-0">
                     <span
-                      className="w-5 h-5 flex-shrink-0 border flex items-center justify-center transition-colors"
+                      className="w-4 h-4 border flex items-center justify-center transition-colors"
                       style={{
-                        borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
-                        backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
+                        borderColor: conditions[label] === 'sim' ? '#e63737' : 'rgba(255,255,255,0.3)',
+                        backgroundColor: conditions[label] === 'sim' ? '#e63737' : 'transparent',
                       }}
                     >
-                      {tatuadores[t] && (
-                        <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
+                      {conditions[label] === 'sim' && (
+                        <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
                           <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       )}
                     </span>
-                    <span className="text-sm font-semibold tracking-wide text-white/80">{t}</span>
                   </button>
-                ))}
-              </div>
-            </Field>
+                  <button type="button" onClick={() => setCondition(label, 'nao')}
+                    className="w-8 flex justify-center flex-shrink-0">
+                    <span
+                      className="w-4 h-4 border flex items-center justify-center transition-colors"
+                      style={{
+                        borderColor: conditions[label] === 'nao' ? '#e63737' : 'rgba(255,255,255,0.3)',
+                        backgroundColor: conditions[label] === 'nao' ? '#e63737' : 'transparent',
+                      }}
+                    >
+                      {conditions[label] === 'nao' && (
+                        <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
+                          <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </span>
+                  </button>
+                  <span className="flex-1 text-xs text-white/80 pl-1 leading-tight">{label}</span>
+                </div>
+              ))}
+            </div>
 
-            <Field label="LOCAL DO CORPO">
-              <input
-                type="text"
-                name="localCorpo"
-                value={form.localCorpo}
-                onChange={handleChange}
-                placeholder="Ex: antebraço direito"
-                className="input-field"
-              />
-            </Field>
+            <div className="flex flex-col gap-4">
+              <Field label="ALERGIAS / MEDICAMENTOS / DOENÇAS">
+                <textarea name="detalhesCondicoes" value={form.detalhesCondicoes} onChange={handleChange}
+                  placeholder="Descreva aqui..." rows={3} className="input-field resize-none" />
+              </Field>
 
-            <Field label="VALOR ACORDADO *">
-              <input
-                type="text"
-                name="valorAcordado"
-                value={form.valorAcordado}
-                onChange={handleChange}
-                placeholder="R$ 0,00"
-                required
-                className="input-field"
-              />
-            </Field>
-          </div>
-        </div>
-
-        <div className="h-px bg-white/10 mx-6" />
-
-        {/* ── 03. Histórico Clínico ── */}
-        <div className="px-6 py-10">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl font-black" style={{ color: '#e63737' }}>03.</span>
-            <span className="text-base font-black uppercase tracking-widest">HISTÓRICO CLÍNICO</span>
-          </div>
-          <p className="text-xs text-white/50 mb-6">
-            Apresenta algum dos problemas relacionados abaixo? *
-          </p>
-
-          {/* Table header */}
-          <div className="flex items-center mb-3">
-            <div className="w-12 text-center text-[10px] font-bold tracking-widest text-white/40 uppercase">SIM</div>
-            <div className="w-12 text-center text-[10px] font-bold tracking-widest text-white/40 uppercase">NÃO</div>
-            <div className="flex-1" />
-          </div>
-
-          <div className="flex flex-col gap-0 mb-8">
-            {CONDITIONS.map((label) => (
-              <div key={label} className="flex items-center border-b border-white/5 py-3">
-                {/* SIM */}
-                <button
-                  type="button"
-                  onClick={() => setCondition(label, 'sim')}
-                  className="w-12 flex justify-center flex-shrink-0"
-                >
-                  <span
-                    className="w-5 h-5 border flex items-center justify-center transition-colors"
-                    style={{
-                      borderColor: conditions[label] === 'sim' ? '#e63737' : 'rgba(255,255,255,0.3)',
-                      backgroundColor: conditions[label] === 'sim' ? '#e63737' : 'transparent',
-                    }}
-                  >
-                    {conditions[label] === 'sim' && (
-                      <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
-                        <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </span>
-                </button>
-                {/* NÃO */}
-                <button
-                  type="button"
-                  onClick={() => setCondition(label, 'nao')}
-                  className="w-12 flex justify-center flex-shrink-0"
-                >
-                  <span
-                    className="w-5 h-5 border flex items-center justify-center transition-colors"
-                    style={{
-                      borderColor: conditions[label] === 'nao' ? '#e63737' : 'rgba(255,255,255,0.3)',
-                      backgroundColor: conditions[label] === 'nao' ? '#e63737' : 'transparent',
-                    }}
-                  >
-                    {conditions[label] === 'nao' && (
-                      <svg viewBox="0 0 10 10" className="w-3 h-3" fill="none" stroke="white" strokeWidth="1.5">
-                        <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </span>
-                </button>
-                <span className="flex-1 text-sm text-white/80 pl-2">{label}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <Field label="EM CASO DE ALERGIAS, MEDICAMENTOS OU DOENÇAS CRÔNICAS DIGA QUAIS">
-              <textarea
-                name="detalhesCondicoes"
-                value={form.detalhesCondicoes}
-                onChange={handleChange}
-                placeholder="Descreva aqui..."
-                rows={4}
-                className="input-field resize-none"
-              />
-            </Field>
-
-            <Field label="TELEFONE PARA EMERGÊNCIA">
-              <input
-                type="tel"
-                name="telefoneEmergencia"
-                value={form.telefoneEmergencia}
-                onChange={handleChange}
-                placeholder="(00) 00000-0000"
-                className="input-field"
-              />
-            </Field>
+              <Field label="TELEFONE PARA EMERGÊNCIA">
+                <input type="tel" name="telefoneEmergencia" value={form.telefoneEmergencia}
+                  onChange={handleChange} placeholder="(00) 00000-0000" className="input-field" />
+              </Field>
+            </div>
           </div>
         </div>
 
