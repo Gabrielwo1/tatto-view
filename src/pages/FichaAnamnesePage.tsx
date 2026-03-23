@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { useStore } from '../store';
 
 const DEFAULT_TATUADORES = [
@@ -31,6 +32,7 @@ type ConditionAnswer = 'sim' | 'nao' | null;
 
 export default function FichaAnamnesePage() {
   const fichaConfig = useStore((s) => s.fichaConfig);
+  const addFichaSubmission = useStore((s) => s.addFichaSubmission);
   const TATUADORES = fichaConfig?.tatuadores ?? DEFAULT_TATUADORES;
   const CONDITIONS = fichaConfig?.conditions ?? DEFAULT_CONDITIONS;
 
@@ -54,9 +56,11 @@ export default function FichaAnamnesePage() {
   });
 
   const [tatuadores, setTatuadores] = useState<Record<string, boolean>>({});
+  const [outroTatuador, setOutroTatuador] = useState('');
   const [conditions, setConditions] = useState<Record<string, ConditionAnswer>>({});
 
   const [submitted, setSubmitted] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value, type } = e.target;
@@ -79,6 +83,24 @@ export default function FichaAnamnesePage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    addFichaSubmission({
+      email: form.email,
+      nome: form.nome,
+      dataNascimento: form.dataNascimento,
+      cpf: form.cpf,
+      endereco: form.endereco,
+      cidade: form.cidade,
+      cep: form.cep,
+      telefone: form.telefone,
+      tatuadoresSelecionados: Object.keys(tatuadores).filter((k) => tatuadores[k]),
+      outroTatuador,
+      localCorpo: form.localCorpo,
+      valorAcordado: form.valorAcordado,
+      conditions,
+      detalhesCondicoes: form.detalhesCondicoes,
+      telefoneEmergencia: form.telefoneEmergencia,
+      dataAssinatura: form.dataAssinatura,
+    });
     setSubmitted(true);
   }
 
@@ -189,23 +211,35 @@ export default function FichaAnamnesePage() {
                 <Field label="TATUADOR *">
                   <div className="flex flex-col gap-2 mt-1">
                     {TATUADORES.map((t) => (
-                      <button type="button" key={t} onClick={() => toggleTatuador(t)}
-                        className="flex items-center gap-3 text-left">
-                        <span
-                          className="w-4 h-4 flex-shrink-0 border flex items-center justify-center transition-colors"
-                          style={{
-                            borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
-                            backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
-                          }}
-                        >
-                          {tatuadores[t] && (
-                            <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
-                              <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </span>
-                        <span className="text-xs font-semibold text-white/80">{t}</span>
-                      </button>
+                      <div key={t}>
+                        <button type="button" onClick={() => toggleTatuador(t)}
+                          className="flex items-center gap-3 text-left w-full">
+                          <span
+                            className="w-4 h-4 flex-shrink-0 border flex items-center justify-center transition-colors"
+                            style={{
+                              borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
+                              backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
+                            }}
+                          >
+                            {tatuadores[t] && (
+                              <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
+                                <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </span>
+                          <span className="text-xs font-semibold text-white/80">{t}</span>
+                        </button>
+                        {t === 'Outro' && tatuadores['Outro'] && (
+                          <input
+                            type="text"
+                            value={outroTatuador}
+                            onChange={(e) => setOutroTatuador(e.target.value)}
+                            placeholder="Nome do tatuador"
+                            className="input-field mt-1 ml-7"
+                            style={{ width: 'calc(100% - 1.75rem)' }}
+                          />
+                        )}
+                      </div>
                     ))}
                   </div>
                 </Field>
@@ -357,23 +391,62 @@ export default function FichaAnamnesePage() {
       </form>
 
       {/* ── Bottom Nav ── */}
-      <nav className="sticky bottom-0 border-t border-white/10 bg-black flex">
-        {[
-          { label: 'HOME', href: '/', icon: HomeIcon },
-          { label: 'CLIENTS', href: '/guests', icon: ClientsIcon },
-          { label: 'FORMS', href: '/ficha-anamnese', icon: FormsIcon, active: true },
-          { label: 'HISTORY', href: '/arquivadas', icon: HistoryIcon },
-        ].map(({ label, href, icon: Icon, active }) => (
-          <a
-            key={label}
-            href={href}
+      <nav className="sticky bottom-0 border-t border-white/10 bg-black">
+        {/* Slide-up menu */}
+        {menuOpen && (
+          <div className="border-b border-white/10 bg-black px-6 py-5 flex flex-col gap-2">
+            {[
+              { to: '/', label: 'Vitrine', end: true },
+              { to: '/artistas', label: 'Artistas', end: false },
+              { to: '/guests', label: 'Guests', end: false },
+              { to: '/merchs', label: 'Merchs', end: false },
+              { to: '/aftercare', label: 'Pós Tattoo', end: false },
+              { to: '/sobre-nos', label: 'Sobre Nós', end: false },
+              { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
+            ].map(({ to, label, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `font-display text-3xl uppercase tracking-wide transition-colors leading-tight ${
+                    isActive ? 'text-white' : 'text-white/50 hover:text-white'
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        )}
+
+        <div className="flex">
+          {[
+            { label: 'HOME', href: '/', icon: HomeIcon },
+            { label: 'CLIENTS', href: '/guests', icon: ClientsIcon },
+            { label: 'FORMS', href: '/ficha-anamnese', icon: FormsIcon, active: true },
+            { label: 'HISTORY', href: '/arquivadas', icon: HistoryIcon },
+          ].map(({ label, href, icon: Icon, active }) => (
+            <a
+              key={label}
+              href={href}
+              className="flex-1 flex flex-col items-center justify-center py-3 gap-1"
+              style={{ color: active ? '#e63737' : 'rgba(255,255,255,0.4)' }}
+            >
+              <Icon />
+              <span className="text-[9px] font-bold tracking-widest">{label}</span>
+            </a>
+          ))}
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
             className="flex-1 flex flex-col items-center justify-center py-3 gap-1"
-            style={{ color: active ? '#e63737' : 'rgba(255,255,255,0.4)' }}
+            style={{ color: menuOpen ? 'white' : 'rgba(255,255,255,0.4)' }}
           >
-            <Icon />
-            <span className="text-[9px] font-bold tracking-widest">{label}</span>
-          </a>
-        ))}
+            <MenuIcon />
+            <span className="text-[9px] font-bold tracking-widest">MENU</span>
+          </button>
+        </div>
       </nav>
 
       <style>{`
@@ -473,6 +546,14 @@ function HistoryIcon() {
     <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
     </svg>
   );
 }

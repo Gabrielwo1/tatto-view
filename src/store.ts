@@ -331,6 +331,32 @@ export interface FichaConfig {
   conditions: string[];
 }
 
+// ── Ficha de Anamnese Submission ──────────────────────────────────────────────
+export interface FichaSubmission {
+  id: string;
+  submittedAt: string;
+  // Identificação
+  email: string;
+  nome: string;
+  dataNascimento: string;
+  cpf: string;
+  endereco: string;
+  cidade: string;
+  cep: string;
+  telefone: string;
+  // Procedimento
+  tatuadoresSelecionados: string[];
+  outroTatuador: string;
+  localCorpo: string;
+  valorAcordado: string;
+  // Histórico clínico
+  conditions: Record<string, 'sim' | 'nao' | null>;
+  detalhesCondicoes: string;
+  telefoneEmergencia: string;
+  // Assinatura
+  dataAssinatura: string;
+}
+
 const defaultFichaConfig: FichaConfig = {
   tatuadores: [
     'Bruna Lopes',
@@ -450,6 +476,10 @@ interface AppState {
   /** Ficha de Anamnese config editable by admin */
   fichaConfig: FichaConfig;
   setFichaConfig: (config: FichaConfig) => void;
+  /** Submitted ficha de anamnese forms */
+  fichaSubmissions: FichaSubmission[];
+  addFichaSubmission: (submission: Omit<FichaSubmission, 'id' | 'submittedAt'>) => void;
+  deleteFichaSubmission: (id: string) => void;
   loadData: () => Promise<void>;
   login: (username: string, password: string) => boolean;
   logout: () => void;
@@ -511,6 +541,18 @@ export const useStore = create<AppState>()(
         set({ fichaConfig: config });
         supabase?.from('site_config').upsert({ key: 'fichaConfig', value: config, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setFichaConfig:', error); });
+      },
+      fichaSubmissions: [],
+      addFichaSubmission: (data) => {
+        const submission: FichaSubmission = {
+          ...data,
+          id: crypto.randomUUID(),
+          submittedAt: new Date().toISOString(),
+        };
+        set((s) => ({ fichaSubmissions: [submission, ...s.fichaSubmissions] }));
+      },
+      deleteFichaSubmission: (id) => {
+        set((s) => ({ fichaSubmissions: s.fichaSubmissions.filter((f) => f.id !== id) }));
       },
 
       // ── Load from Supabase ───────────────────────────────────────────────

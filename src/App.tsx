@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { trackPageView } from './lib/analytics';
 import { useStore } from './store';
 import { applyTheme, getThemeForHostname, THEMES } from './lib/themes';
 import Navbar from './components/Navbar';
@@ -25,6 +26,7 @@ import AdminSobreNos from './pages/admin/AdminSobreNos';
 import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
 import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
+import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
@@ -39,6 +41,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   if (!isAdmin) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
+}
+
+function PageTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    // Don't track admin pages
+    if (!location.pathname.startsWith('/admin')) {
+      trackPageView(location.pathname);
+    }
+  }, [location.pathname]);
+  return null;
 }
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -72,6 +85,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <PageTracker />
       <Routes>
         {/* Public routes */}
         <Route
@@ -176,6 +190,7 @@ export default function App() {
           <Route path="sobre-nos" element={<AdminSobreNos />} />
           <Route path="landing" element={<AdminLandingPage />} />
           <Route path="ficha-anamnese" element={<AdminFichaAnamnese />} />
+          <Route path="fichas" element={<AdminFichaSubmissions />} />
           <Route path="configuracoes" element={<AdminSettings />} />
         </Route>
 
