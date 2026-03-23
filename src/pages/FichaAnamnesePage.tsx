@@ -54,6 +54,7 @@ export default function FichaAnamnesePage() {
   });
 
   const [tatuadores, setTatuadores] = useState<Record<string, boolean>>({});
+  const [outroTatuador, setOutroTatuador] = useState('');
   const [conditions, setConditions] = useState<Record<string, ConditionAnswer>>({});
 
   const [submitted, setSubmitted] = useState(false);
@@ -189,23 +190,35 @@ export default function FichaAnamnesePage() {
                 <Field label="TATUADOR *">
                   <div className="flex flex-col gap-2 mt-1">
                     {TATUADORES.map((t) => (
-                      <button type="button" key={t} onClick={() => toggleTatuador(t)}
-                        className="flex items-center gap-3 text-left">
-                        <span
-                          className="w-4 h-4 flex-shrink-0 border flex items-center justify-center transition-colors"
-                          style={{
-                            borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
-                            backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
-                          }}
-                        >
-                          {tatuadores[t] && (
-                            <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
-                              <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </span>
-                        <span className="text-xs font-semibold text-white/80">{t}</span>
-                      </button>
+                      <div key={t}>
+                        <button type="button" onClick={() => toggleTatuador(t)}
+                          className="flex items-center gap-3 text-left w-full">
+                          <span
+                            className="w-4 h-4 flex-shrink-0 border flex items-center justify-center transition-colors"
+                            style={{
+                              borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
+                              backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
+                            }}
+                          >
+                            {tatuadores[t] && (
+                              <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
+                                <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                          </span>
+                          <span className="text-xs font-semibold text-white/80">{t}</span>
+                        </button>
+                        {t === 'Outro' && tatuadores['Outro'] && (
+                          <input
+                            type="text"
+                            value={outroTatuador}
+                            onChange={(e) => setOutroTatuador(e.target.value)}
+                            placeholder="Nome do tatuador"
+                            className="input-field mt-1 ml-7"
+                            style={{ width: 'calc(100% - 1.75rem)' }}
+                          />
+                        )}
+                      </div>
                     ))}
                   </div>
                 </Field>
