@@ -9,9 +9,13 @@ const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'n
 export default function AdminSettings() {
   const themeId  = useStore((s) => s.themeId);
   const setTheme = useStore((s) => s.setTheme);
-  const tattoos  = useStore((s) => s.tattoos);
-  const artists  = useStore((s) => s.artists);
-  const merchs   = useStore((s) => s.merchs);
+  const tattoos          = useStore((s) => s.tattoos);
+  const artists          = useStore((s) => s.artists);
+  const merchs           = useStore((s) => s.merchs);
+  const landingContent   = useStore((s) => s.landingContent);
+  const sobreNosContent  = useStore((s) => s.sobreNosContent);
+  const guestContent     = useStore((s) => s.guestContent);
+  const aftercareContent = useStore((s) => s.aftercareContent);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
   const [syncError, setSyncError] = useState<string | null>(null);
   const [connStatus, setConnStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
@@ -40,10 +44,19 @@ export default function AdminSettings() {
         price: m.price, image_url: m.imageUrl, link: m.link, created_at: m.createdAt,
       }));
 
+      const configRows = [
+        { key: 'landingContent',   value: landingContent,   updated_at: new Date().toISOString() },
+        { key: 'sobreNosContent',  value: sobreNosContent,  updated_at: new Date().toISOString() },
+        { key: 'guestContent',     value: guestContent,     updated_at: new Date().toISOString() },
+        { key: 'aftercareContent', value: aftercareContent, updated_at: new Date().toISOString() },
+        { key: 'themeId',          value: themeId,          updated_at: new Date().toISOString() },
+      ];
+
       const results = await Promise.all([
-        artistRows.length ? supabase.from('artists').upsert(artistRows) : Promise.resolve({ error: null }),
-        tattooRows.length ? supabase.from('tattoos').upsert(tattooRows) : Promise.resolve({ error: null }),
-        merchRows.length  ? supabase.from('merchs').upsert(merchRows)   : Promise.resolve({ error: null }),
+        artistRows.length ? supabase.from('artists').upsert(artistRows)     : Promise.resolve({ error: null }),
+        tattooRows.length ? supabase.from('tattoos').upsert(tattooRows)     : Promise.resolve({ error: null }),
+        merchRows.length  ? supabase.from('merchs').upsert(merchRows)       : Promise.resolve({ error: null }),
+        supabase.from('site_config').upsert(configRows),
       ]);
 
       const err = results.find((r) => r.error)?.error;
