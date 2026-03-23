@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { useStore } from '../store';
 
 const DEFAULT_TATUADORES = [
@@ -58,6 +59,7 @@ export default function FichaAnamnesePage() {
   const [conditions, setConditions] = useState<Record<string, ConditionAnswer>>({});
 
   const [submitted, setSubmitted] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value, type } = e.target;
@@ -370,23 +372,62 @@ export default function FichaAnamnesePage() {
       </form>
 
       {/* ── Bottom Nav ── */}
-      <nav className="sticky bottom-0 border-t border-white/10 bg-black flex">
-        {[
-          { label: 'HOME', href: '/', icon: HomeIcon },
-          { label: 'CLIENTS', href: '/guests', icon: ClientsIcon },
-          { label: 'FORMS', href: '/ficha-anamnese', icon: FormsIcon, active: true },
-          { label: 'HISTORY', href: '/arquivadas', icon: HistoryIcon },
-        ].map(({ label, href, icon: Icon, active }) => (
-          <a
-            key={label}
-            href={href}
+      <nav className="sticky bottom-0 border-t border-white/10 bg-black">
+        {/* Slide-up menu */}
+        {menuOpen && (
+          <div className="border-b border-white/10 bg-black px-6 py-5 flex flex-col gap-2">
+            {[
+              { to: '/', label: 'Vitrine', end: true },
+              { to: '/artistas', label: 'Artistas', end: false },
+              { to: '/guests', label: 'Guests', end: false },
+              { to: '/merchs', label: 'Merchs', end: false },
+              { to: '/aftercare', label: 'Pós Tattoo', end: false },
+              { to: '/sobre-nos', label: 'Sobre Nós', end: false },
+              { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
+            ].map(({ to, label, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `font-display text-3xl uppercase tracking-wide transition-colors leading-tight ${
+                    isActive ? 'text-white' : 'text-white/50 hover:text-white'
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        )}
+
+        <div className="flex">
+          {[
+            { label: 'HOME', href: '/', icon: HomeIcon },
+            { label: 'CLIENTS', href: '/guests', icon: ClientsIcon },
+            { label: 'FORMS', href: '/ficha-anamnese', icon: FormsIcon, active: true },
+            { label: 'HISTORY', href: '/arquivadas', icon: HistoryIcon },
+          ].map(({ label, href, icon: Icon, active }) => (
+            <a
+              key={label}
+              href={href}
+              className="flex-1 flex flex-col items-center justify-center py-3 gap-1"
+              style={{ color: active ? '#e63737' : 'rgba(255,255,255,0.4)' }}
+            >
+              <Icon />
+              <span className="text-[9px] font-bold tracking-widest">{label}</span>
+            </a>
+          ))}
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
             className="flex-1 flex flex-col items-center justify-center py-3 gap-1"
-            style={{ color: active ? '#e63737' : 'rgba(255,255,255,0.4)' }}
+            style={{ color: menuOpen ? 'white' : 'rgba(255,255,255,0.4)' }}
           >
-            <Icon />
-            <span className="text-[9px] font-bold tracking-widest">{label}</span>
-          </a>
-        ))}
+            <MenuIcon />
+            <span className="text-[9px] font-bold tracking-widest">MENU</span>
+          </button>
+        </div>
       </nav>
 
       <style>{`
@@ -486,6 +527,14 @@ function HistoryIcon() {
     <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
     </svg>
   );
 }
