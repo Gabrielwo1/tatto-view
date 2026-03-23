@@ -139,11 +139,19 @@ export default function App() {
           }
         />
 
-        {/* Landing page — standalone, no Navbar */}
-        <Route path="/landingpage" element={<LandingPage />} />
+        {/* Landing page */}
+        <Route path="/landingpage" element={
+          <PublicLayout>
+            <LandingPage />
+          </PublicLayout>
+        } />
 
-        {/* Ficha de Anamnese — standalone, no Navbar */}
-        <Route path="/ficha-anamnese" element={<FichaAnamnesePage />} />
+        {/* Ficha de Anamnese */}
+        <Route path="/ficha-anamnese" element={
+          <PublicLayout>
+            <FichaAnamnesePage />
+          </PublicLayout>
+        } />
 
         {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />

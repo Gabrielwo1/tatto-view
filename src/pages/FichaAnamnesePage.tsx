@@ -171,192 +171,187 @@ export default function FichaAnamnesePage() {
 
         <div className="h-px bg-white/10 mx-6" />
 
-        {/* ── 02. Procedimento + 03. Histórico Clínico (lado a lado) ── */}
+        {/* ── Duas colunas: esquerda = 02+Termo | direita = 03+Informamos ── */}
         <div className="flex divide-x divide-white/10">
 
-          {/* 02. Procedimento */}
-          <div className="flex-1 px-6 py-8 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl font-black" style={{ color: '#e63737' }}>02.</span>
-              <span className="text-sm font-black uppercase tracking-widest">PROCEDIMENTO</span>
-            </div>
-            <p className="text-xs text-white/50 mb-4">Tatuador e procedimento.</p>
+          {/* COLUNA ESQUERDA: 02 Procedimento + Termo */}
+          <div className="flex-1 min-w-0 flex flex-col divide-y divide-white/10">
 
-            <div className="flex flex-col gap-4">
-              <Field label="TATUADOR *">
-                <div className="flex flex-col gap-2 mt-1">
-                  {TATUADORES.map((t) => (
-                    <button type="button" key={t} onClick={() => toggleTatuador(t)}
-                      className="flex items-center gap-3 text-left">
+            {/* 02. Procedimento */}
+            <div className="px-6 py-8">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl font-black" style={{ color: '#e63737' }}>02.</span>
+                <span className="text-sm font-black uppercase tracking-widest">PROCEDIMENTO</span>
+              </div>
+              <p className="text-xs text-white/50 mb-4">Tatuador e procedimento.</p>
+
+              <div className="flex flex-col gap-4">
+                <Field label="TATUADOR *">
+                  <div className="flex flex-col gap-2 mt-1">
+                    {TATUADORES.map((t) => (
+                      <button type="button" key={t} onClick={() => toggleTatuador(t)}
+                        className="flex items-center gap-3 text-left">
+                        <span
+                          className="w-4 h-4 flex-shrink-0 border flex items-center justify-center transition-colors"
+                          style={{
+                            borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
+                            backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
+                          }}
+                        >
+                          {tatuadores[t] && (
+                            <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
+                              <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </span>
+                        <span className="text-xs font-semibold text-white/80">{t}</span>
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                <Field label="LOCAL DO CORPO">
+                  <input type="text" name="localCorpo" value={form.localCorpo} onChange={handleChange}
+                    placeholder="Ex: antebraço direito" className="input-field" />
+                </Field>
+
+                <Field label="VALOR ACORDADO *">
+                  <input type="text" name="valorAcordado" value={form.valorAcordado} onChange={handleChange}
+                    placeholder="R$ 0,00" required className="input-field" />
+                </Field>
+              </div>
+            </div>
+
+            {/* Termo de Responsabilidade */}
+            <div className="px-6 py-8 flex-1">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl font-black" style={{ color: '#e63737' }}>✦</span>
+                <span className="text-sm font-black uppercase tracking-widest">TERMO</span>
+              </div>
+
+              <div className="flex flex-col gap-3 mb-6">
+                <TermCheckbox
+                  checked={form.concordo1}
+                  onToggle={() => setForm((p) => ({ ...p, concordo1: !p.concordo1 }))}
+                  text="Declaro serem verdadeiras as informações acima prestadas e de minha inteira responsabilidade se houver omissão dessas."
+                />
+                <TermCheckbox
+                  checked={form.concordo2}
+                  onToggle={() => setForm((p) => ({ ...p, concordo2: !p.concordo2 }))}
+                  text="Responsabilizo-me pelos cuidados que deverei ter no período posterior ao procedimento, estando ciente de que o sucesso da operação depende diretamente destes. Declaro também estar ciente de que a tatuagem é definitiva e de que o desenho/escrita está de acordo com o combinado com o artista. Assim sendo, isento neste ato o profissional responsável e o El Dude Tattoo por eventuais problemas posteriores."
+                />
+                <TermCheckbox
+                  checked={form.concordo3}
+                  onToggle={() => setForm((p) => ({ ...p, concordo3: !p.concordo3 }))}
+                  text="Autorizo também o uso de minha imagem para portfólio e redes sociais do artista/estúdio."
+                />
+              </div>
+
+              <Field label="SÃO PAULO, DATA *">
+                <input type="date" name="dataAssinatura" value={form.dataAssinatura}
+                  onChange={handleChange} required className="input-field" />
+              </Field>
+
+              <button
+                type="submit"
+                disabled={!allTermsAccepted}
+                className="w-full mt-6 py-4 text-sm font-black tracking-[0.25em] uppercase transition-opacity disabled:opacity-40"
+                style={{ backgroundColor: 'white', color: 'black' }}
+              >
+                FINALIZAR REGISTRO
+              </button>
+            </div>
+          </div>
+
+          {/* COLUNA DIREITA: 03 Histórico Clínico + Informamos que */}
+          <div className="flex-1 min-w-0 flex flex-col divide-y divide-white/10">
+
+            {/* 03. Histórico Clínico */}
+            <div className="px-6 py-8">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl font-black" style={{ color: '#e63737' }}>03.</span>
+                <span className="text-sm font-black uppercase tracking-widest">HISTÓRICO CLÍNICO</span>
+              </div>
+              <p className="text-xs text-white/50 mb-4">Problemas de saúde? *</p>
+
+              <div className="flex items-center mb-2">
+                <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">S</div>
+                <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">N</div>
+                <div className="flex-1" />
+              </div>
+
+              <div className="flex flex-col mb-4">
+                {CONDITIONS.map((label) => (
+                  <div key={label} className="flex items-center border-b border-white/5 py-2">
+                    <button type="button" onClick={() => setCondition(label, 'sim')}
+                      className="w-8 flex justify-center flex-shrink-0">
                       <span
-                        className="w-4 h-4 flex-shrink-0 border flex items-center justify-center transition-colors"
+                        className="w-4 h-4 border flex items-center justify-center transition-colors"
                         style={{
-                          borderColor: tatuadores[t] ? '#e63737' : 'rgba(255,255,255,0.3)',
-                          backgroundColor: tatuadores[t] ? '#e63737' : 'transparent',
+                          borderColor: conditions[label] === 'sim' ? '#e63737' : 'rgba(255,255,255,0.3)',
+                          backgroundColor: conditions[label] === 'sim' ? '#e63737' : 'transparent',
                         }}
                       >
-                        {tatuadores[t] && (
+                        {conditions[label] === 'sim' && (
                           <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
                             <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         )}
                       </span>
-                      <span className="text-xs font-semibold text-white/80">{t}</span>
                     </button>
-                  ))}
-                </div>
-              </Field>
+                    <button type="button" onClick={() => setCondition(label, 'nao')}
+                      className="w-8 flex justify-center flex-shrink-0">
+                      <span
+                        className="w-4 h-4 border flex items-center justify-center transition-colors"
+                        style={{
+                          borderColor: conditions[label] === 'nao' ? '#e63737' : 'rgba(255,255,255,0.3)',
+                          backgroundColor: conditions[label] === 'nao' ? '#e63737' : 'transparent',
+                        }}
+                      >
+                        {conditions[label] === 'nao' && (
+                          <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
+                            <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </span>
+                    </button>
+                    <span className="flex-1 text-xs text-white/80 pl-1 leading-tight">{label}</span>
+                  </div>
+                ))}
+              </div>
 
-              <Field label="LOCAL DO CORPO">
-                <input type="text" name="localCorpo" value={form.localCorpo} onChange={handleChange}
-                  placeholder="Ex: antebraço direito" className="input-field" />
-              </Field>
+              <div className="flex flex-col gap-4">
+                <Field label="ALERGIAS / MEDICAMENTOS / DOENÇAS">
+                  <textarea name="detalhesCondicoes" value={form.detalhesCondicoes} onChange={handleChange}
+                    placeholder="Descreva aqui..." rows={3} className="input-field resize-none" />
+                </Field>
 
-              <Field label="VALOR ACORDADO *">
-                <input type="text" name="valorAcordado" value={form.valorAcordado} onChange={handleChange}
-                  placeholder="R$ 0,00" required className="input-field" />
-              </Field>
-            </div>
-          </div>
-
-          {/* 03. Histórico Clínico */}
-          <div className="flex-1 px-6 py-8 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl font-black" style={{ color: '#e63737' }}>03.</span>
-              <span className="text-sm font-black uppercase tracking-widest">HISTÓRICO CLÍNICO</span>
-            </div>
-            <p className="text-xs text-white/50 mb-4">Problemas de saúde? *</p>
-
-            {/* Table header */}
-            <div className="flex items-center mb-2">
-              <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">S</div>
-              <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">N</div>
-              <div className="flex-1" />
-            </div>
-
-            <div className="flex flex-col mb-4">
-              {CONDITIONS.map((label) => (
-                <div key={label} className="flex items-center border-b border-white/5 py-2">
-                  <button type="button" onClick={() => setCondition(label, 'sim')}
-                    className="w-8 flex justify-center flex-shrink-0">
-                    <span
-                      className="w-4 h-4 border flex items-center justify-center transition-colors"
-                      style={{
-                        borderColor: conditions[label] === 'sim' ? '#e63737' : 'rgba(255,255,255,0.3)',
-                        backgroundColor: conditions[label] === 'sim' ? '#e63737' : 'transparent',
-                      }}
-                    >
-                      {conditions[label] === 'sim' && (
-                        <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
-                          <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </span>
-                  </button>
-                  <button type="button" onClick={() => setCondition(label, 'nao')}
-                    className="w-8 flex justify-center flex-shrink-0">
-                    <span
-                      className="w-4 h-4 border flex items-center justify-center transition-colors"
-                      style={{
-                        borderColor: conditions[label] === 'nao' ? '#e63737' : 'rgba(255,255,255,0.3)',
-                        backgroundColor: conditions[label] === 'nao' ? '#e63737' : 'transparent',
-                      }}
-                    >
-                      {conditions[label] === 'nao' && (
-                        <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none" stroke="white" strokeWidth="1.5">
-                          <path d="M2 5l2.5 2.5L8 3" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </span>
-                  </button>
-                  <span className="flex-1 text-xs text-white/80 pl-1 leading-tight">{label}</span>
-                </div>
-              ))}
+                <Field label="TELEFONE PARA EMERGÊNCIA">
+                  <input type="tel" name="telefoneEmergencia" value={form.telefoneEmergencia}
+                    onChange={handleChange} placeholder="(00) 00000-0000" className="input-field" />
+                </Field>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <Field label="ALERGIAS / MEDICAMENTOS / DOENÇAS">
-                <textarea name="detalhesCondicoes" value={form.detalhesCondicoes} onChange={handleChange}
-                  placeholder="Descreva aqui..." rows={3} className="input-field resize-none" />
-              </Field>
-
-              <Field label="TELEFONE PARA EMERGÊNCIA">
-                <input type="tel" name="telefoneEmergencia" value={form.telefoneEmergencia}
-                  onChange={handleChange} placeholder="(00) 00000-0000" className="input-field" />
-              </Field>
+            {/* Informamos que */}
+            <div className="px-6 py-8 flex-1">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl font-black" style={{ color: '#e63737' }}>!</span>
+                <span className="text-sm font-black uppercase tracking-widest">INFORMAMOS QUE:</span>
+              </div>
+              <ul className="flex flex-col gap-3">
+                {[
+                  'Não tatuamos menores de 18 (dezoito) anos completos, nem mesmo mediante autorização dos responsáveis legais.',
+                  'É permitida a presença de apenas 1 (um) acompanhante durante o procedimento (consultar tatuador).',
+                  'Não é permitido o uso de entorpecentes no estúdio.',
+                ].map((item) => (
+                  <li key={item} className="flex gap-2 text-xs text-white/60 leading-relaxed">
+                    <span className="mt-0.5 flex-shrink-0" style={{ color: '#e63737' }}>•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-        </div>
-
-        <div className="h-px bg-white/10 mx-6" />
-
-        {/* ── Informamos que + Termo lado a lado ── */}
-        <div className="flex divide-x divide-white/10">
-
-          {/* Informamos que */}
-          <div className="flex-1 px-6 py-8 min-w-0">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl font-black" style={{ color: '#e63737' }}>!</span>
-              <span className="text-sm font-black uppercase tracking-widest">INFORMAMOS QUE:</span>
-            </div>
-            <ul className="flex flex-col gap-3">
-              {[
-                'Não tatuamos menores de 18 (dezoito) anos completos, nem mesmo mediante autorização dos responsáveis legais.',
-                'É permitida a presença de apenas 1 (um) acompanhante durante o procedimento (consultar tatuador).',
-                'Não é permitido o uso de entorpecentes no estúdio.',
-              ].map((item) => (
-                <li key={item} className="flex gap-2 text-xs text-white/60 leading-relaxed">
-                  <span className="mt-0.5 flex-shrink-0" style={{ color: '#e63737' }}>•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Termo de Responsabilidade */}
-          <div className="flex-1 px-6 py-8 min-w-0">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl font-black" style={{ color: '#e63737' }}>✦</span>
-              <span className="text-sm font-black uppercase tracking-widest">TERMO</span>
-            </div>
-
-            <div className="flex flex-col gap-3 mb-6">
-              <TermCheckbox
-                checked={form.concordo1}
-                onToggle={() => setForm((p) => ({ ...p, concordo1: !p.concordo1 }))}
-                text="Declaro serem verdadeiras as informações acima prestadas e de minha inteira responsabilidade se houver omissão dessas."
-              />
-              <TermCheckbox
-                checked={form.concordo2}
-                onToggle={() => setForm((p) => ({ ...p, concordo2: !p.concordo2 }))}
-                text="Responsabilizo-me pelos cuidados que deverei ter no período posterior ao procedimento, estando ciente de que o sucesso da operação depende diretamente destes. Declaro também estar ciente de que a tatuagem é definitiva e de que o desenho/escrita está de acordo com o combinado com o artista. Assim sendo, isento neste ato o profissional responsável e o El Dude Tattoo por eventuais problemas posteriores."
-              />
-              <TermCheckbox
-                checked={form.concordo3}
-                onToggle={() => setForm((p) => ({ ...p, concordo3: !p.concordo3 }))}
-                text="Autorizo também o uso de minha imagem para portfólio e redes sociais do artista/estúdio."
-              />
-            </div>
-
-            <Field label="SÃO PAULO, DATA *">
-              <input
-                type="date"
-                name="dataAssinatura"
-                value={form.dataAssinatura}
-                onChange={handleChange}
-                required
-                className="input-field"
-              />
-            </Field>
-
-            <button
-              type="submit"
-              disabled={!allTermsAccepted}
-              className="w-full mt-6 py-4 text-sm font-black tracking-[0.25em] uppercase transition-opacity disabled:opacity-40"
-              style={{ backgroundColor: 'white', color: 'black' }}
-            >
-              FINALIZAR REGISTRO
-            </button>
           </div>
         </div>
       </form>
