@@ -290,96 +290,74 @@ export default function FichaAnamnesePage() {
 
         <div className="h-px bg-white/10 mx-6" />
 
-        {/* ── Informamos que ── */}
-        <div className="px-6 py-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-2xl font-black" style={{ color: '#e63737' }}>!</span>
-            <span className="text-base font-black uppercase tracking-widest">INFORMAMOS QUE:</span>
+        {/* ── Informamos que + Termo lado a lado ── */}
+        <div className="flex divide-x divide-white/10">
+
+          {/* Informamos que */}
+          <div className="flex-1 px-6 py-8 min-w-0">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xl font-black" style={{ color: '#e63737' }}>!</span>
+              <span className="text-sm font-black uppercase tracking-widest">INFORMAMOS QUE:</span>
+            </div>
+            <ul className="flex flex-col gap-3">
+              {[
+                'Não tatuamos menores de 18 (dezoito) anos completos, nem mesmo mediante autorização dos responsáveis legais.',
+                'É permitida a presença de apenas 1 (um) acompanhante durante o procedimento (consultar tatuador).',
+                'Não é permitido o uso de entorpecentes no estúdio.',
+              ].map((item) => (
+                <li key={item} className="flex gap-2 text-xs text-white/60 leading-relaxed">
+                  <span className="mt-0.5 flex-shrink-0" style={{ color: '#e63737' }}>•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="flex flex-col gap-3">
-            {[
-              'Não tatuamos menores de 18 (dezoito) anos completos, nem mesmo mediante autorização dos responsáveis legais.',
-              'É permitida a presença de apenas 1 (um) acompanhante durante o procedimento (consultar tatuador).',
-              'Não é permitido o uso de entorpecentes no estúdio.',
-            ].map((item) => (
-              <li key={item} className="flex gap-3 text-xs text-white/60 leading-relaxed">
-                <span className="mt-0.5 flex-shrink-0" style={{ color: '#e63737' }}>•</span>
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
 
-        <div className="h-px bg-white/10 mx-6" />
+          {/* Termo de Responsabilidade */}
+          <div className="flex-1 px-6 py-8 min-w-0">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xl font-black" style={{ color: '#e63737' }}>✦</span>
+              <span className="text-sm font-black uppercase tracking-widest">TERMO</span>
+            </div>
 
-        {/* ── Termo de Responsabilidade ── */}
-        <div className="px-6 py-10">
-          <div className="flex justify-center mb-6">
-            <svg viewBox="0 0 48 48" className="w-12 h-12" fill="none">
-              <path
-                d="M10 38 C14 28 20 24 24 12 C28 24 34 28 38 38"
-                stroke="#e63737"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div className="flex flex-col gap-3 mb-6">
+              <TermCheckbox
+                checked={form.concordo1}
+                onToggle={() => setForm((p) => ({ ...p, concordo1: !p.concordo1 }))}
+                text="Declaro serem verdadeiras as informações acima prestadas e de minha inteira responsabilidade se houver omissão dessas."
               />
-              <path
-                d="M16 32 C18 28 22 26 24 20 C26 26 30 28 32 32"
-                stroke="#e63737"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <TermCheckbox
+                checked={form.concordo2}
+                onToggle={() => setForm((p) => ({ ...p, concordo2: !p.concordo2 }))}
+                text="Responsabilizo-me pelos cuidados que deverei ter no período posterior ao procedimento, estando ciente de que o sucesso da operação depende diretamente destes. Declaro também estar ciente de que a tatuagem é definitiva e de que o desenho/escrita está de acordo com o combinado com o artista. Assim sendo, isento neste ato o profissional responsável e o El Dude Tattoo por eventuais problemas posteriores."
               />
-            </svg>
+              <TermCheckbox
+                checked={form.concordo3}
+                onToggle={() => setForm((p) => ({ ...p, concordo3: !p.concordo3 }))}
+                text="Autorizo também o uso de minha imagem para portfólio e redes sociais do artista/estúdio."
+              />
+            </div>
+
+            <Field label="SÃO PAULO, DATA *">
+              <input
+                type="date"
+                name="dataAssinatura"
+                value={form.dataAssinatura}
+                onChange={handleChange}
+                required
+                className="input-field"
+              />
+            </Field>
+
+            <button
+              type="submit"
+              disabled={!allTermsAccepted}
+              className="w-full mt-6 py-4 text-sm font-black tracking-[0.25em] uppercase transition-opacity disabled:opacity-40"
+              style={{ backgroundColor: 'white', color: 'black' }}
+            >
+              FINALIZAR REGISTRO
+            </button>
           </div>
-
-          <h2 className="text-3xl font-black uppercase text-center leading-tight mb-8">
-            TERMO DE<br />RESPONSABILIDADE
-          </h2>
-
-          <div className="flex flex-col gap-4 mb-8">
-            {/* Checkbox 1 */}
-            <TermCheckbox
-              checked={form.concordo1}
-              onToggle={() => setForm((p) => ({ ...p, concordo1: !p.concordo1 }))}
-              text="Declaro serem verdadeiras as informações acima prestadas e de minha inteira responsabilidade se houver omissão dessas."
-            />
-
-            {/* Checkbox 2 */}
-            <TermCheckbox
-              checked={form.concordo2}
-              onToggle={() => setForm((p) => ({ ...p, concordo2: !p.concordo2 }))}
-              text="Responsabilizo-me pelos cuidados que deverei ter no período posterior ao procedimento, estando ciente de que o sucesso da operação depende diretamente destes. Declaro também estar ciente de que a tatuagem é definitiva e de que o desenho/escrita está de acordo com o combinado com o artista. Assim sendo, isento neste ato o profissional responsável e o El Dude Tattoo por eventuais problemas posteriores."
-            />
-
-            {/* Checkbox 3 */}
-            <TermCheckbox
-              checked={form.concordo3}
-              onToggle={() => setForm((p) => ({ ...p, concordo3: !p.concordo3 }))}
-              text="Autorizo também o uso de minha imagem para portfólio e redes sociais do artista/estúdio."
-            />
-          </div>
-
-          <Field label="SÃO PAULO, DATA *">
-            <input
-              type="date"
-              name="dataAssinatura"
-              value={form.dataAssinatura}
-              onChange={handleChange}
-              required
-              className="input-field"
-            />
-          </Field>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={!allTermsAccepted}
-            className="w-full mt-8 py-5 text-sm font-black tracking-[0.25em] uppercase transition-opacity disabled:opacity-40"
-            style={{ backgroundColor: 'white', color: 'black' }}
-          >
-            FINALIZAR<br />REGISTRO
-          </button>
         </div>
       </form>
 
