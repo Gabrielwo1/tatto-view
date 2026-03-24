@@ -88,7 +88,7 @@ export default function GuestsPage() {
 
             {gc.showcase.title && (
               <Fade>
-                <h2 className="font-display text-[clamp(2.5rem,8vw,6rem)] uppercase leading-none tracking-tight text-white mb-10">
+                <h2 className="font-display text-[clamp(2.5rem,8vw,6rem)] uppercase leading-none tracking-tight text-white mb-10 whitespace-pre-line">
                   {gc.showcase.title}
                 </h2>
               </Fade>
