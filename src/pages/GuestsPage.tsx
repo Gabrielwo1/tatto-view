@@ -97,23 +97,31 @@ export default function GuestsPage() {
 
       </section>
 
-      {/* ── SHOWCASE (mesmo layout que Próximo Guest) ───────────────────────── */}
-      {(gc.showcase?.title || gc.showcase?.heroImage || gc.showcase?.galleryImages?.some(Boolean)) && (
+      {/* ── SHOWCASE ────────────────────────────────────────────────────────── */}
+      {(gc.showcase?.sectionTitle || gc.showcase?.guestName || gc.showcase?.heroImage || gc.showcase?.galleryImages?.some(Boolean)) && (
         <section className="px-6 lg:px-10 py-20 md:py-24 border-b border-white/8">
           <div className="max-w-5xl mx-auto">
 
-            {/* Cabeçalho */}
+            {/* Cabeçalho da chamada */}
             <Fade>
               <div className="mb-14">
                 <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-3"
                    style={{ color: 'rgb(var(--ink-500))' }}>
-                  Próximo Guest
+                  Guest Artist
                 </p>
+                <h2 className="font-display text-[clamp(2.5rem,8vw,5.5rem)] uppercase leading-none tracking-tight text-white mb-4">
+                  {gc.showcase.sectionTitle}
+                </h2>
+                {gc.showcase.sectionSubtitle && (
+                  <p className="font-body text-sm text-white/40 max-w-lg leading-relaxed">
+                    {gc.showcase.sectionSubtitle}
+                  </p>
+                )}
               </div>
             </Fade>
 
-            {/* Foto + cartão preto */}
-            {(gc.showcase.heroImage || gc.showcase.title) && (
+            {/* Foto + descrição */}
+            {(gc.showcase.heroImage || gc.showcase.guestName || gc.showcase.guestDescription) && (
               <Fade delay={60}>
                 <div className="grid md:grid-cols-2 gap-px bg-white/8 mb-3">
                   {/* Foto */}
@@ -121,30 +129,35 @@ export default function GuestsPage() {
                     {gc.showcase.heroImage ? (
                       <img
                         src={gc.showcase.heroImage}
-                        alt="Showcase"
+                        alt={gc.showcase.guestName}
                         className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-white/10">
                         <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.75}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                         </svg>
                       </div>
                     )}
                     <Watermark logoSrc={logoSrc} />
                   </div>
 
-                  {/* Cartão preto */}
+                  {/* Descrição */}
                   <div className="bg-black p-8 md:p-12 flex flex-col justify-center">
-                    {gc.showcase.title && (
-                      <>
-                        <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-3">
-                          Artista Convidado
-                        </p>
-                        <h3 className="font-display text-3xl md:text-4xl uppercase tracking-tight text-white leading-none whitespace-pre-line">
-                          {gc.showcase.title}
-                        </h3>
-                      </>
+                    {gc.showcase.guestName && (
+                      <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-3">
+                        Artista Convidado
+                      </p>
+                    )}
+                    {gc.showcase.guestName && (
+                      <h3 className="font-display text-3xl md:text-4xl uppercase tracking-tight text-white leading-none mb-6">
+                        {gc.showcase.guestName}
+                      </h3>
+                    )}
+                    {gc.showcase.guestDescription && (
+                      <p className="font-body text-sm text-white/50 leading-relaxed whitespace-pre-line">
+                        {gc.showcase.guestDescription}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -156,7 +169,7 @@ export default function GuestsPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8 mt-3">
                 {gc.showcase.galleryImages.slice(0, 4).map((img, i) => (
                   <Fade key={i} delay={i * 50}>
-                    <div className="bg-zinc-950 aspect-square overflow-hidden">
+                    <div className="relative bg-zinc-950 aspect-square overflow-hidden">
                       {img ? (
                         <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                       ) : (
@@ -166,6 +179,7 @@ export default function GuestsPage() {
                           </svg>
                         </div>
                       )}
+                      {img && <Watermark logoSrc={logoSrc} />}
                     </div>
                   </Fade>
                 ))}

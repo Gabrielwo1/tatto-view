@@ -323,7 +323,10 @@ export interface GuestContent {
     portfolioImages: [string, string, string, string];
   };
   showcase: {
-    title: string;
+    sectionTitle: string;
+    sectionSubtitle: string;
+    guestName: string;
+    guestDescription: string;
     heroImage: string;
     galleryImages: [string, string, string, string];
   };
@@ -414,7 +417,10 @@ const defaultGuestContent: GuestContent = {
     portfolioImages: ['', '', '', ''],
   },
   showcase: {
-    title: '',
+    sectionTitle: '',
+    sectionSubtitle: '',
+    guestName: '',
+    guestDescription: '',
     heroImage: '',
     galleryImages: ['', '', '', ''],
   },
@@ -777,7 +783,11 @@ export const useStore = create<AppState>()(
                   nextGuest:   { ...defaultGuestContent.nextGuest,   ...stored.nextGuest,
                     portfolioImages: stored.nextGuest?.portfolioImages ?? defaultGuestContent.nextGuest.portfolioImages,
                   },
-                  showcase:    stored.showcase ?? defaultGuestContent.showcase,
+                  showcase: {
+                    ...defaultGuestContent.showcase,
+                    ...stored.showcase,
+                    galleryImages: (stored.showcase as { galleryImages?: unknown })?.galleryImages as [string,string,string,string] ?? defaultGuestContent.showcase.galleryImages,
+                  },
                 } as GuestContent,
               };
             })() : {}),
