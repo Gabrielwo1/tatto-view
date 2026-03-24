@@ -41,8 +41,24 @@ function Fade({ children, delay = 0, className = '' }: {
 }
 
 /* ─── main page ──────────────────────────────────────────────────────────── */
+function Watermark({ logoSrc }: { logoSrc: string }) {
+  return (
+    <div className="absolute inset-0 flex items-end justify-end p-3 pointer-events-none z-10">
+      <img
+        src={logoSrc}
+        alt=""
+        aria-hidden
+        className="w-14 opacity-[0.18]"
+        style={{ filter: 'brightness(0) invert(1)' }}
+      />
+    </div>
+  );
+}
+
 export default function GuestsPage() {
   const gc = useStore((s) => s.guestContent);
+  const customLogo = useStore((s) => s.customLogo);
+  const logoSrc = customLogo ?? '/logosemo-3.png';
 
   return (
     <div className="bg-zinc-900 text-white overflow-x-hidden">
@@ -159,7 +175,7 @@ export default function GuestsPage() {
               <Fade delay={60}>
                 <div className="grid md:grid-cols-2 gap-px bg-white/8 mb-3">
                   {/* Foto */}
-                  <div className="bg-zinc-950 aspect-[4/5] overflow-hidden">
+                  <div className="relative bg-zinc-950 aspect-[4/5] overflow-hidden">
                     {gc.nextGuest.guestImage ? (
                       <img
                         src={gc.nextGuest.guestImage}
@@ -173,6 +189,7 @@ export default function GuestsPage() {
                         </svg>
                       </div>
                     )}
+                    <Watermark logoSrc={logoSrc} />
                   </div>
 
                   {/* Descrição */}
@@ -202,7 +219,7 @@ export default function GuestsPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-white/8 mt-3">
                 {(gc.nextGuest?.portfolioImages ?? []).map((img, i) => (
                   <Fade key={i} delay={i * 40}>
-                    <div className="bg-zinc-950 aspect-square overflow-hidden">
+                    <div className="relative bg-zinc-950 aspect-square overflow-hidden">
                       {img ? (
                         <img src={img} alt={`Trabalho ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                       ) : (
@@ -212,6 +229,7 @@ export default function GuestsPage() {
                           </svg>
                         </div>
                       )}
+                      {img && <Watermark logoSrc={logoSrc} />}
                     </div>
                   </Fade>
                 ))}

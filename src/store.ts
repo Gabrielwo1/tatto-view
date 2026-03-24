@@ -562,6 +562,9 @@ interface AppState {
   /** How the logo is colorized. */
   logoColorMode: LogoColorMode;
   setLogoColorMode: (mode: LogoColorMode) => void;
+  /** Custom logo image URL. null = use default /logosemo-3.png */
+  customLogo: string | null;
+  setCustomLogo: (url: string | null) => void;
   /** Events page content editable by admin */
   eventsContent: EventsContent;
   setEventsContent: (content: EventsContent) => void;
@@ -628,6 +631,12 @@ export const useStore = create<AppState>()(
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert({ key: 'logoColorMode', value: mode, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLogoColorMode:', error); });
+      },
+      customLogo: null,
+      setCustomLogo: (url) => {
+        set({ customLogo: url });
+        supabase?.from('site_config').upsert({ key: 'customLogo', value: url, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setCustomLogo:', error); });
       },
       eventsContent: defaultEventsContent,
       setEventsContent: (content) => {
@@ -709,9 +718,19 @@ export const useStore = create<AppState>()(
           if (!cfge && cfg) {
             for (const row of cfg) config[row.key] = row.value;
           }
+          // Apply saved artists order if present
+          const rawArtists = (a ?? []).map(toArtist);
+          const artistsOrder = config.artistsOrder as string[] | undefined;
+          const orderedArtists = artistsOrder?.length
+            ? [
+                ...artistsOrder.map((id) => rawArtists.find((x) => x.id === id)).filter((x): x is Artist => !!x),
+                ...rawArtists.filter((x) => !artistsOrder.includes(x.id)),
+              ]
+            : rawArtists;
+
           set({
             tattoos:          (t ?? []).map(toTattoo),
-            artists:          (a ?? []).map(toArtist),
+            artists:          orderedArtists,
             merchs:           (m ?? []).map(toMerch),
             // Always sync fichas from Supabase (source of truth for cross-device)
             ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
@@ -751,6 +770,7 @@ export const useStore = create<AppState>()(
               customSecondary: (config.customColors as { secondary: string | null }).secondary ?? null,
             } : {}),
             ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
+            ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
             dataLoaded: true,
           });
         } catch (err) {
@@ -825,6 +845,8 @@ export const useStore = create<AppState>()(
           const rest = s.artists.filter((a) => !orderedIds.includes(a.id));
           return { artists: [...reordered, ...rest] };
         });
+        supabase?.from('site_config').upsert({ key: 'artistsOrder', value: orderedIds, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] reorderArtists:', error); });
       },
 
       // ── Artists ──────────────────────────────────────────────────────────
@@ -894,6 +916,7 @@ export const useStore = create<AppState>()(
         customPrimary: state.customPrimary,
         customSecondary: state.customSecondary,
         logoColorMode: state.logoColorMode,
+        customLogo: state.customLogo,
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
