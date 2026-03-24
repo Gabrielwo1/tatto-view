@@ -29,6 +29,7 @@ import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
 import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
 import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
+import AdminMyProfile from './pages/admin/AdminMyProfile';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
@@ -39,10 +40,24 @@ function isMarketingDomain() {
   return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */;
 }
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+// Requires super admin
+function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   if (!isAdmin) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
+}
+
+// Allows both super admin and artist users
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = useStore((state) => state.isAdmin);
+  const isArtist = useStore((state) => state.isArtist);
+  if (!isAdmin && !isArtist) return <Navigate to="/admin/login" replace />;
+  return <>{children}</>;
+}
+
+function AdminIndexRedirect() {
+  const isAdmin = useStore((state) => state.isAdmin);
+  return <Navigate to={isAdmin ? '/admin/dashboard' : '/admin/tatuagens'} replace />;
 }
 
 function PageTracker() {
@@ -68,6 +83,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const loadData       = useStore((s) => s.loadData);
+  const initAuth       = useStore((s) => s.initAuth);
   const themeId        = useStore((s) => s.themeId);
   const customPrimary  = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
@@ -80,6 +96,7 @@ export default function App() {
   }, [themeId, customPrimary, customSecondary]);
 
   useEffect(() => {
+    initAuth();
     loadData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -190,22 +207,28 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard" element={<AdminDashboard />} />
+          {/* Artist users land on /admin/tatuagens; admin lands on /admin/dashboard */}
+          <Route index element={<AdminIndexRedirect />} />
+
+          {/* ── Available to both admin and artist ── */}
           <Route path="tatuagens" element={<AdminTattoos />} />
           <Route path="tatuagens/nova" element={<AdminTattooForm />} />
           <Route path="tatuagens/:id/editar" element={<AdminTattooForm />} />
-          <Route path="artistas" element={<AdminArtists />} />
-          <Route path="artistas/novo" element={<AdminArtistForm />} />
-          <Route path="artistas/:id/editar" element={<AdminArtistForm />} />
-          <Route path="guests" element={<AdminGuestPage />} />
-          <Route path="events" element={<AdminEventsPage />} />
-          <Route path="aftercare" element={<AdminAftercare />} />
-          <Route path="sobre-nos" element={<AdminSobreNos />} />
-          <Route path="landing" element={<AdminLandingPage />} />
-          <Route path="ficha-anamnese" element={<AdminFichaAnamnese />} />
-          <Route path="fichas" element={<AdminFichaSubmissions />} />
-          <Route path="configuracoes" element={<AdminSettings />} />
+          <Route path="meu-perfil" element={<AdminMyProfile />} />
+
+          {/* ── Admin only ── */}
+          <Route path="dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+          <Route path="artistas" element={<ProtectedAdminRoute><AdminArtists /></ProtectedAdminRoute>} />
+          <Route path="artistas/novo" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
+          <Route path="artistas/:id/editar" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
+          <Route path="guests" element={<ProtectedAdminRoute><AdminGuestPage /></ProtectedAdminRoute>} />
+          <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
+          <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
+          <Route path="sobre-nos" element={<ProtectedAdminRoute><AdminSobreNos /></ProtectedAdminRoute>} />
+          <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
+          <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
+          <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
+          <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
         </Route>
 
         {/* Fallback */}
