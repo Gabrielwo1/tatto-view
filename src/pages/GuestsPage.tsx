@@ -198,9 +198,9 @@ export default function GuestsPage() {
             )}
 
             {/* Portfolio de trabalhos */}
-            {gc.nextGuest.portfolioImages.some(Boolean) && (
+            {gc.nextGuest?.portfolioImages?.some(Boolean) && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-white/8 mt-3">
-                {gc.nextGuest.portfolioImages.map((img, i) => (
+                {(gc.nextGuest?.portfolioImages ?? []).map((img, i) => (
                   <Fade key={i} delay={i * 40}>
                     <div className="bg-zinc-950 aspect-square overflow-hidden">
                       {img ? (
@@ -254,7 +254,7 @@ export default function GuestsPage() {
                   {gc.commission.includedLabel}
                 </p>
                 <ul className="space-y-3">
-                  {gc.commission.includedItems.map((item) => (
+                  {(gc.commission?.includedItems ?? []).map((item) => (
                     <li key={item} className="flex items-center gap-3">
                       <span
                         className="w-1 h-1 rounded-full shrink-0"
@@ -282,7 +282,7 @@ export default function GuestsPage() {
                   {gc.commission.studioDescription}
                 </p>
                 <div className="border-t border-white/8 pt-6 space-y-3">
-                  {gc.commission.studioFeatures.map((item) => (
+                  {(gc.commission?.studioFeatures ?? []).map((item) => (
                     <div key={item.text} className="flex items-center gap-3">
                       <span className="text-[10px]" style={{ color: 'rgb(var(--ink-500))' }}>{item.icon}</span>
                       <span className="font-body text-[11px] text-white/40">{item.text}</span>
@@ -322,7 +322,7 @@ export default function GuestsPage() {
             {/* Stats informativos */}
             <Fade delay={80}>
               <div className="grid grid-cols-2 gap-px bg-white/8">
-                {gc.environment.stats.map((stat) => (
+                {(gc.environment?.stats ?? []).map((stat) => (
                   <div key={stat.label} className="bg-zinc-950 p-6">
                     <span
                       className="font-display text-3xl block leading-none mb-2"
@@ -351,7 +351,7 @@ export default function GuestsPage() {
           </Fade>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/8">
-            {gc.profiles.items.map((item, i) => (
+            {(gc.profiles?.items ?? []).map((item, i) => (
               <Fade key={item.n} delay={i * 60}>
                 <div className="bg-zinc-950 p-7 md:p-8 h-full">
                   <span
