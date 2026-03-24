@@ -31,7 +31,13 @@ function MerchFormModal({
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadImage(file);
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const url = await uploadImage(base64);
       setForm((f) => ({ ...f, imageUrl: url }));
     } finally {
       setUploading(false);
