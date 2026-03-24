@@ -299,7 +299,7 @@ export default function AdminGuestPage() {
             </label>
             <div className="flex gap-3 items-start">
               {draft.showcase?.heroImage ? (
-                <div className="relative w-40 h-28 shrink-0">
+                <div className="relative w-28 h-28 shrink-0">
                   <img src={draft.showcase.heroImage} alt="Hero" className="w-full h-full object-cover" />
                   <button type="button"
                     onClick={() => setDraft((p) => ({ ...p, showcase: { ...p.showcase, heroImage: '' } }))}
@@ -308,7 +308,7 @@ export default function AdminGuestPage() {
                   </button>
                 </div>
               ) : (
-                <div className="w-40 h-28 shrink-0 border border-dashed border-white/20 flex items-center justify-center cursor-pointer hover:border-white/40 transition-colors"
+                <div className="w-28 h-28 shrink-0 border border-dashed border-white/20 flex items-center justify-center cursor-pointer hover:border-white/40 transition-colors"
                   onClick={() => showcaseHeroRef.current?.click()}>
                   <svg className="w-6 h-6 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
