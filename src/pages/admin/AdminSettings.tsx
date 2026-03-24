@@ -450,60 +450,137 @@ export default function AdminSettings() {
           </p>
         </div>
 
-        {/* KPI cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
-          {[
-            { label: 'Fichas enviadas', value: fichaSubmissions.length },
-            { label: 'Tatuagens', value: tattoos.length },
-            { label: 'Artistas', value: artists.length },
-            { label: 'Merchs', value: merchs.length },
-          ].map(({ label, value }) => (
-            <div key={label} className="px-4 py-4 border border-white/10 bg-black/30 flex flex-col gap-1">
-              <p className="font-display text-3xl text-white leading-none">{value.toLocaleString('pt-BR')}</p>
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Fichas - últimos 7 dias */}
+        {/* ── KPI cards compactos ── */}
         {(() => {
-          const days = Array.from({ length: 7 }, (_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - (6 - i));
-            return d.toISOString().slice(0, 10);
+          const availTattoos  = tattoos.filter((t) => t.status === 'available').length;
+          const archivedTattoos = tattoos.filter((t) => t.status === 'archived').length;
+          const styleSet = new Set(tattoos.map((t) => t.style).filter(Boolean));
+          const cards = [
+            { section: 'Ficha de Anamnese', label: 'Fichas enviadas',    value: fichaSubmissions.length },
+            { section: 'Vitrine',           label: 'Tatuagens',           value: tattoos.length },
+            { section: 'Vitrine',           label: 'Disponíveis',         value: availTattoos },
+            { section: 'Vitrine',           label: 'Arquivadas',          value: archivedTattoos },
+            { section: 'Vitrine',           label: 'Estilos',             value: styleSet.size },
+            { section: 'Artistas',          label: 'Artistas',            value: artists.length },
+            { section: 'Merchs',            label: 'Merchs',              value: merchs.length },
+          ];
+          return (
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 mb-6">
+              {cards.map(({ label, value }) => (
+                <div key={label} className="px-2.5 py-2.5 border border-white/10 bg-black/30 flex flex-col gap-0.5 min-w-0">
+                  <p className="font-display text-xl text-white leading-none">{value.toLocaleString('pt-BR')}</p>
+                  <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 leading-tight truncate">{label}</p>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* ── Timeline SVG — fluxo de movimentações (últimas 12 semanas) ── */}
+        {(() => {
+          const W = 12; // semanas
+          const weeks = Array.from({ length: W }, (_, i) => {
+            const end = new Date();
+            end.setDate(end.getDate() - (W - 1 - i) * 7);
+            const start = new Date(end);
+            start.setDate(start.getDate() - 6);
+            return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
           });
-          const counts = days.map((date) => ({
-            date,
-            count: fichaSubmissions.filter((f) => f.submittedAt.slice(0, 10) === date).length,
+
+          const inRange = (date: string, s: string, e: string) => date >= s && date <= e;
+
+          const data = weeks.map(({ start, end }) => ({
+            label: new Date(end + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+            fichas:    fichaSubmissions.filter((f) => inRange(f.submittedAt.slice(0, 10), start, end)).length,
+            tatuagens: tattoos.filter((t) => inRange((t.createdAt ?? '').slice(0, 10), start, end)).length,
+            artistas:  artists.filter((a) => inRange((a.createdAt ?? '').slice(0, 10), start, end)).length,
           }));
-          const max = Math.max(...counts.map((c) => c.count), 1);
+
+          const maxVal = Math.max(...data.flatMap((d) => [d.fichas, d.tatuagens, d.artistas]), 1);
+
+          const svgH = 80;
+          const svgW = 100; // viewBox units (percentual)
+          const pad = { l: 0, r: 0, t: 6, b: 18 };
+          const chartH = svgH - pad.t - pad.b;
+          const chartW = svgW - pad.l - pad.r;
+          const step = chartW / (W - 1);
+
+          const toY = (v: number) => pad.t + chartH - (v / maxVal) * chartH;
+          const toX = (i: number) => pad.l + i * step;
+
+          const polyline = (key: 'fichas' | 'tatuagens' | 'artistas') =>
+            data.map((d, i) => `${toX(i).toFixed(1)},${toY(d[key]).toFixed(1)}`).join(' ');
+
+          const series = [
+            { key: 'fichas'    as const, color: 'rgb(var(--ink-500))', label: 'Fichas' },
+            { key: 'tatuagens' as const, color: '#ffffff44',            label: 'Tatuagens' },
+            { key: 'artistas'  as const, color: '#ffffff22',            label: 'Artistas' },
+          ];
+
           return (
             <div className="mb-6">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Fichas enviadas — últimos 7 dias</p>
-              <div className="flex items-end gap-1.5 h-20">
-                {counts.map(({ date, count }) => {
-                  const pct = (count / max) * 100;
-                  const label = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' });
-                  return (
-                    <div key={date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={`${label}: ${count} ficha(s)`}>
-                      <span className="font-body text-[9px] text-gray-600">{count || ''}</span>
-                      <div
-                        className="w-full transition-all duration-500"
-                        style={{
-                          height: `${Math.max(pct, count > 0 ? 6 : 2)}%`,
-                          backgroundColor: count > 0 ? 'rgb(var(--ink-500))' : 'rgba(255,255,255,0.06)',
-                        }}
-                      />
-                      <span className="font-body text-[8px] text-gray-700 text-center leading-tight">{label}</span>
-                    </div>
-                  );
-                })}
+              <div className="flex items-center gap-4 mb-2">
+                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Fluxo de movimentações — últimas 12 semanas</p>
+                <div className="flex items-center gap-3 ml-auto">
+                  {series.map((s) => (
+                    <span key={s.key} className="flex items-center gap-1">
+                      <span className="inline-block w-3 h-0.5" style={{ backgroundColor: s.color }} />
+                      <span className="font-body text-[9px] text-gray-600">{s.label}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="border border-white/10 bg-black/30 px-3 pt-2 pb-1">
+                <svg viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="none" className="w-full" style={{ height: 90 }}>
+                  {/* grid lines */}
+                  {[0, 0.5, 1].map((f) => (
+                    <line
+                      key={f}
+                      x1={pad.l} y1={toY(maxVal * f).toFixed(1)}
+                      x2={svgW - pad.r} y2={toY(maxVal * f).toFixed(1)}
+                      stroke="rgba(255,255,255,0.05)" strokeWidth="0.3"
+                    />
+                  ))}
+                  {/* series */}
+                  {series.map((s) => (
+                    <polyline
+                      key={s.key}
+                      points={polyline(s.key)}
+                      fill="none"
+                      stroke={s.color}
+                      strokeWidth={s.key === 'fichas' ? '1.2' : '0.6'}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    />
+                  ))}
+                  {/* dots on fichas line */}
+                  {data.map((d, i) => (
+                    <circle
+                      key={i}
+                      cx={toX(i).toFixed(1)} cy={toY(d.fichas).toFixed(1)}
+                      r="0.8" fill="rgb(var(--ink-500))"
+                    />
+                  ))}
+                  {/* x-axis labels */}
+                  {data.map((d, i) => (
+                    (i % 2 === 0 || i === W - 1) && (
+                      <text
+                        key={i}
+                        x={toX(i).toFixed(1)} y={svgH - 2}
+                        textAnchor="middle"
+                        fontSize="4"
+                        fill="rgba(255,255,255,0.2)"
+                        fontFamily="monospace"
+                      >{d.label}</text>
+                    )
+                  ))}
+                </svg>
               </div>
             </div>
           );
         })()}
 
-        {/* Fichas por artista */}
+        {/* ── Fichas por artista ── */}
         {fichaSubmissions.length > 0 && (() => {
           const byArtist: Record<string, number> = {};
           fichaSubmissions.forEach((f) => {
@@ -537,8 +614,35 @@ export default function AdminSettings() {
           );
         })()}
 
-        {fichaSubmissions.length === 0 && (
-          <p className="font-body text-xs text-gray-700 italic">Nenhuma ficha enviada ainda.</p>
+        {/* ── Tatuagens por estilo ── */}
+        {tattoos.length > 0 && (() => {
+          const byStyle: Record<string, number> = {};
+          tattoos.forEach((t) => { if (t.style) byStyle[t.style] = (byStyle[t.style] ?? 0) + 1; });
+          const sorted = Object.entries(byStyle).sort((a, b) => b[1] - a[1]);
+          const maxVal = sorted[0]?.[1] ?? 1;
+          return (
+            <div className="mb-4">
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Tatuagens por estilo</p>
+              <div className="flex flex-col gap-1.5">
+                {sorted.map(([style, count]) => (
+                  <div key={style} className="flex items-center gap-3">
+                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{style}</span>
+                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
+                      <div
+                        className="h-full transition-all duration-500"
+                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgba(255,255,255,0.25)' }}
+                      />
+                    </div>
+                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {fichaSubmissions.length === 0 && tattoos.length === 0 && (
+          <p className="font-body text-xs text-gray-700 italic">Nenhuma movimentação registrada ainda.</p>
         )}
       </section>
 
