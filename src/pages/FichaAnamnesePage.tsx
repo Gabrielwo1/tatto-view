@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useStore } from '../store';
+import { supabase } from '../lib/supabase';
 
 const DEFAULT_TATUADORES = [
   'Bruna Lopes',
@@ -60,6 +61,8 @@ export default function FichaAnamnesePage() {
   const [conditions, setConditions] = useState<Record<string, ConditionAnswer>>({});
 
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -81,9 +84,12 @@ export default function FichaAnamnesePage() {
     }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    addFichaSubmission({
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const data = {
       email: form.email,
       nome: form.nome,
       dataNascimento: form.dataNascimento,
@@ -100,7 +106,32 @@ export default function FichaAnamnesePage() {
       detalhesCondicoes: form.detalhesCondicoes,
       telefoneEmergencia: form.telefoneEmergencia,
       dataAssinatura: form.dataAssinatura,
-    });
+    };
+
+    // Se Supabase está configurado, inserir diretamente e aguardar resultado
+    if (supabase) {
+      const id = crypto.randomUUID();
+      const submittedAt = new Date().toISOString();
+      const submission = { ...data, id, submittedAt };
+      const { error } = await supabase.from('ficha_submissions').insert({
+        id,
+        submitted_at: submittedAt,
+        data: submission,
+      });
+      if (error) {
+        console.error('[ficha] Supabase insert error:', error);
+        setSubmitError('Erro ao enviar para o servidor. Verifique sua conexão e tente novamente.');
+        setSubmitting(false);
+        return;
+      }
+      // Atualizar store local também
+      addFichaSubmission(data);
+    } else {
+      // Sem Supabase — salvar só localmente
+      addFichaSubmission(data);
+    }
+
+    setSubmitting(false);
     setSubmitted(true);
   }
 
@@ -286,13 +317,18 @@ export default function FichaAnamnesePage() {
                   onChange={handleChange} required className="input-field" />
               </Field>
 
+              {submitError && (
+                <p className="mt-4 text-red-400 text-xs font-body leading-relaxed border border-red-400/30 bg-red-400/10 px-3 py-2">
+                  {submitError}
+                </p>
+              )}
               <button
                 type="submit"
-                disabled={!allTermsAccepted}
-                className="w-full mt-6 py-4 text-sm font-black tracking-[0.25em] uppercase transition-opacity disabled:opacity-40"
+                disabled={!allTermsAccepted || submitting}
+                className="w-full mt-4 py-4 text-sm font-black tracking-[0.25em] uppercase transition-opacity disabled:opacity-40"
                 style={{ backgroundColor: 'white', color: 'black' }}
               >
-                FINALIZAR REGISTRO
+                {submitting ? 'ENVIANDO...' : 'FINALIZAR REGISTRO'}
               </button>
             </div>
           </div>
