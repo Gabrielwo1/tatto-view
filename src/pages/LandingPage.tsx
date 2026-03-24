@@ -544,7 +544,7 @@ export default function LandingPage() {
               { to: '/',          label: 'Vitrine' },
               { to: '/artistas',  label: 'Artistas' },
               { to: '/arquivadas', label: 'Arquivadas' },
-              { to: '/merchs',    label: 'Merchs' },
+              { to: '/loja',      label: 'Loja' },
               { to: '/guests',    label: 'Guests' },
             ].map(({ to, label }) => (
               <Link key={to} to={to} className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">

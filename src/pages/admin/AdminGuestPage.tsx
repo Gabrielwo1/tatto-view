@@ -146,14 +146,14 @@ export default function AdminGuestPage() {
   async function handlePortfolioImage(idx: number, file: File) {
     const dataUrl = await readImageFile(file);
     const url = await uploadImage(dataUrl);
-    const imgs = [...draft.nextGuest.portfolioImages] as [string, string, string, string, string];
+    const imgs = [...draft.nextGuest.portfolioImages] as [string, string, string, string];
     imgs[idx] = url;
     setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, portfolioImages: imgs } }));
     setSaved(false);
   }
 
   function clearPortfolioImage(idx: number) {
-    const imgs = [...draft.nextGuest.portfolioImages] as [string, string, string, string, string];
+    const imgs = [...draft.nextGuest.portfolioImages] as [string, string, string, string];
     imgs[idx] = '';
     setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, portfolioImages: imgs } }));
     setSaved(false);
@@ -636,10 +636,10 @@ export default function AdminGuestPage() {
           {/* Portfolio de trabalhos */}
           <div>
             <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
-              Portfólio de trabalhos (5 fotos)
+              Portfólio de trabalhos (4 fotos)
             </label>
-            <div className="grid grid-cols-5 gap-2">
-              {(draft.nextGuest?.portfolioImages ?? ['','','','','']).map((img, idx) => (
+            <div className="grid grid-cols-4 gap-2">
+              {(draft.nextGuest?.portfolioImages ?? ['','','','']).map((img, idx) => (
                 <div key={idx} className="relative aspect-square">
                   {img ? (
                     <>

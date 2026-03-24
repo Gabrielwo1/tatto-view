@@ -137,6 +137,7 @@ export interface SobreNosContent {
     imageCaption: string;
     image: string;
     imageSize: string;
+    galleryImages: [string, string, string, string];
   };
   quote: string;
   studio: {
@@ -184,6 +185,7 @@ const defaultSobreNosContent: SobreNosContent = {
     imageCaption: 'SÉRIE BOTÂNICA 04',
     image: '',
     imageSize: 'md',
+    galleryImages: ['', '', '', ''],
   },
   quote: '"A beleza da agulha está em sua natureza definitiva."',
   contact: {
@@ -318,7 +320,7 @@ export interface GuestContent {
     guestName: string;
     guestImage: string;
     guestDescription: string;
-    portfolioImages: [string, string, string, string, string];
+    portfolioImages: [string, string, string, string];
   };
   showcase: {
     title: string;
@@ -409,7 +411,7 @@ const defaultGuestContent: GuestContent = {
     guestName: '',
     guestImage: '',
     guestDescription: '',
-    portfolioImages: ['', '', '', '', ''],
+    portfolioImages: ['', '', '', ''],
   },
   showcase: {
     title: '',
@@ -562,6 +564,9 @@ interface AppState {
   /** How the logo is colorized. */
   logoColorMode: LogoColorMode;
   setLogoColorMode: (mode: LogoColorMode) => void;
+  /** Styles hidden from the public vitrine filter. */
+  hiddenStyles: string[];
+  setHiddenStyles: (styles: string[]) => void;
   /** Custom logo image URL. null = use default /logosemo-3.png */
   customLogo: string | null;
   setCustomLogo: (url: string | null) => void;
@@ -631,6 +636,12 @@ export const useStore = create<AppState>()(
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert({ key: 'logoColorMode', value: mode, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLogoColorMode:', error); });
+      },
+      hiddenStyles: [],
+      setHiddenStyles: (styles) => {
+        set({ hiddenStyles: styles });
+        supabase?.from('site_config').upsert({ key: 'hiddenStyles', value: styles, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setHiddenStyles:', error); });
       },
       customLogo: null,
       setCustomLogo: (url) => {
@@ -771,6 +782,7 @@ export const useStore = create<AppState>()(
             } : {}),
             ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
             ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
+            ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             dataLoaded: true,
           });
         } catch (err) {
@@ -946,7 +958,9 @@ export const useStore = create<AppState>()(
             ...current.sobreNosContent,
             ...ps.sobreNosContent,
             hero:       { ...current.sobreNosContent.hero,       ...ps.sobreNosContent?.hero },
-            collective: { ...current.sobreNosContent.collective, ...ps.sobreNosContent?.collective },
+            collective: { ...current.sobreNosContent.collective, ...ps.sobreNosContent?.collective,
+              galleryImages: ps.sobreNosContent?.collective?.galleryImages ?? current.sobreNosContent.collective.galleryImages,
+            },
             studio:     { ...current.sobreNosContent.studio,     ...ps.sobreNosContent?.studio },
             contact:    { ...current.sobreNosContent.contact,    ...ps.sobreNosContent?.contact },
           },
