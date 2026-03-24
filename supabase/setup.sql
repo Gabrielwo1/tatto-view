@@ -78,6 +78,18 @@ ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "public_all" ON site_config;
 CREATE POLICY "public_all" ON site_config FOR ALL USING (true) WITH CHECK (true);
 
+-- ── Fichas de Anamnese preenchidas pelos clientes ─────────────────────────
+
+CREATE TABLE IF NOT EXISTS ficha_submissions (
+  id           TEXT PRIMARY KEY,
+  submitted_at TIMESTAMPTZ NOT NULL,
+  data         JSONB NOT NULL
+);
+
+ALTER TABLE ficha_submissions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "public_all" ON ficha_submissions;
+CREATE POLICY "public_all" ON ficha_submissions FOR ALL USING (true) WITH CHECK (true);
+
 -- ── Dados iniciais (artistas) ──────────────────────────────────────────────
 -- Só insere se a tabela estiver vazia para não duplicar.
 

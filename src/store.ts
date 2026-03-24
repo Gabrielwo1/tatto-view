@@ -245,6 +245,14 @@ export interface GuestContent {
     whatsapp: string;
     email: string;
   };
+  nextGuest: {
+    sectionTitle: string;
+    sectionSubtitle: string;
+    guestName: string;
+    guestImage: string;
+    guestDescription: string;
+    portfolioImages: [string, string, string, string, string];
+  };
 }
 
 const defaultGuestContent: GuestContent = {
@@ -322,6 +330,14 @@ const defaultGuestContent: GuestContent = {
       'Certifique-se de que seu portfólio inclua pelo menos 10 exemplos de trabalhos concluídos. Respondemos a todos os candidatos aprovados em até 48 horas.',
     whatsapp: 'https://wa.me/5511999999999',
     email: 'contato@eldude.com',
+  },
+  nextGuest: {
+    sectionTitle: 'PRÓXIMO GUEST',
+    sectionSubtitle: 'Conheça o próximo artista em residência no El Dude Tattoo.',
+    guestName: '',
+    guestImage: '',
+    guestDescription: '',
+    portfolioImages: ['', '', '', '', ''],
   },
 };
 
@@ -550,9 +566,16 @@ export const useStore = create<AppState>()(
           submittedAt: new Date().toISOString(),
         };
         set((s) => ({ fichaSubmissions: [submission, ...s.fichaSubmissions] }));
+        supabase?.from('ficha_submissions').insert({
+          id: submission.id,
+          submitted_at: submission.submittedAt,
+          data: submission,
+        }).then(({ error }) => { if (error) console.error('[store] addFichaSubmission:', error); });
       },
       deleteFichaSubmission: (id) => {
         set((s) => ({ fichaSubmissions: s.fichaSubmissions.filter((f) => f.id !== id) }));
+        supabase?.from('ficha_submissions').delete().eq('id', id)
+          .then(({ error }) => { if (error) console.error('[store] deleteFichaSubmission:', error); });
       },
 
       // ── Load from Supabase ───────────────────────────────────────────────
@@ -562,12 +585,13 @@ export const useStore = create<AppState>()(
           return;
         }
         try {
-          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }] =
+          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs }] =
             await Promise.all([
               supabase.from('tattoos').select('*').order('created_at', { ascending: false }),
               supabase.from('artists').select('*').order('created_at', { ascending: true }),
               supabase.from('merchs').select('*').order('created_at', { ascending: false }),
               supabase.from('site_config').select('*'),
+              supabase.from('ficha_submissions').select('*').order('submitted_at', { ascending: false }),
             ]);
           if (te) throw te;
           if (ae) throw ae;
@@ -581,6 +605,7 @@ export const useStore = create<AppState>()(
             tattoos:          (t ?? []).map(toTattoo),
             artists:          (a ?? []).map(toArtist),
             merchs:           (m ?? []).map(toMerch),
+            ...(fs && fs.length > 0 ? { fichaSubmissions: fs.map((r) => r.data as FichaSubmission) } : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent     ? { guestContent:     config.guestContent     as typeof defaultGuestContent }     : {}),

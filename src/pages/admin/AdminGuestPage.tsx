@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import type { GuestContent } from '../../store';
 
@@ -112,6 +112,36 @@ export default function AdminGuestPage() {
     patch('environment', { stats });
   }
 
+  /* ── nextGuest image helpers ─────────────────────────────────────── */
+  function readImageFile(file: File): Promise<string> {
+    return new Promise((res) => {
+      const reader = new FileReader();
+      reader.onload = (e) => res(e.target?.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleGuestImage(file: File) {
+    const dataUrl = await readImageFile(file);
+    setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, guestImage: dataUrl } }));
+    setSaved(false);
+  }
+
+  async function handlePortfolioImage(idx: number, file: File) {
+    const dataUrl = await readImageFile(file);
+    const imgs = [...draft.nextGuest.portfolioImages] as [string, string, string, string, string];
+    imgs[idx] = dataUrl;
+    setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, portfolioImages: imgs } }));
+    setSaved(false);
+  }
+
+  function clearPortfolioImage(idx: number) {
+    const imgs = [...draft.nextGuest.portfolioImages] as [string, string, string, string, string];
+    imgs[idx] = '';
+    setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, portfolioImages: imgs } }));
+    setSaved(false);
+  }
+
   /* ── profile items helpers ───────────────────────────────────────── */
   function updateProfile(idx: number, field: 'title' | 'body', value: string) {
     const items = draft.profiles.items.map((p, i) =>
@@ -119,6 +149,9 @@ export default function AdminGuestPage() {
     );
     patch('profiles', { items });
   }
+
+  const guestImageRef = useRef<HTMLInputElement>(null);
+  const portfolioRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const isDirty = JSON.stringify(draft) !== JSON.stringify(guestContent);
 
@@ -392,6 +425,126 @@ export default function AdminGuestPage() {
                 />
               </div>
             ))}
+          </div>
+        </SectionCard>
+
+        {/* ── PRÓXIMO GUEST ────────────────────────────────────────────── */}
+        <SectionCard title="Próximo Guest">
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="Título da seção"
+              value={draft.nextGuest?.sectionTitle ?? ''}
+              onChange={(v) => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, sectionTitle: v } }))}
+              placeholder="PRÓXIMO GUEST"
+            />
+            <Field
+              label="Subtítulo / chamada"
+              value={draft.nextGuest?.sectionSubtitle ?? ''}
+              onChange={(v) => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, sectionSubtitle: v } }))}
+              placeholder="Conheça o próximo artista..."
+            />
+          </div>
+
+          <Field
+            label="Nome do artista"
+            value={draft.nextGuest?.guestName ?? ''}
+            onChange={(v) => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, guestName: v } }))}
+            placeholder="Nome do Guest"
+          />
+
+          {/* Foto do guest */}
+          <div>
+            <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
+              Foto do artista
+            </label>
+            <div className="flex gap-3 items-start">
+              {draft.nextGuest?.guestImage ? (
+                <div className="relative w-28 h-28 shrink-0">
+                  <img src={draft.nextGuest.guestImage} alt="Guest" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, guestImage: '' } }))}
+                    className="absolute top-1 right-1 bg-black/70 text-white w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                  >✕</button>
+                </div>
+              ) : (
+                <div
+                  className="w-28 h-28 shrink-0 border border-dashed border-white/20 flex items-center justify-center cursor-pointer hover:border-white/40 transition-colors"
+                  onClick={() => guestImageRef.current?.click()}
+                >
+                  <svg className="w-6 h-6 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+              )}
+              <div className="flex-1">
+                <button
+                  type="button"
+                  onClick={() => guestImageRef.current?.click()}
+                  className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors"
+                >
+                  {draft.nextGuest?.guestImage ? 'Trocar foto' : 'Selecionar foto'}
+                </button>
+                <input
+                  ref={guestImageRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleGuestImage(f); e.target.value = ''; }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <Field
+            label="Descrição / bio do guest"
+            value={draft.nextGuest?.guestDescription ?? ''}
+            onChange={(v) => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, guestDescription: v } }))}
+            multiline
+            placeholder="Fale sobre o estilo, trajetória e o que o guest vai oferecer no estúdio..."
+          />
+
+          {/* Portfolio de trabalhos */}
+          <div>
+            <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
+              Portfólio de trabalhos (5 fotos)
+            </label>
+            <div className="grid grid-cols-5 gap-2">
+              {(draft.nextGuest?.portfolioImages ?? ['','','','','']).map((img, idx) => (
+                <div key={idx} className="relative aspect-square">
+                  {img ? (
+                    <>
+                      <img src={img} alt={`Trabalho ${idx + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => clearPortfolioImage(idx)}
+                        className="absolute top-1 right-1 bg-black/70 text-white w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                      >✕</button>
+                    </>
+                  ) : (
+                    <div
+                      className="w-full h-full border border-dashed border-white/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-white/40 transition-colors"
+                      onClick={() => portfolioRefs.current[idx]?.click()}
+                    >
+                      <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span className="font-body text-[9px] text-white/20">{idx + 1}</span>
+                    </div>
+                  )}
+                  <input
+                    ref={(el) => { portfolioRefs.current[idx] = el; }}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePortfolioImage(idx, f); e.target.value = ''; }}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="font-body text-[10px] text-gray-700 mt-2">
+              Clique em cada célula para adicionar uma foto de trabalho do guest.
+            </p>
           </div>
         </SectionCard>
 

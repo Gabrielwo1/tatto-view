@@ -81,6 +81,97 @@ export default function GuestsPage() {
 
       </section>
 
+      {/* ── PRÓXIMO GUEST ──────────────────────────────────────────────────── */}
+      {(gc.nextGuest?.sectionTitle || gc.nextGuest?.guestName || gc.nextGuest?.guestImage) && (
+        <section className="px-6 lg:px-10 py-20 md:py-24 border-b border-white/8">
+          <div className="max-w-5xl mx-auto">
+
+            {/* Cabeçalho da chamada */}
+            <Fade>
+              <div className="mb-14">
+                <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-3"
+                   style={{ color: 'rgb(var(--ink-500))' }}>
+                  Guest Artist
+                </p>
+                <h2 className="font-display text-[clamp(2.5rem,8vw,5.5rem)] uppercase leading-none tracking-tight text-white mb-4">
+                  {gc.nextGuest.sectionTitle}
+                </h2>
+                {gc.nextGuest.sectionSubtitle && (
+                  <p className="font-body text-sm text-white/40 max-w-lg leading-relaxed">
+                    {gc.nextGuest.sectionSubtitle}
+                  </p>
+                )}
+              </div>
+            </Fade>
+
+            {/* Imagem + descrição do guest */}
+            {(gc.nextGuest.guestImage || gc.nextGuest.guestName || gc.nextGuest.guestDescription) && (
+              <Fade delay={60}>
+                <div className="grid md:grid-cols-2 gap-px bg-white/8 mb-3">
+                  {/* Foto */}
+                  <div className="bg-zinc-950 aspect-[4/5] overflow-hidden">
+                    {gc.nextGuest.guestImage ? (
+                      <img
+                        src={gc.nextGuest.guestImage}
+                        alt={gc.nextGuest.guestName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/10">
+                        <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.75}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Descrição */}
+                  <div className="bg-black p-8 md:p-12 flex flex-col justify-center">
+                    {gc.nextGuest.guestName && (
+                      <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-3">
+                        Artista Convidado
+                      </p>
+                    )}
+                    {gc.nextGuest.guestName && (
+                      <h3 className="font-display text-3xl md:text-4xl uppercase tracking-tight text-white leading-none mb-6">
+                        {gc.nextGuest.guestName}
+                      </h3>
+                    )}
+                    {gc.nextGuest.guestDescription && (
+                      <p className="font-body text-sm text-white/50 leading-relaxed whitespace-pre-line">
+                        {gc.nextGuest.guestDescription}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </Fade>
+            )}
+
+            {/* Portfolio de trabalhos */}
+            {gc.nextGuest.portfolioImages.some(Boolean) && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-white/8 mt-3">
+                {gc.nextGuest.portfolioImages.map((img, i) => (
+                  <Fade key={i} delay={i * 40}>
+                    <div className="bg-zinc-950 aspect-square overflow-hidden">
+                      {img ? (
+                        <img src={img} alt={`Trabalho ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white/5">
+                          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </Fade>
+                ))}
+              </div>
+            )}
+
+          </div>
+        </section>
+      )}
+
       {/* ── 02 COMISSÃO ────────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-10 py-20 md:py-24 border-b border-white/8">
         <div className="max-w-5xl mx-auto">
