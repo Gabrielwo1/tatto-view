@@ -72,6 +72,8 @@ export default function Navbar() {
                     ? 'brightness(0) invert(1)'
                     : logoColorMode === 'black'
                     ? 'brightness(0)'
+                    : logoColorMode === 'invert'
+                    ? 'invert(1)'
                     : 'none',
                 }}
               />

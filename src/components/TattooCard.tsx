@@ -1,20 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
 
-// Deterministic aspect ratio — same tattoo always gets the same proportion
-const ASPECTS = [
-  'aspect-[3/4]',
-  'aspect-[2/3]',
-  'aspect-square',
-  'aspect-[4/5]',
-  'aspect-[3/5]',
-  'aspect-[4/6]',
-];
-export function getAspect(id: string): string {
-  const n = id.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
-  return ASPECTS[n % ASPECTS.length];
-}
-
 interface TattooCardProps {
   tattoo: Tattoo;
   artist?: Artist | null;
@@ -24,11 +10,10 @@ interface TattooCardProps {
 
 export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
   const href = artist ? `/artistas/${artist.id}` : '/artistas';
-  const aspect = getAspect(tattoo.id);
 
   const inner = (
     <>
-      <div className={`relative overflow-hidden bg-zinc-900 ${aspect}`}>
+      <div className="relative overflow-hidden bg-zinc-900 aspect-[4/5]">
         <img
           src={tattoo.imageUrl}
           alt={tattoo.title}
@@ -44,7 +29,7 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
         )}
       </div>
 
-      <div className="pt-2 pb-1">
+      <div className="pt-2 pb-1 h-14 flex flex-col justify-start overflow-hidden">
         <h3 className="font-display text-sm uppercase tracking-wide text-white leading-tight mb-0.5 truncate">
           {tattoo.title}
         </h3>

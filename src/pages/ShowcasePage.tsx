@@ -203,18 +203,17 @@ export default function ShowcasePage() {
             <p className="font-display text-3xl tracking-widest uppercase">Nenhuma tatuagem encontrada</p>
           </div>
         ) : (
-          /* ── Masonry columns grid ── */
-          <div className="columns-2 sm:columns-3 lg:columns-4 gap-x-3">
+          /* ── Grid 4:5 (Instagram 1080×1350) ── */
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {filtered.map((tattoo) => {
               const artist = artists.find((a) => a.id === tattoo.artistId);
               return (
-                <div key={tattoo.id} className="break-inside-avoid mb-3">
-                  <TattooCard
-                    tattoo={tattoo}
-                    artist={artist}
-                    onClick={() => openLightbox(tattoo, artist)}
-                  />
-                </div>
+                <TattooCard
+                  key={tattoo.id}
+                  tattoo={tattoo}
+                  artist={artist}
+                  onClick={() => openLightbox(tattoo, artist)}
+                />
               );
             })}
           </div>
