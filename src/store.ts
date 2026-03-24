@@ -718,7 +718,31 @@ export const useStore = create<AppState>()(
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
-            ...(config.guestContent     ? { guestContent:     config.guestContent     as typeof defaultGuestContent }     : {}),
+            ...(config.guestContent ? (() => {
+              const stored = config.guestContent as GuestContent;
+              return {
+                guestContent: {
+                  ...defaultGuestContent,
+                  ...stored,
+                  hero:        { ...defaultGuestContent.hero,        ...stored.hero },
+                  commission:  { ...defaultGuestContent.commission,  ...stored.commission,
+                    includedItems:  stored.commission?.includedItems  ?? defaultGuestContent.commission.includedItems,
+                    studioFeatures: stored.commission?.studioFeatures ?? defaultGuestContent.commission.studioFeatures,
+                  },
+                  environment: { ...defaultGuestContent.environment, ...stored.environment,
+                    stats: stored.environment?.stats ?? defaultGuestContent.environment.stats,
+                  },
+                  profiles:    { ...defaultGuestContent.profiles,    ...stored.profiles,
+                    items: stored.profiles?.items ?? defaultGuestContent.profiles.items,
+                  },
+                  cta:         { ...defaultGuestContent.cta,         ...stored.cta },
+                  nextGuest:   { ...defaultGuestContent.nextGuest,   ...stored.nextGuest,
+                    portfolioImages: stored.nextGuest?.portfolioImages ?? defaultGuestContent.nextGuest.portfolioImages,
+                  },
+                  showcase:    stored.showcase ?? defaultGuestContent.showcase,
+                } as GuestContent,
+              };
+            })() : {}),
             ...(config.aftercareContent ? { aftercareContent: config.aftercareContent as typeof defaultAftercareContent } : {}),
             ...(config.fichaConfig      ? { fichaConfig:      config.fichaConfig      as FichaConfig }                   : {}),
             ...(config.themeId !== undefined ? { themeId: config.themeId as ThemeId | null } : {}),
