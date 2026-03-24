@@ -150,6 +150,31 @@ export default function AdminGuestPage() {
     patch('profiles', { items });
   }
 
+  /* ── showcase image helpers ─────────────────────────────────────── */
+  const showcaseHeroRef = useRef<HTMLInputElement>(null);
+  const showcaseGalleryRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  async function handleShowcaseHero(file: File) {
+    const dataUrl = await readImageFile(file);
+    setDraft((p) => ({ ...p, showcase: { ...p.showcase, heroImage: dataUrl } }));
+    setSaved(false);
+  }
+
+  async function handleShowcaseGallery(idx: number, file: File) {
+    const dataUrl = await readImageFile(file);
+    const imgs = [...(draft.showcase?.galleryImages ?? ['','','',''])] as [string,string,string,string];
+    imgs[idx] = dataUrl;
+    setDraft((p) => ({ ...p, showcase: { ...p.showcase, galleryImages: imgs } }));
+    setSaved(false);
+  }
+
+  function clearShowcaseGallery(idx: number) {
+    const imgs = [...(draft.showcase?.galleryImages ?? ['','','',''])] as [string,string,string,string];
+    imgs[idx] = '';
+    setDraft((p) => ({ ...p, showcase: { ...p.showcase, galleryImages: imgs } }));
+    setSaved(false);
+  }
+
   const guestImageRef = useRef<HTMLInputElement>(null);
   const portfolioRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -227,6 +252,85 @@ export default function AdminGuestPage() {
             value={draft.hero.location}
             onChange={(v) => patch('hero', { location: v })}
           />
+        </SectionCard>
+
+        {/* ── SHOWCASE ─────────────────────────────────────────────────── */}
+        <SectionCard title="Galeria de Destaque">
+          <p className="font-body text-[10px] text-gray-600">
+            Seção exibida entre o Hero e o Próximo Guest. Título grande + imagem principal + 4 fotos menores.
+          </p>
+
+          <Field
+            label="Título grande"
+            value={draft.showcase?.title ?? ''}
+            onChange={(v) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, title: v } }))}
+            placeholder="EL DUDE STUDIO"
+          />
+
+          {/* Imagem principal */}
+          <div>
+            <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
+              Imagem principal (grande)
+            </label>
+            <div className="flex gap-3 items-start">
+              {draft.showcase?.heroImage ? (
+                <div className="relative w-40 h-28 shrink-0">
+                  <img src={draft.showcase.heroImage} alt="Hero" className="w-full h-full object-cover" />
+                  <button type="button"
+                    onClick={() => setDraft((p) => ({ ...p, showcase: { ...p.showcase, heroImage: '' } }))}
+                    className="absolute top-1 right-1 bg-black/70 text-white w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <div className="w-40 h-28 shrink-0 border border-dashed border-white/20 flex items-center justify-center cursor-pointer hover:border-white/40 transition-colors"
+                  onClick={() => showcaseHeroRef.current?.click()}>
+                  <svg className="w-6 h-6 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+              )}
+              <button type="button" onClick={() => showcaseHeroRef.current?.click()}
+                className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors">
+                {draft.showcase?.heroImage ? 'Trocar imagem' : 'Selecionar imagem'}
+              </button>
+              <input ref={showcaseHeroRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleShowcaseHero(f); e.target.value = ''; }} />
+            </div>
+          </div>
+
+          {/* 4 fotos menores */}
+          <div>
+            <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
+              Galeria (4 fotos menores)
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {([0,1,2,3] as const).map((idx) => {
+                const img = draft.showcase?.galleryImages?.[idx] ?? '';
+                return (
+                  <div key={idx} className="relative aspect-square">
+                    {img ? (
+                      <>
+                        <img src={img} alt={`Galeria ${idx+1}`} className="w-full h-full object-cover" />
+                        <button type="button" onClick={() => clearShowcaseGallery(idx)}
+                          className="absolute top-1 right-1 bg-black/70 text-white w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors">✕</button>
+                      </>
+                    ) : (
+                      <div className="w-full h-full border border-dashed border-white/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-white/40 transition-colors"
+                        onClick={() => showcaseGalleryRefs.current[idx]?.click()}>
+                        <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span className="font-body text-[9px] text-white/20">{idx+1}</span>
+                      </div>
+                    )}
+                    <input ref={(el) => { showcaseGalleryRefs.current[idx] = el; }} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleShowcaseGallery(idx, f); e.target.value = ''; }} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </SectionCard>
 
         {/* ── COMISSÃO ─────────────────────────────────────────────────── */}

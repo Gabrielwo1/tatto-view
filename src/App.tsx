@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView } from './lib/analytics';
 import { useStore } from './store';
-import { applyTheme, getThemeForHostname, THEMES } from './lib/themes';
+import { applyTheme, applyCustomColors, getThemeForHostname, THEMES } from './lib/themes';
 import Navbar from './components/Navbar';
 import ShowcasePage from './pages/ShowcasePage';
 import ArchivedPage from './pages/ArchivedPage';
@@ -65,14 +65,17 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const loadData = useStore((s) => s.loadData);
-  const themeId  = useStore((s) => s.themeId);
+  const loadData       = useStore((s) => s.loadData);
+  const themeId        = useStore((s) => s.themeId);
+  const customPrimary  = useStore((s) => s.customPrimary);
+  const customSecondary = useStore((s) => s.customSecondary);
 
-  // Apply theme on mount and whenever the admin changes it
+  // Apply theme + custom overrides on mount and whenever they change
   useEffect(() => {
     const id = (themeId && THEMES[themeId]) ? themeId : getThemeForHostname(window.location.hostname);
     applyTheme(id);
-  }, [themeId]);
+    applyCustomColors(customPrimary, customSecondary);
+  }, [themeId, customPrimary, customSecondary]);
 
   useEffect(() => {
     loadData();

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Tattoo, Artist, Merch } from './types';
-import type { ThemeId } from './lib/themes';
+import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
 // ── Landing Page Content ──────────────────────────────────────────────────────
@@ -253,6 +253,11 @@ export interface GuestContent {
     guestDescription: string;
     portfolioImages: [string, string, string, string, string];
   };
+  showcase: {
+    title: string;
+    heroImage: string;
+    galleryImages: [string, string, string, string];
+  };
 }
 
 const defaultGuestContent: GuestContent = {
@@ -338,6 +343,11 @@ const defaultGuestContent: GuestContent = {
     guestImage: '',
     guestDescription: '',
     portfolioImages: ['', '', '', '', ''],
+  },
+  showcase: {
+    title: '',
+    heroImage: '',
+    galleryImages: ['', '', '', ''],
   },
 };
 
@@ -477,6 +487,14 @@ interface AppState {
   /** Theme chosen by the studio admin. null = use subdomain default. */
   themeId: ThemeId | null;
   setTheme: (id: ThemeId | null) => void;
+  /** Custom primary hex color (overrides preset primary). null = use preset. */
+  customPrimary: string | null;
+  /** Custom secondary hex color (overrides preset secondary). null = use preset. */
+  customSecondary: string | null;
+  setCustomColors: (primary: string | null, secondary: string | null) => void;
+  /** How the logo is colorized. */
+  logoColorMode: LogoColorMode;
+  setLogoColorMode: (mode: LogoColorMode) => void;
   /** Landing page content editable by admin */
   landingContent: LandingContent;
   setLandingContent: (content: LandingContent) => void;
@@ -527,6 +545,19 @@ export const useStore = create<AppState>()(
         set({ themeId: id });
         supabase?.from('site_config').upsert({ key: 'themeId', value: id, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setTheme:', error); });
+      },
+      customPrimary: null,
+      customSecondary: null,
+      setCustomColors: (primary, secondary) => {
+        set({ customPrimary: primary, customSecondary: secondary });
+        supabase?.from('site_config').upsert({ key: 'customColors', value: { primary, secondary }, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setCustomColors:', error); });
+      },
+      logoColorMode: 'original',
+      setLogoColorMode: (mode) => {
+        set({ logoColorMode: mode });
+        supabase?.from('site_config').upsert({ key: 'logoColorMode', value: mode, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setLogoColorMode:', error); });
       },
       landingContent: defaultLandingContent,
       setLandingContent: (content) => {
@@ -612,6 +643,11 @@ export const useStore = create<AppState>()(
             ...(config.aftercareContent ? { aftercareContent: config.aftercareContent as typeof defaultAftercareContent } : {}),
             ...(config.fichaConfig      ? { fichaConfig:      config.fichaConfig      as FichaConfig }                   : {}),
             ...(config.themeId !== undefined ? { themeId: config.themeId as ThemeId | null } : {}),
+            ...(config.customColors !== undefined ? {
+              customPrimary: (config.customColors as { primary: string | null }).primary ?? null,
+              customSecondary: (config.customColors as { secondary: string | null }).secondary ?? null,
+            } : {}),
+            ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
             dataLoaded: true,
           });
         } catch (err) {
