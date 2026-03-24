@@ -10,6 +10,7 @@ const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppe
 function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => void }) {
   const artists = useStore((s) => s.artists);
   const updateTattoo = useStore((s) => s.updateTattoo);
+  const isArtist = useStore((s) => s.isArtist);
 
   const [form, setForm] = useState({
     title: tattoo.title,
@@ -91,10 +92,18 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Artista</label>
-              <select name="artistId" value={form.artistId} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
-                <option value="">Estúdio</option>
-                {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+              {isArtist ? (
+                <input
+                  value={artists.find((a) => a.id === form.artistId)?.name ?? 'Você'}
+                  disabled
+                  className={`${inputCls} opacity-50 cursor-not-allowed`}
+                />
+              ) : (
+                <select name="artistId" value={form.artistId} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
+                  <option value="">Estúdio</option>
+                  {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                </select>
+              )}
             </div>
             <div>
               <label className={labelCls}>Status</label>
@@ -127,7 +136,9 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
 
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function AdminTattoos() {
-  const tattoos = useStore((s) => s.tattoos);
+  const allTattoos = useStore((s) => s.tattoos);
+  const isArtist = useStore((s) => s.isArtist);
+  const currentArtistId = useStore((s) => s.currentArtistId);
   const deleteTattoo = useStore((s) => s.deleteTattoo);
   const archiveTattoo = useStore((s) => s.archiveTattoo);
   const reorderTattoos = useStore((s) => s.reorderTattoos);
@@ -142,6 +153,11 @@ export default function AdminTattoos() {
   // IDs being deleted — removed from view instantly on confirm, before store re-renders
   const [pendingDeleteIds, setPendingDeleteIds] = useState<Set<string>>(new Set());
   const dragIdRef = useRef<string | null>(null);
+
+  // Artists only see their own tattoos
+  const tattoos = isArtist && currentArtistId
+    ? allTattoos.filter((t) => t.artistId === currentArtistId)
+    : allTattoos;
 
   const filtered = tattoos
     .filter((t) => !pendingDeleteIds.has(t.id))

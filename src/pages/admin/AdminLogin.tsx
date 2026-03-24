@@ -3,26 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 
 export default function AdminLogin() {
-  const login = useStore((s) => s.login);
+  const login   = useStore((s) => s.login);
   const isAdmin = useStore((s) => s.isAdmin);
+  const isArtist = useStore((s) => s.isArtist);
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
-  if (isAdmin) {
-    navigate('/admin/dashboard', { replace: true });
-    return null;
-  }
+  if (isAdmin)  { navigate('/admin/dashboard',  { replace: true }); return null; }
+  if (isArtist) { navigate('/admin/tatuagens', { replace: true }); return null; }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const ok = login(username, password);
+    setError('');
+    setLoading(true);
+    const ok = await login(email, password);
+    setLoading(false);
     if (ok) {
-      navigate('/admin/dashboard', { replace: true });
+      // Redirect is handled by the isAdmin/isArtist check on next render
+      navigate('/admin', { replace: true });
     } else {
-      setError('Usuário ou senha incorretos.');
+      setError('Email ou senha incorretos.');
     }
   }
 
@@ -49,15 +53,16 @@ export default function AdminLogin() {
           <div className="space-y-5">
             <div>
               <label className="block font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">
-                Usuário
+                Email
               </label>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 className="w-full bg-transparent border border-white/20 px-4 py-3 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors"
-                placeholder="admin"
+                placeholder="seu@email.com"
               />
             </div>
             <div>
@@ -69,6 +74,7 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 className="w-full bg-transparent border border-white/20 px-4 py-3 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors"
                 placeholder="••••••••"
               />
@@ -77,9 +83,10 @@ export default function AdminLogin() {
 
           <button
             type="submit"
-            className="w-full mt-8 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors"
+            disabled={loading}
+            className="w-full mt-8 bg-white hover:bg-gray-100 disabled:opacity-50 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors"
           >
-            Entrar
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
       </div>
