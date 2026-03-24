@@ -20,9 +20,9 @@ export default function AdminLogin() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSent, setResetSent]       = useState(false);
 
-  if (isAdmin)        { navigate('/admin/dashboard', { replace: true }); return null; }
-  if (isArtist)       { navigate('/admin/tatuagens', { replace: true }); return null; }
-  if (isMerchManager) { navigate('/admin/merchs',    { replace: true }); return null; }
+  if (isAdmin)        { navigate('/admin/dashboard',  { replace: true }); return null; }
+  if (isArtist)       { navigate('/admin/tatuagens',  { replace: true }); return null; }
+  if (isMerchManager) { navigate('/admin/merchs',     { replace: true }); return null; }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

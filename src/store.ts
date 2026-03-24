@@ -561,6 +561,8 @@ interface AppState {
   artists: Artist[];
   merchs: Merch[];
   isAdmin: boolean;
+  /** True when the logged-in user is a merch manager (not admin or artist). */
+  isMerchManager: boolean;
   /** True once Supabase data has been loaded (or if Supabase is not configured). */
   dataLoaded: boolean;
   /** Theme chosen by the studio admin. null = use subdomain default. */
@@ -603,8 +605,14 @@ interface AppState {
   addFichaSubmission: (submission: Omit<FichaSubmission, 'id' | 'submittedAt'>) => void;
   deleteFichaSubmission: (id: string) => void;
   loadData: () => Promise<void>;
-  login: (username: string, password: string) => boolean;
-  logout: () => void;
+  /** True when the logged-in user is an artist (not super admin). */
+  isArtist: boolean;
+  /** The artist row id linked to the logged-in artist user. null when admin. */
+  currentArtistId: string | null;
+  /** Check existing Supabase session on app load. */
+  initAuth: () => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   addTattoo: (tattoo: Omit<Tattoo, 'id' | 'createdAt'>) => void;
   updateTattoo: (id: string, updates: Partial<Tattoo>) => void;
   deleteTattoo: (id: string) => void;
@@ -627,6 +635,9 @@ export const useStore = create<AppState>()(
       artists: seedArtists,
       merchs: [],
       isAdmin: false,
+      isArtist: false,
+      isMerchManager: false,
+      currentArtistId: null,
       dataLoaded: false,
       themeId: null,
       setTheme: (id) => {
@@ -806,14 +817,54 @@ export const useStore = create<AppState>()(
       },
 
       // ── Auth ─────────────────────────────────────────────────────────────
-      login: (username, password) => {
-        if (username === 'admin' && password === 'tatto123') {
-          set({ isAdmin: true });
+      initAuth: async () => {
+        if (!supabase) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role, artist_id')
+          .eq('id', session.user.id)
+          .single();
+        if (!profile) return;
+        if (profile.role === 'admin') {
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
+        } else if (profile.role === 'artist') {
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+        } else if (profile.role === 'merch_manager') {
+          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+        }
+      },
+
+      login: async (email, password) => {
+        if (!supabase) return false;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) return false;
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role, artist_id')
+          .eq('id', data.user.id)
+          .single();
+        if (!profile) return false;
+        if (profile.role === 'admin') {
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
+          return true;
+        }
+        if (profile.role === 'artist') {
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+          return true;
+        }
+        if (profile.role === 'merch_manager') {
+          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
           return true;
         }
         return false;
       },
-      logout: () => set({ isAdmin: false }),
+
+      logout: async () => {
+        await supabase?.auth.signOut();
+        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null });
+      },
 
       // ── Tattoos ──────────────────────────────────────────────────────────
       addTattoo: (data) => {
@@ -935,9 +986,8 @@ export const useStore = create<AppState>()(
       },
     }),
     {
-      name: 'tattoo-shop-storage-v4',
+      name: 'tattoo-shop-storage-v5',
       partialize: (state) => ({
-        isAdmin: state.isAdmin,
         themeId: state.themeId,
         customPrimary: state.customPrimary,
         customSecondary: state.customSecondary,

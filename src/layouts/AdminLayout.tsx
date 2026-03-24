@@ -4,6 +4,15 @@ import { useStore } from '../store';
 
 const navItems = [
   {
+    to: '/admin/merchs',
+    label: 'Loja',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+    ),
+  },
+  {
     to: '/admin/dashboard',
     label: 'Dashboard',
     icon: (
@@ -103,17 +112,57 @@ const navItems = [
       </svg>
     ),
   },
+  // Artist-only item
+  {
+    to: '/admin/meu-perfil',
+    label: 'Meu Perfil',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
 ];
 
+// Items shown only to the super admin
+const adminOnlyItems = [
+  '/admin/dashboard',
+  '/admin/artistas',
+  '/admin/guests',
+  '/admin/events',
+  '/admin/aftercare',
+  '/admin/landing',
+  '/admin/sobre-nos',
+  '/admin/ficha-anamnese',
+  '/admin/fichas',
+  '/admin/configuracoes',
+];
+
+// Item shown only to artists (not admin)
+const artistOnlyItem = '/admin/meu-perfil';
+
+// Item shown only to merch managers and admins (hidden from artists)
+const merchItem = '/admin/merchs';
+
 export default function AdminLayout() {
-  const logout = useStore((s) => s.logout);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const logout          = useStore((s) => s.logout);
+  const isAdmin         = useStore((s) => s.isAdmin);
+  const isArtist        = useStore((s) => s.isArtist);
+  const isMerchManager  = useStore((s) => s.isMerchManager);
+  const navigate        = useNavigate();
+  const location  = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     navigate('/admin/login');
+  }
+
+  function visibleItems() {
+    if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
+    if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && item.to !== merchItem);
+    if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
+    return [];
   }
 
   function closeDrawer() {
@@ -139,7 +188,7 @@ export default function AdminLayout() {
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          {navItems.map((item) => (
+          {visibleItems().map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -209,7 +258,7 @@ export default function AdminLayout() {
               </button>
             </div>
             <nav className="flex-1 p-4 space-y-1">
-              {navItems.map((item) => (
+              {visibleItems().map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}

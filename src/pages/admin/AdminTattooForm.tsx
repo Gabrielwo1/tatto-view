@@ -21,7 +21,7 @@ type BatchItem = {
   status: 'available' | 'archived';
 };
 
-function makeBatchItem(src: string): BatchItem {
+function makeBatchItem(src: string, artistId = ''): BatchItem {
   return {
     id: Math.random().toString(36).slice(2),
     rawSrc: src,
@@ -30,7 +30,7 @@ function makeBatchItem(src: string): BatchItem {
     description: '',
     style: TATTOO_STYLES[0],
     price: '',
-    artistId: '',
+    artistId,
     status: 'available',
   };
 }
@@ -63,6 +63,8 @@ export default function AdminTattooForm() {
   const artists = useStore((s) => s.artists);
   const addTattoo = useStore((s) => s.addTattoo);
   const updateTattoo = useStore((s) => s.updateTattoo);
+  const isArtist = useStore((s) => s.isArtist);
+  const currentArtistId = useStore((s) => s.currentArtistId);
   const existing = id ? tattoos.find((t) => t.id === id) : null;
 
   // ── Shared upload state ───────────────────────────────────────────────────
@@ -72,13 +74,18 @@ export default function AdminTattooForm() {
   // ── Edit mode state ───────────────────────────────────────────────────────
   const editFileRef = useRef<HTMLInputElement>(null);
   const [editCropSrc, setEditCropSrc] = useState('');
+  // When an artist creates/edits, artistId is locked to their own id
+  const defaultArtistId = isArtist && currentArtistId
+    ? currentArtistId
+    : (existing?.artistId ?? '');
+
   const [editForm, setEditForm] = useState({
     title: existing?.title ?? '',
     description: existing?.description ?? '',
     imageUrl: existing?.imageUrl ?? '',
     style: existing?.style ?? TATTOO_STYLES[0],
     price: existing?.price ?? '',
-    artistId: existing?.artistId ?? '',
+    artistId: defaultArtistId,
     status: existing?.status ?? 'available',
   });
 
@@ -127,10 +134,11 @@ export default function AdminTattooForm() {
     const arr = Array.from(files);
     const newItems: BatchItem[] = new Array(arr.length);
     let loaded = 0;
+    const presetArtistId = isArtist && currentArtistId ? currentArtistId : '';
     arr.forEach((file, i) => {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        newItems[i] = makeBatchItem(ev.target?.result as string);
+        newItems[i] = makeBatchItem(ev.target?.result as string, presetArtistId);
         loaded++;
         if (loaded === arr.length) setItems((prev) => [...prev, ...newItems]);
       };
@@ -239,10 +247,18 @@ export default function AdminTattooForm() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>Artista</label>
-                  <select name="artistId" value={editForm.artistId ?? ''} onChange={handleEditChange} className={`${inputCls} bg-zinc-950`}>
-                    <option value="">Estúdio</option>
-                    {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-                  </select>
+                  {isArtist ? (
+                    <input
+                      value={artists.find((a) => a.id === editForm.artistId)?.name ?? 'Você'}
+                      disabled
+                      className={`${inputCls} opacity-50 cursor-not-allowed`}
+                    />
+                  ) : (
+                    <select name="artistId" value={editForm.artistId ?? ''} onChange={handleEditChange} className={`${inputCls} bg-zinc-950`}>
+                      <option value="">Estúdio</option>
+                      {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className={labelCls}>Status</label>
@@ -692,14 +708,22 @@ export default function AdminTattooForm() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelCls}>Artista</label>
-                    <select
-                      value={current.artistId}
-                      onChange={(e) => updateItemAndPropagate('artistId', e.target.value)}
-                      className={`${inputCls} bg-zinc-950`}
-                    >
-                      <option value="">Estúdio</option>
-                      {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-                    </select>
+                    {isArtist ? (
+                      <input
+                        value={artists.find((a) => a.id === current.artistId)?.name ?? 'Você'}
+                        disabled
+                        className={`${inputCls} opacity-50 cursor-not-allowed`}
+                      />
+                    ) : (
+                      <select
+                        value={current.artistId}
+                        onChange={(e) => updateItemAndPropagate('artistId', e.target.value)}
+                        className={`${inputCls} bg-zinc-950`}
+                      >
+                        <option value="">Estúdio</option>
+                        {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                      </select>
+                    )}
                   </div>
                   <div>
                     <label className={labelCls}>Status</label>
