@@ -718,9 +718,19 @@ export const useStore = create<AppState>()(
           if (!cfge && cfg) {
             for (const row of cfg) config[row.key] = row.value;
           }
+          // Apply saved artists order if present
+          const rawArtists = (a ?? []).map(toArtist);
+          const artistsOrder = config.artistsOrder as string[] | undefined;
+          const orderedArtists = artistsOrder?.length
+            ? [
+                ...artistsOrder.map((id) => rawArtists.find((x) => x.id === id)).filter((x): x is Artist => !!x),
+                ...rawArtists.filter((x) => !artistsOrder.includes(x.id)),
+              ]
+            : rawArtists;
+
           set({
             tattoos:          (t ?? []).map(toTattoo),
-            artists:          (a ?? []).map(toArtist),
+            artists:          orderedArtists,
             merchs:           (m ?? []).map(toMerch),
             // Always sync fichas from Supabase (source of truth for cross-device)
             ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
@@ -835,6 +845,8 @@ export const useStore = create<AppState>()(
           const rest = s.artists.filter((a) => !orderedIds.includes(a.id));
           return { artists: [...reordered, ...rest] };
         });
+        supabase?.from('site_config').upsert({ key: 'artistsOrder', value: orderedIds, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] reorderArtists:', error); });
       },
 
       // ── Artists ──────────────────────────────────────────────────────────
