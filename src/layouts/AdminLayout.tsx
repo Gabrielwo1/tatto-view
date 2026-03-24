@@ -226,7 +226,7 @@ export default function AdminLayout() {
       {/* ── Mobile: Top Bar ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 flex items-center justify-between px-4 h-14">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/eldude-nova-logo.png" alt="El Dude" className="h-7 w-auto object-contain" />
+          <img src="/logosemo-3.png" alt="El Dude" className="h-7 w-auto object-contain" />
         </Link>
         <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400">{currentLabel}</span>
         {/* Hamburger — right side */}
