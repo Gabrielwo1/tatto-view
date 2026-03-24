@@ -275,27 +275,33 @@ export default function AdminGuestPage() {
 
         {/* ── SHOWCASE ─────────────────────────────────────────────────── */}
         <SectionCard title="Galeria de Destaque">
-          <p className="font-body text-[10px] text-gray-600">
-            Seção exibida entre o Hero e o Próximo Guest. Título grande + imagem principal + 4 fotos menores.
-          </p>
 
-          <div>
-            <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1.5">
-              Título grande <span className="text-gray-700 normal-case font-normal">(até 5 linhas — use Enter para quebrar)</span>
-            </label>
-            <textarea
-              rows={5}
-              value={draft.showcase?.title ?? ''}
-              onChange={(e) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, title: e.target.value } }))}
-              placeholder={'EL DUDE STUDIO\nProximo Guest:\n@gib.tattooart'}
-              className="w-full bg-zinc-900 border border-white/10 text-white font-body text-sm px-3 py-2 focus:outline-none focus:border-white/30 transition-colors placeholder:text-white/20 resize-none"
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="Título da seção"
+              value={draft.showcase?.sectionTitle ?? ''}
+              onChange={(v) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, sectionTitle: v } }))}
+              placeholder="GALERIA DE DESTAQUE"
+            />
+            <Field
+              label="Subtítulo / chamada"
+              value={draft.showcase?.sectionSubtitle ?? ''}
+              onChange={(v) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, sectionSubtitle: v } }))}
+              placeholder="Conheça o próximo artista..."
             />
           </div>
 
-          {/* Imagem principal */}
+          <Field
+            label="Nome do artista"
+            value={draft.showcase?.guestName ?? ''}
+            onChange={(v) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, guestName: v } }))}
+            placeholder="Nome do artista"
+          />
+
+          {/* Foto do artista */}
           <div>
             <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
-              Imagem principal (grande)
+              Foto do artista
             </label>
             <div className="flex gap-3 items-start">
               {draft.showcase?.heroImage ? (
@@ -315,19 +321,29 @@ export default function AdminGuestPage() {
                   </svg>
                 </div>
               )}
-              <button type="button" onClick={() => showcaseHeroRef.current?.click()}
-                className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors">
-                {draft.showcase?.heroImage ? 'Trocar imagem' : 'Selecionar imagem'}
-              </button>
-              <input ref={showcaseHeroRef} type="file" accept="image/*" className="hidden"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleShowcaseHero(f); e.target.value = ''; }} />
+              <div className="flex-1">
+                <button type="button" onClick={() => showcaseHeroRef.current?.click()}
+                  className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors">
+                  {draft.showcase?.heroImage ? 'Trocar foto' : 'Selecionar foto'}
+                </button>
+                <input ref={showcaseHeroRef} type="file" accept="image/*" className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleShowcaseHero(f); e.target.value = ''; }} />
+              </div>
             </div>
           </div>
 
-          {/* 4 fotos menores */}
+          <Field
+            label="Descrição / bio do artista"
+            value={draft.showcase?.guestDescription ?? ''}
+            onChange={(v) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, guestDescription: v } }))}
+            multiline
+            placeholder="Fale sobre o estilo, trajetória e o que o artista vai oferecer no estúdio..."
+          />
+
+          {/* 4 fotos do portfólio */}
           <div>
             <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
-              Galeria (4 fotos menores)
+              Portfólio de trabalhos (4 fotos)
             </label>
             <div className="grid grid-cols-4 gap-2">
               {([0,1,2,3] as const).map((idx) => {
@@ -355,6 +371,9 @@ export default function AdminGuestPage() {
                 );
               })}
             </div>
+            <p className="font-body text-[10px] text-gray-700 mt-2">
+              Clique em cada célula para adicionar uma foto de trabalho do artista.
+            </p>
           </div>
         </SectionCard>
 
