@@ -137,7 +137,7 @@ export interface SobreNosContent {
     imageCaption: string;
     image: string;
     imageSize: string;
-    galleryImages: [string, string, string, string];
+    galleryImages: [string, string, string, string, string, string, string, string];
   };
   quote: string;
   studio: {
@@ -185,7 +185,7 @@ const defaultSobreNosContent: SobreNosContent = {
     imageCaption: 'SÉRIE BOTÂNICA 04',
     image: '',
     imageSize: 'md',
-    galleryImages: ['', '', '', ''],
+    galleryImages: ['', '', '', '', '', '', '', ''],
   },
   quote: '"A beleza da agulha está em sua natureza definitiva."',
   contact: {

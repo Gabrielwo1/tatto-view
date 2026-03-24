@@ -34,7 +34,7 @@ export default function AdminSobreNos() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState<boolean[]>([false, false, false, false]);
+  const [uploadingGallery, setUploadingGallery] = useState<boolean[]>([false, false, false, false, false, false, false, false]);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const galleryRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -114,7 +114,7 @@ export default function AdminSobreNos() {
           src = await uploadImage(src);
           if (src.startsWith('data:')) src = await compressImage(src);
           setForm((f) => {
-            const imgs = [...(f.collective.galleryImages ?? ['', '', '', ''])] as [string, string, string, string];
+            const imgs = [...(f.collective.galleryImages ?? ['', '', '', '', '', '', '', ''])] as [string, string, string, string, string, string, string, string];
             imgs[idx] = src;
             return { ...f, collective: { ...f.collective, galleryImages: imgs } };
           });
@@ -130,7 +130,7 @@ export default function AdminSobreNos() {
 
   function clearGalleryImage(idx: number) {
     setForm((f) => {
-      const imgs = [...(f.collective.galleryImages ?? ['', '', '', ''])] as [string, string, string, string];
+      const imgs = [...(f.collective.galleryImages ?? ['', '', '', '', '', '', '', ''])] as [string, string, string, string, string, string, string, string];
       imgs[idx] = '';
       return { ...f, collective: { ...f.collective, galleryImages: imgs } };
     });
@@ -322,11 +322,11 @@ export default function AdminSobreNos() {
               </div>
             </div>
 
-            {/* ── 4 fotos menores ── */}
+            {/* ── 8 fotos galeria ── */}
             <div>
-              <label className={labelCls}>4 Fotos Menores (abaixo da foto principal)</label>
+              <label className={labelCls}>8 Fotos da Galeria (abaixo do texto)</label>
               <div className="grid grid-cols-4 gap-2">
-                {([0, 1, 2, 3] as const).map((idx) => {
+                {([0, 1, 2, 3, 4, 5, 6, 7] as const).map((idx) => {
                   const img = form.collective.galleryImages?.[idx] ?? '';
                   return (
                     <div key={idx} className="relative aspect-square">

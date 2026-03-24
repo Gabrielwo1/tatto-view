@@ -39,7 +39,7 @@ export default function SobreNosPage() {
       {/* ── WHO WE ARE ───────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-20 py-20 lg:py-32">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-          {/* Text */}
+          {/* Text + gallery below */}
           <div>
             <h2 className="font-display text-4xl lg:text-5xl uppercase tracking-wide mb-8">
               {collective.title}
@@ -55,9 +55,22 @@ export default function SobreNosPage() {
             >
               {collective.ctaLabel}
             </Link>
+
+            {/* 8 gallery photos below text */}
+            {collective.galleryImages?.some(Boolean) && (
+              <div className="grid grid-cols-4 gap-1.5 mt-10">
+                {collective.galleryImages.map((img, i) =>
+                  img ? (
+                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden">
+                      <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ) : null
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Studio image + gallery */}
+          {/* Studio image */}
           <div className="relative">
             <div className={`aspect-[3/4] bg-zinc-800 overflow-hidden flex items-center justify-center ml-auto ${
               collective.imageSize === 'sm'   ? 'max-w-xs w-full' :
@@ -81,19 +94,6 @@ export default function SobreNosPage() {
               <p className="mt-2 text-right font-body text-[10px] tracking-widest uppercase text-ink-500">
                 {collective.imageCaption}
               </p>
-            )}
-
-            {/* 4 smaller gallery photos */}
-            {collective.galleryImages?.some(Boolean) && (
-              <div className="grid grid-cols-4 gap-1 mt-2 ml-auto max-w-sm w-full">
-                {collective.galleryImages.map((img, i) =>
-                  img ? (
-                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden">
-                      <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                    </div>
-                  ) : null
-                )}
-              </div>
             )}
           </div>
         </div>
