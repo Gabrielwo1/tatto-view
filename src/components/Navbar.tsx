@@ -5,8 +5,9 @@ import { useStore } from '../store';
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const isAdmin = useStore((s) => s.isAdmin);
-  const logout = useStore((s) => s.logout);
+  const isAdmin       = useStore((s) => s.isAdmin);
+  const logout        = useStore((s) => s.logout);
+  const logoColorMode = useStore((s) => s.logoColorMode);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,12 +38,42 @@ export default function Navbar() {
 
           {/* Center: Logo */}
           <Link to="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-            <img
-              src="/logosemo-3.png"
-              alt="El Dude"
-              className="w-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
-              style={{ height: scrolled ? '40px' : '120px' }}
-            />
+            {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
+              <div
+                className="pointer-events-auto transition-all duration-500 ease-in-out relative"
+                style={{ height: scrolled ? '40px' : '120px', display: 'inline-block' }}
+              >
+                <img
+                  src="/logosemo-3.png"
+                  alt="El Dude"
+                  className="w-auto h-full object-contain"
+                  style={{ filter: 'brightness(0)' }}
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: logoColorMode === 'primary'
+                      ? 'rgb(var(--ink-500))'
+                      : 'rgb(var(--ink2-500))',
+                    mixBlendMode: 'screen',
+                  }}
+                />
+              </div>
+            ) : (
+              <img
+                src="/logosemo-3.png"
+                alt="El Dude"
+                className="w-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
+                style={{
+                  height: scrolled ? '40px' : '120px',
+                  filter: logoColorMode === 'white'
+                    ? 'brightness(0) invert(1)'
+                    : logoColorMode === 'black'
+                    ? 'brightness(0)'
+                    : 'none',
+                }}
+              />
+            )}
           </Link>
 
           {/* Right: Admin / Logout */}

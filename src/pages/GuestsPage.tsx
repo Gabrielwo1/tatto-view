@@ -81,6 +81,56 @@ export default function GuestsPage() {
 
       </section>
 
+      {/* ── SHOWCASE (título + imagem grande + 4 fotos) ────────────────────── */}
+      {(gc.showcase?.title || gc.showcase?.heroImage || gc.showcase?.galleryImages?.some(Boolean)) && (
+        <section className="px-6 lg:px-10 py-20 md:py-24 border-b border-white/8">
+          <div className="max-w-5xl mx-auto">
+
+            {gc.showcase.title && (
+              <Fade>
+                <h2 className="font-display text-[clamp(2.5rem,8vw,6rem)] uppercase leading-none tracking-tight text-white mb-10">
+                  {gc.showcase.title}
+                </h2>
+              </Fade>
+            )}
+
+            {gc.showcase.heroImage && (
+              <Fade delay={60}>
+                <div className="w-full overflow-hidden mb-3" style={{ maxHeight: 560 }}>
+                  <img
+                    src={gc.showcase.heroImage}
+                    alt="Showcase"
+                    className="w-full object-cover hover:scale-105 transition-transform duration-700"
+                    style={{ maxHeight: 560 }}
+                  />
+                </div>
+              </Fade>
+            )}
+
+            {gc.showcase.galleryImages?.some(Boolean) && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8">
+                {gc.showcase.galleryImages.map((img, i) => (
+                  <Fade key={i} delay={i * 50}>
+                    <div className="bg-zinc-950 aspect-square overflow-hidden">
+                      {img ? (
+                        <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-white/5">
+                          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </Fade>
+                ))}
+              </div>
+            )}
+
+          </div>
+        </section>
+      )}
+
       {/* ── PRÓXIMO GUEST ──────────────────────────────────────────────────── */}
       {(gc.nextGuest?.sectionTitle || gc.nextGuest?.guestName || gc.nextGuest?.guestImage) && (
         <section className="px-6 lg:px-10 py-20 md:py-24 border-b border-white/8">
