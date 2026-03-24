@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useStore } from '../../store';
 import { THEMES, applyTheme, getThemeForHostname } from '../../lib/themes';
 import type { ThemeId } from '../../lib/themes';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/uploadImage';
-import { getAnalytics, getLast7Days, getTopPages, resetAnalytics } from '../../lib/analytics';
-import type { AnalyticsData } from '../../lib/analytics';
 
 const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
@@ -19,7 +17,7 @@ export default function AdminSettings() {
   const sobreNosContent  = useStore((s) => s.sobreNosContent);
   const guestContent     = useStore((s) => s.guestContent);
   const aftercareContent = useStore((s) => s.aftercareContent);
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const fichaSubmissions = useStore((s) => s.fichaSubmissions);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncProgress, setSyncProgress] = useState<string | null>(null);
@@ -180,10 +178,6 @@ export default function AdminSettings() {
     a.click();
     URL.revokeObjectURL(url);
   }
-
-  useEffect(() => {
-    setAnalytics(getAnalytics());
-  }, []);
 
   const subdomainDefault = getThemeForHostname(window.location.hostname);
   const active = themeId ?? subdomainDefault;
@@ -447,58 +441,57 @@ export default function AdminSettings() {
 
       {/* ── Estatísticas ──────────────────────────────────────────────────── */}
       <section>
-        <div className="mb-5 flex items-end justify-between">
-          <div>
-            <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-              Estatísticas
-            </h2>
-            <p className="font-body text-xs text-gray-500">
-              Visitas registradas neste dispositivo via localStorage.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => { if (confirm('Zerar todas as estatísticas?')) { resetAnalytics(); setAnalytics(getAnalytics()); } }}
-            className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-red-400 transition-colors shrink-0 ml-4"
-          >
-            ↺ Zerar
-          </button>
+        <div className="mb-5">
+          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
+            Estatísticas
+          </h2>
+          <p className="font-body text-xs text-gray-500">
+            Movimentações reais do estúdio.
+          </p>
         </div>
 
-        {analytics && (
-          <>
-            {/* KPI cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
-              {[
-                { label: 'Visualizações', value: analytics.totalViews, icon: '👁' },
-                { label: 'Sessões únicas', value: analytics.sessions.length, icon: '👤' },
-                { label: 'Páginas', value: Object.keys(analytics.pages).length, icon: '📄' },
-                { label: 'Hoje', value: analytics.daily[new Date().toISOString().slice(0, 10)] ?? 0, icon: '📅' },
-              ].map(({ label, value, icon }) => (
-                <div key={label} className="px-4 py-4 border border-white/10 bg-black/30 flex flex-col gap-1">
-                  <span className="text-lg">{icon}</span>
-                  <p className="font-display text-2xl text-white leading-none">{value.toLocaleString('pt-BR')}</p>
-                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
-                </div>
-              ))}
+        {/* KPI cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+          {[
+            { label: 'Fichas enviadas', value: fichaSubmissions.length },
+            { label: 'Tatuagens', value: tattoos.length },
+            { label: 'Artistas', value: artists.length },
+            { label: 'Merchs', value: merchs.length },
+          ].map(({ label, value }) => (
+            <div key={label} className="px-4 py-4 border border-white/10 bg-black/30 flex flex-col gap-1">
+              <p className="font-display text-3xl text-white leading-none">{value.toLocaleString('pt-BR')}</p>
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
             </div>
+          ))}
+        </div>
 
-            {/* Last 7 days bar chart */}
+        {/* Fichas - últimos 7 dias */}
+        {(() => {
+          const days = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (6 - i));
+            return d.toISOString().slice(0, 10);
+          });
+          const counts = days.map((date) => ({
+            date,
+            count: fichaSubmissions.filter((f) => f.submittedAt.slice(0, 10) === date).length,
+          }));
+          const max = Math.max(...counts.map((c) => c.count), 1);
+          return (
             <div className="mb-6">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Últimos 7 dias</p>
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Fichas enviadas — últimos 7 dias</p>
               <div className="flex items-end gap-1.5 h-20">
-                {getLast7Days().map(({ date, views }) => {
-                  const max = Math.max(...getLast7Days().map(d => d.views), 1);
-                  const pct = (views / max) * 100;
+                {counts.map(({ date, count }) => {
+                  const pct = (count / max) * 100;
                   const label = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' });
                   return (
-                    <div key={date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={`${label}: ${views} view(s)`}>
-                      <span className="font-body text-[9px] text-gray-600">{views || ''}</span>
+                    <div key={date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={`${label}: ${count} ficha(s)`}>
+                      <span className="font-body text-[9px] text-gray-600">{count || ''}</span>
                       <div
                         className="w-full transition-all duration-500"
                         style={{
-                          height: `${Math.max(pct, views > 0 ? 6 : 2)}%`,
-                          backgroundColor: pct > 0 ? 'rgb(var(--ink-500))' : 'rgba(255,255,255,0.06)',
+                          height: `${Math.max(pct, count > 0 ? 6 : 2)}%`,
+                          backgroundColor: count > 0 ? 'rgb(var(--ink-500))' : 'rgba(255,255,255,0.06)',
                         }}
                       />
                       <span className="font-body text-[8px] text-gray-700 text-center leading-tight">{label}</span>
@@ -507,58 +500,45 @@ export default function AdminSettings() {
                 })}
               </div>
             </div>
+          );
+        })()}
 
-            {/* Top pages */}
-            {getTopPages().length > 0 && (
-              <div className="mb-4">
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Páginas mais visitadas</p>
-                <div className="flex flex-col gap-1">
-                  {getTopPages().map(({ path, views }) => {
-                    const maxViews = getTopPages()[0]?.views ?? 1;
-                    const label: Record<string, string> = {
-                      '/': 'Vitrine', '/artistas': 'Artistas', '/guests': 'Guests',
-                      '/merchs': 'Merchs', '/aftercare': 'Pós Tattoo', '/sobre-nos': 'Sobre Nós',
-                      '/ficha-anamnese': 'Ficha de Anamnese',
-                    };
-                    return (
-                      <div key={path} className="flex items-center gap-3">
-                        <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{label[path] ?? path}</span>
-                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${(views / maxViews) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }}
-                          />
-                        </div>
-                        <span className="font-body text-xs text-gray-500 w-8 text-right shrink-0">{views}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Last visits */}
-            {analytics.lastVisits.length > 0 && (
-              <div>
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Últimas visitas</p>
-                <div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto">
-                  {analytics.lastVisits.slice(0, 15).map((v, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-1.5 bg-white/3 border border-white/5 text-xs">
-                      <span className="text-gray-600 font-mono text-[10px] shrink-0">
-                        {new Date(v.time).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <span className="text-gray-400 flex-1 truncate font-mono">{v.path}</span>
-                      <span className="text-gray-700 font-mono text-[9px] shrink-0">{v.session.slice(0, 6)}</span>
+        {/* Fichas por artista */}
+        {fichaSubmissions.length > 0 && (() => {
+          const byArtist: Record<string, number> = {};
+          fichaSubmissions.forEach((f) => {
+            const names: string[] = f.tatuadoresSelecionados?.length
+              ? f.tatuadoresSelecionados
+              : f.outroTatuador
+              ? [f.outroTatuador]
+              : ['Não informado'];
+            names.forEach((n) => { byArtist[n] = (byArtist[n] ?? 0) + 1; });
+          });
+          const sorted = Object.entries(byArtist).sort((a, b) => b[1] - a[1]);
+          const maxVal = sorted[0]?.[1] ?? 1;
+          return (
+            <div className="mb-4">
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Fichas por artista</p>
+              <div className="flex flex-col gap-1.5">
+                {sorted.map(([name, count]) => (
+                  <div key={name} className="flex items-center gap-3">
+                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{name}</span>
+                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
+                      <div
+                        className="h-full transition-all duration-500"
+                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }}
+                      />
                     </div>
-                  ))}
-                </div>
+                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          );
+        })()}
 
-            {analytics.totalViews === 0 && (
-              <p className="font-body text-xs text-gray-700 italic">Nenhuma visita registrada ainda. Acesse páginas públicas para começar a rastrear.</p>
-            )}
-          </>
+        {fichaSubmissions.length === 0 && (
+          <p className="font-body text-xs text-gray-700 italic">Nenhuma ficha enviada ainda.</p>
         )}
       </section>
 
