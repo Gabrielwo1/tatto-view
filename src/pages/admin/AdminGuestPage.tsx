@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import type { GuestContent } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
+import { supabase } from '../../lib/supabase';
 
 /* ── small reusable field components ─────────────────────────────────────── */
 function Field({
@@ -72,10 +73,23 @@ export default function AdminGuestPage() {
     setSaved(false);
   }
 
-  function handleSave() {
-    setGuestContent(draft);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  async function handleSave() {
+    try {
+      setGuestContent(draft);
+      if (supabase) {
+        const { error } = await supabase.from('site_config').upsert({
+          key: 'guestContent',
+          value: draft,
+          updated_at: new Date().toISOString(),
+        });
+        if (error) throw error;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error('[AdminGuestPage] save failed:', err);
+      alert('Erro ao salvar no servidor. Verifique sua conexão e tente novamente.');
+    }
   }
 
   function handleReset() {

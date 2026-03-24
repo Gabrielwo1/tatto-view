@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../../store';
 import type { LandingContent } from '../../store';
+import { supabase } from '../../lib/supabase';
 
 const inputCls =
   'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
@@ -68,17 +69,23 @@ export default function AdminLandingPage() {
     setForm((f) => ({ ...f, faq: f.faq.filter((_, i) => i !== index) }));
   }
 
-  function handleSave() {
+  async function handleSave() {
     try {
       setLandingContent(form);
-      const stored = localStorage.getItem('tattoo-shop-storage-v3');
-      if (!stored) throw new Error('localStorage vazio após salvar');
+      if (supabase) {
+        const { error } = await supabase.from('site_config').upsert({
+          key: 'landingContent',
+          value: form,
+          updated_at: new Date().toISOString(),
+        });
+        if (error) throw error;
+      }
       setSaved(true);
       setSaveError('');
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('[AdminLandingPage] save failed:', err);
-      setSaveError('Erro ao salvar. Tente novamente.');
+      setSaveError('Erro ao salvar no servidor. Verifique sua conexão e tente novamente.');
       setTimeout(() => setSaveError(''), 6000);
     }
   }

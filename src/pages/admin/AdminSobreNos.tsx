@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import type { SobreNosContent } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
+import { supabase } from '../../lib/supabase';
 
 /** Resize image to max 1200px and re-encode as JPEG 85% to stay within localStorage limits. */
 function compressImage(base64: string, maxPx = 1200, quality = 0.85): Promise<string> {
@@ -101,18 +102,27 @@ export default function AdminSobreNos() {
     e.target.value = '';
   }
 
-  function handleSave() {
+  async function handleSave() {
     try {
+      // Update local store/localStorage
       setSobreNosContent(form);
-      // Verify the data was actually written to localStorage
-      const stored = localStorage.getItem('tattoo-shop-storage-v3');
-      if (!stored) throw new Error('localStorage vazio após salvar');
+
+      // Await Supabase directly so we know if it succeeded
+      if (supabase) {
+        const { error } = await supabase.from('site_config').upsert({
+          key: 'sobreNosContent',
+          value: form,
+          updated_at: new Date().toISOString(),
+        });
+        if (error) throw error;
+      }
+
       setSaved(true);
       setSaveError('');
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('[AdminSobreNos] save failed:', err);
-      setSaveError('Erro ao salvar. A foto pode ser grande demais. Tente uma imagem menor.');
+      setSaveError('Erro ao salvar no servidor. Verifique sua conexão e tente novamente.');
       setTimeout(() => setSaveError(''), 6000);
     }
   }
