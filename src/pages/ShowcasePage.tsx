@@ -4,6 +4,7 @@ import TattooCard from '../components/TattooCard';
 import ArtistHero from '../components/ArtistHero';
 import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
 import { TATTOO_STYLES } from '../types';
+import type { Tattoo } from '../types';
 
 // Intercala artes de artistas diferentes para que nunca dois do mesmo
 // artista apareçam em sequência.
