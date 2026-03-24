@@ -4,7 +4,7 @@
 // modifiers like `text-ink-500/30` work correctly.
 
 export type ThemeId = 'ember' | 'violet' | 'cyan' | 'crimson' | 'gold' | 'neon' | 'rose';
-export type LogoColorMode = 'original' | 'white' | 'black' | 'primary' | 'secondary';
+export type LogoColorMode = 'original' | 'white' | 'black' | 'primary' | 'secondary' | 'invert';
 
 export interface Theme {
   id: ThemeId;

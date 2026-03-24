@@ -409,6 +409,7 @@ export default function AdminSettings() {
             { mode: 'black',     label: 'Preta' },
             { mode: 'primary',   label: 'Cor primária' },
             { mode: 'secondary', label: 'Cor secundária' },
+            { mode: 'invert',    label: 'Inverter' },
           ] as { mode: LogoColorMode; label: string }[]).map(({ mode, label }) => (
             <button key={mode} type="button"
               onClick={() => setLogoColorMode(mode)}
@@ -434,7 +435,7 @@ export default function AdminSettings() {
           ) : (
             <img src={customLogo ?? '/logosemo-3.png'} alt="Logo preview" style={{
               height: 48,
-              filter: logoColorMode === 'white' ? 'brightness(0) invert(1)' : logoColorMode === 'black' ? 'brightness(0)' : 'none',
+              filter: logoColorMode === 'white' ? 'brightness(0) invert(1)' : logoColorMode === 'black' ? 'brightness(0)' : logoColorMode === 'invert' ? 'invert(1)' : 'none',
             }} />
           )}
         </div>
