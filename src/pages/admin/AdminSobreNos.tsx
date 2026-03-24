@@ -34,7 +34,9 @@ export default function AdminSobreNos() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState<boolean[]>([false, false, false, false]);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const galleryRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   function setHero(field: keyof SobreNosContent['hero'], value: string) {
     setForm((f) => ({ ...f, hero: { ...f.hero, [field]: value } }));
@@ -100,6 +102,38 @@ export default function AdminSobreNos() {
     };
     reader.readAsDataURL(file);
     e.target.value = '';
+  }
+
+  async function handleGalleryUpload(idx: number, file: File) {
+    setUploadingGallery((prev) => { const n = [...prev]; n[idx] = true; return n; });
+    try {
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          let src = ev.target?.result as string;
+          src = await uploadImage(src);
+          if (src.startsWith('data:')) src = await compressImage(src);
+          setForm((f) => {
+            const imgs = [...(f.collective.galleryImages ?? ['', '', '', ''])] as [string, string, string, string];
+            imgs[idx] = src;
+            return { ...f, collective: { ...f.collective, galleryImages: imgs } };
+          });
+        } finally {
+          setUploadingGallery((prev) => { const n = [...prev]; n[idx] = false; return n; });
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploadingGallery((prev) => { const n = [...prev]; n[idx] = false; return n; });
+    }
+  }
+
+  function clearGalleryImage(idx: number) {
+    setForm((f) => {
+      const imgs = [...(f.collective.galleryImages ?? ['', '', '', ''])] as [string, string, string, string];
+      imgs[idx] = '';
+      return { ...f, collective: { ...f.collective, galleryImages: imgs } };
+    });
   }
 
   async function handleSave() {
@@ -285,6 +319,53 @@ export default function AdminSobreNos() {
                     onChange={handleImageUpload}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* ── 4 fotos menores ── */}
+            <div>
+              <label className={labelCls}>4 Fotos Menores (abaixo da foto principal)</label>
+              <div className="grid grid-cols-4 gap-2">
+                {([0, 1, 2, 3] as const).map((idx) => {
+                  const img = form.collective.galleryImages?.[idx] ?? '';
+                  return (
+                    <div key={idx} className="relative aspect-square">
+                      {img ? (
+                        <>
+                          <img src={img} alt={`Galeria ${idx + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => clearGalleryImage(idx)}
+                            className="absolute top-1 right-1 bg-black/70 text-white w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                          >✕</button>
+                        </>
+                      ) : (
+                        <div
+                          className="w-full h-full border border-dashed border-white/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-white/40 transition-colors"
+                          onClick={() => galleryRefs.current[idx]?.click()}
+                        >
+                          {uploadingGallery[idx] ? (
+                            <span className="font-body text-[9px] text-white/30">...</span>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span className="font-body text-[9px] text-white/20">{idx + 1}</span>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      <input
+                        ref={(el) => { galleryRefs.current[idx] = el; }}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleGalleryUpload(idx, f); e.target.value = ''; }}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

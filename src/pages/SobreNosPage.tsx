@@ -57,7 +57,7 @@ export default function SobreNosPage() {
             </Link>
           </div>
 
-          {/* Studio image */}
+          {/* Studio image + gallery */}
           <div className="relative">
             <div className={`aspect-[3/4] bg-zinc-800 overflow-hidden flex items-center justify-center ml-auto ${
               collective.imageSize === 'sm'   ? 'max-w-xs w-full' :
@@ -81,6 +81,19 @@ export default function SobreNosPage() {
               <p className="mt-2 text-right font-body text-[10px] tracking-widest uppercase text-ink-500">
                 {collective.imageCaption}
               </p>
+            )}
+
+            {/* 4 smaller gallery photos */}
+            {collective.galleryImages?.some(Boolean) && (
+              <div className="grid grid-cols-4 gap-1 mt-2 ml-auto max-w-sm w-full">
+                {collective.galleryImages.map((img, i) =>
+                  img ? (
+                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden">
+                      <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ) : null
+                )}
+              </div>
             )}
           </div>
         </div>

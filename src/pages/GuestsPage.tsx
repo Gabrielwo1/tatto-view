@@ -97,35 +97,64 @@ export default function GuestsPage() {
 
       </section>
 
-      {/* ── SHOWCASE (título + imagem grande + 4 fotos) ────────────────────── */}
+      {/* ── SHOWCASE (mesmo layout que Próximo Guest) ───────────────────────── */}
       {(gc.showcase?.title || gc.showcase?.heroImage || gc.showcase?.galleryImages?.some(Boolean)) && (
         <section className="px-6 lg:px-10 py-20 md:py-24 border-b border-white/8">
           <div className="max-w-5xl mx-auto">
 
-            {gc.showcase.title && (
-              <Fade>
-                <h2 className="font-display text-[clamp(2.5rem,8vw,6rem)] uppercase leading-none tracking-tight text-white mb-10 whitespace-pre-line">
-                  {gc.showcase.title}
-                </h2>
-              </Fade>
-            )}
+            {/* Cabeçalho */}
+            <Fade>
+              <div className="mb-14">
+                <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-3"
+                   style={{ color: 'rgb(var(--ink-500))' }}>
+                  Próximo Guest
+                </p>
+              </div>
+            </Fade>
 
-            {gc.showcase.heroImage && (
+            {/* Foto + cartão preto */}
+            {(gc.showcase.heroImage || gc.showcase.title) && (
               <Fade delay={60}>
-                <div className="w-full overflow-hidden mb-3" style={{ maxHeight: 560 }}>
-                  <img
-                    src={gc.showcase.heroImage}
-                    alt="Showcase"
-                    className="w-full object-cover hover:scale-105 transition-transform duration-700"
-                    style={{ maxHeight: 560 }}
-                  />
+                <div className="grid md:grid-cols-2 gap-px bg-white/8 mb-3">
+                  {/* Foto */}
+                  <div className="relative bg-zinc-950 aspect-[4/5] overflow-hidden">
+                    {gc.showcase.heroImage ? (
+                      <img
+                        src={gc.showcase.heroImage}
+                        alt="Showcase"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/10">
+                        <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.75}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909" />
+                        </svg>
+                      </div>
+                    )}
+                    <Watermark logoSrc={logoSrc} />
+                  </div>
+
+                  {/* Cartão preto */}
+                  <div className="bg-black p-8 md:p-12 flex flex-col justify-center">
+                    {gc.showcase.title && (
+                      <>
+                        <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-3">
+                          Artista Convidado
+                        </p>
+                        <h3 className="font-display text-3xl md:text-4xl uppercase tracking-tight text-white leading-none whitespace-pre-line">
+                          {gc.showcase.title}
+                        </h3>
+                      </>
+                    )}
+                  </div>
                 </div>
               </Fade>
             )}
 
+            {/* Galeria — 4 fotos */}
             {gc.showcase.galleryImages?.some(Boolean) && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8">
-                {gc.showcase.galleryImages.map((img, i) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8 mt-3">
+                {gc.showcase.galleryImages.slice(0, 4).map((img, i) => (
                   <Fade key={i} delay={i * 50}>
                     <div className="bg-zinc-950 aspect-square overflow-hidden">
                       {img ? (
@@ -214,10 +243,10 @@ export default function GuestsPage() {
               </Fade>
             )}
 
-            {/* Portfolio de trabalhos */}
+            {/* Portfolio de trabalhos — 4 fotos */}
             {gc.nextGuest?.portfolioImages?.some(Boolean) && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-white/8 mt-3">
-                {(gc.nextGuest?.portfolioImages ?? []).map((img, i) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8 mt-3">
+                {(gc.nextGuest?.portfolioImages ?? []).slice(0, 4).map((img, i) => (
                   <Fade key={i} delay={i * 40}>
                     <div className="relative bg-zinc-950 aspect-square overflow-hidden">
                       {img ? (

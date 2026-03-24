@@ -36,7 +36,7 @@ export default function ArtistDetailPage() {
         <img
           src={artist.photoUrl}
           alt={artist.name}
-          className="w-28 h-28 object-cover flex-shrink-0"
+          className="w-56 h-56 object-cover flex-shrink-0"
         />
         <div className="flex-1">
           <h1 className="font-display text-4xl text-white uppercase tracking-wide mb-2">{artist.name}</h1>
