@@ -8,13 +8,18 @@
 ALTER TABLE artists ADD COLUMN IF NOT EXISTS auth_user_id UUID UNIQUE;
 
 -- ── PASSO 2: Criar tabela de perfis de usuário ─────────────────────────────
--- Vincula cada usuário do Supabase Auth a um papel (admin ou artista)
+-- Vincula cada usuário do Supabase Auth a um papel (admin, artist ou merch_manager)
 CREATE TABLE IF NOT EXISTS user_profiles (
   id         UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  role       TEXT NOT NULL CHECK (role IN ('admin', 'artist')),
+  role       TEXT NOT NULL CHECK (role IN ('admin', 'artist', 'merch_manager')),
   artist_id  TEXT REFERENCES artists(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Se a tabela já existe com o CHECK antigo, atualize o constraint:
+-- ALTER TABLE user_profiles DROP CONSTRAINT IF EXISTS user_profiles_role_check;
+-- ALTER TABLE user_profiles ADD CONSTRAINT user_profiles_role_check
+--   CHECK (role IN ('admin', 'artist', 'merch_manager'));
 
 -- ── PASSO 3: Políticas de segurança para user_profiles ────────────────────
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -24,9 +29,6 @@ CREATE POLICY "users_read_own_profile" ON user_profiles
   FOR SELECT USING (auth.uid() = id);
 
 -- ── PASSO 4: Atualizar políticas RLS da tabela artists ─────────────────────
--- Leitura pública (site público continua funcionando)
--- Escrita restrita: admin escreve tudo; artista só atualiza o próprio perfil
-
 DROP POLICY IF EXISTS "public_all" ON artists;
 
 CREATE POLICY "artists_public_read" ON artists
@@ -49,8 +51,6 @@ CREATE POLICY "artists_admin_delete" ON artists
   );
 
 -- ── PASSO 5: Atualizar políticas RLS da tabela tattoos ────────────────────
--- Leitura pública; escrita restrita ao dono da tattoo ou admin
-
 DROP POLICY IF EXISTS "public_all" ON tattoos;
 
 CREATE POLICY "tattoos_public_read" ON tattoos
@@ -58,10 +58,8 @@ CREATE POLICY "tattoos_public_read" ON tattoos
 
 CREATE POLICY "tattoos_insert" ON tattoos
   FOR INSERT WITH CHECK (
-    -- Admin pode inserir qualquer tattoo
     EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'admin')
     OR
-    -- Artista só pode inserir com seu próprio artist_id
     EXISTS (
       SELECT 1 FROM artists a
       WHERE a.id = artist_id AND a.auth_user_id = auth.uid()
@@ -88,56 +86,89 @@ CREATE POLICY "tattoos_delete" ON tattoos
     )
   );
 
+-- ── PASSO 6: Políticas RLS da tabela merchs ───────────────────────────────
+-- Admin e merch_manager podem gerenciar merchs; leitura pública
+
+DROP POLICY IF EXISTS "public_all" ON merchs;
+DROP POLICY IF EXISTS "merchs_public_read" ON merchs;
+DROP POLICY IF EXISTS "merchs_write" ON merchs;
+
+CREATE POLICY "merchs_public_read" ON merchs
+  FOR SELECT USING (true);
+
+CREATE POLICY "merchs_insert" ON merchs
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM user_profiles
+      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager')
+    )
+  );
+
+CREATE POLICY "merchs_update" ON merchs
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles
+      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager')
+    )
+  );
+
+CREATE POLICY "merchs_delete" ON merchs
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles
+      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager')
+    )
+  );
+
 -- ══════════════════════════════════════════════════════════════════════════
--- PASSO 6: Rodar DEPOIS de criar os usuários no Supabase Auth Dashboard
+-- PASSO 7: Criar usuários no Supabase e vincular perfis
 --
 -- Instruções:
--- 1. Vá em Authentication → Users → Add user
--- 2. Crie cada usuário com email e senha
+-- 1. Vá em Authentication → Users → Invite user
+-- 2. Informe o email de cada pessoa — elas receberão um link para definir a senha
 -- 3. Copie o UUID de cada usuário criado
--- 4. Substitua os valores abaixo e execute
+-- 4. Substitua os UUIDs abaixo e execute este bloco
+--
+-- FLUXO DE SENHA: cada usuário recebe um email de invite e define a própria senha.
+-- Para trocar a senha no futuro: "Esqueci minha senha" na tela de login → email de reset.
 -- ══════════════════════════════════════════════════════════════════════════
 
--- Super Admin (usuário ADMIN)
--- Substitua 'COLE-O-UUID-DO-ADMIN-AQUI' pelo UUID do usuário admin
+-- ── 1. Super Admin — Braian Otovicz (braianoto@gmail.com) ─────────────────
 -- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-O-UUID-DO-ADMIN-AQUI', 'admin', NULL);
+-- VALUES ('COLE-UUID-BRAIAN-AQUI', 'admin', NULL);
 
--- Artistas — substitua cada UUID pelo UUID criado no Supabase Auth
--- e confirme os artist_id correspondentes na tabela artists
-
--- Braian Otovicz
+-- ── 2. Artista — Luiz Balestro (luizbalestro@gmail.com) ──────────────────
+-- Confirme o ID do Luiz em Table Editor → artists → coluna id
 -- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-UUID-BRAIAN-AQUI', 'artist', 'artist-1');
--- UPDATE artists SET auth_user_id = 'COLE-UUID-BRAIAN-AQUI' WHERE id = 'artist-1';
+-- VALUES ('COLE-UUID-LUIZ-AQUI', 'artist', 'COLE-ID-LUIZ-AQUI');
+-- UPDATE artists SET auth_user_id = 'COLE-UUID-LUIZ-AQUI' WHERE id = 'COLE-ID-LUIZ-AQUI';
 
--- Luiz Balestro
+-- ── 3. Artista — Matheus Zatta de Oliveira (Matheus_oliveira32@hotmail.com)
 -- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-UUID-LUIZ-AQUI', 'artist', 'artist-2');
--- UPDATE artists SET auth_user_id = 'COLE-UUID-LUIZ-AQUI' WHERE id = 'artist-2';
+-- VALUES ('COLE-UUID-MATHEUS-AQUI', 'artist', 'COLE-ID-MATHEUS-AQUI');
+-- UPDATE artists SET auth_user_id = 'COLE-UUID-MATHEUS-AQUI' WHERE id = 'COLE-ID-MATHEUS-AQUI';
 
--- Matheus de Oliveira
+-- ── 4. Artista — Ana Biasi (anabiasi2012@gmail.com) ───────────────────────
 -- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-UUID-MATHEUS-AQUI', 'artist', 'artist-3');
--- UPDATE artists SET auth_user_id = 'COLE-UUID-MATHEUS-AQUI' WHERE id = 'artist-3';
+-- VALUES ('COLE-UUID-ANA-AQUI', 'artist', 'COLE-ID-ANA-AQUI');
+-- UPDATE artists SET auth_user_id = 'COLE-UUID-ANA-AQUI' WHERE id = 'COLE-ID-ANA-AQUI';
 
--- Ana Biasi
+-- ── 5. Artista — João Victor (joaovitor.mm47@gmail.com) ──────────────────
 -- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-UUID-ANA-AQUI', 'artist', 'artist-4');
--- UPDATE artists SET auth_user_id = 'COLE-UUID-ANA-AQUI' WHERE id = 'artist-4';
+-- VALUES ('COLE-UUID-JOAO-AQUI', 'artist', 'COLE-ID-JOAO-AQUI');
+-- UPDATE artists SET auth_user_id = 'COLE-UUID-JOAO-AQUI' WHERE id = 'COLE-ID-JOAO-AQUI';
 
--- João Vitor
+-- ── 6. Artista — Marlon Alexsandro Tortora (marlito0404@gmail.com) ────────
 -- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-UUID-JOAO-AQUI', 'artist', 'artist-5');
--- UPDATE artists SET auth_user_id = 'COLE-UUID-JOAO-AQUI' WHERE id = 'artist-5';
+-- VALUES ('COLE-UUID-MARLON-AQUI', 'artist', 'COLE-ID-MARLON-AQUI');
+-- UPDATE artists SET auth_user_id = 'COLE-UUID-MARLON-AQUI' WHERE id = 'COLE-ID-MARLON-AQUI';
 
--- Marlon Torture
--- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-UUID-MARLON-AQUI', 'artist', 'artist-6');
--- UPDATE artists SET auth_user_id = 'COLE-UUID-MARLON-AQUI' WHERE id = 'artist-6';
-
--- Dionatan Lacerda
--- ATENÇÃO: Confirme o ID do Dionatan em Table Editor → artists → coluna id
+-- ── 7. Artista — Dionatan Lacerda (dk2dionatan@gmail.com) ────────────────
 -- INSERT INTO user_profiles (id, role, artist_id)
 -- VALUES ('COLE-UUID-DIONATAN-AQUI', 'artist', 'COLE-ID-DIONATAN-AQUI');
 -- UPDATE artists SET auth_user_id = 'COLE-UUID-DIONATAN-AQUI' WHERE id = 'COLE-ID-DIONATAN-AQUI';
+
+-- ── 8. Gerente de Loja — Gustavo Pacheco (gustavo_tres@hotmail.com) ───────
+-- Não precisa de artist_id (não é artista)
+-- INSERT INTO user_profiles (id, role, artist_id)
+-- VALUES ('COLE-UUID-GUSTAVO-AQUI', 'merch_manager', NULL);
