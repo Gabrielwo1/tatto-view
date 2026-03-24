@@ -567,6 +567,9 @@ interface AppState {
   /** Custom logo image URL. null = use default /logosemo-3.png */
   customLogo: string | null;
   setCustomLogo: (url: string | null) => void;
+  /** Styles hidden from the showcase filter. Empty = all visible. */
+  hiddenStyles: string[];
+  setHiddenStyles: (styles: string[]) => void;
   /** Events page content editable by admin */
   eventsContent: EventsContent;
   setEventsContent: (content: EventsContent) => void;
@@ -648,6 +651,12 @@ export const useStore = create<AppState>()(
         set({ customLogo: url });
         supabase?.from('site_config').upsert({ key: 'customLogo', value: url, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setCustomLogo:', error); });
+      },
+      hiddenStyles: [],
+      setHiddenStyles: (styles) => {
+        set({ hiddenStyles: styles });
+        supabase?.from('site_config').upsert({ key: 'hiddenStyles', value: styles, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setHiddenStyles:', error); });
       },
       eventsContent: defaultEventsContent,
       setEventsContent: (content) => {
@@ -782,6 +791,7 @@ export const useStore = create<AppState>()(
             } : {}),
             ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
             ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
+            ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             dataLoaded: true,
           });
         } catch (err) {

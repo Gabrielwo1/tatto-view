@@ -4,6 +4,7 @@ import { THEMES, applyTheme, applyCustomColors, generateShades, getThemeForHostn
 import type { ThemeId, LogoColorMode } from '../../lib/themes';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/uploadImage';
+import { TATTOO_STYLES } from '../../types';
 
 const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
@@ -39,6 +40,8 @@ export default function AdminSettings() {
   const setLogoColorMode = useStore((s) => s.setLogoColorMode);
   const customLogo    = useStore((s) => s.customLogo);
   const setCustomLogo = useStore((s) => s.setCustomLogo);
+  const hiddenStyles    = useStore((s) => s.hiddenStyles);
+  const setHiddenStyles = useStore((s) => s.setHiddenStyles);
 
   const [logoUploading, setLogoUploading] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
@@ -819,6 +822,49 @@ export default function AdminSettings() {
         {fichaSubmissions.length === 0 && tattoos.length === 0 && (
           <p className="font-body text-xs text-gray-700 italic">Nenhuma movimentação registrada ainda.</p>
         )}
+      </section>
+
+      {/* ── Divider ── */}
+      <div className="my-10 border-t border-white/10" />
+
+      {/* ── Estilos da Vitrine ────────────────────────────────────────────── */}
+      <section>
+        <div className="mb-5">
+          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
+            Estilos da Vitrine
+          </h2>
+          <p className="font-body text-xs text-gray-500">
+            Estilos marcados ficam visíveis no filtro público. Estilos sem tatuagens disponíveis são ocultados automaticamente.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {TATTOO_STYLES.map((style) => {
+            const isHidden = hiddenStyles.includes(style);
+            return (
+              <button
+                key={style}
+                type="button"
+                onClick={() => {
+                  setHiddenStyles(
+                    isHidden
+                      ? hiddenStyles.filter((s) => s !== style)
+                      : [...hiddenStyles, style],
+                  );
+                }}
+                className={`px-4 py-2 font-body text-xs font-semibold tracking-widest uppercase transition-all border ${
+                  isHidden
+                    ? 'border-white/10 text-white/25 line-through'
+                    : 'border-white text-white'
+                }`}
+              >
+                {style}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-3 font-body text-[10px] text-gray-600">
+          Clique para ocultar/mostrar um estilo no filtro da vitrine pública.
+        </p>
       </section>
 
       {/* ── Divider ── */}

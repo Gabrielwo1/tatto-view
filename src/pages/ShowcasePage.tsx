@@ -141,11 +141,12 @@ function Lightbox({ entry, onClose }: { entry: LightboxEntry; onClose: () => voi
 export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
+  const hiddenStyles = useStore((s) => s.hiddenStyles);
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
   const [lightbox, setLightbox] = useState<LightboxEntry | null>(null);
   const [lightboxMounted, setLightboxMounted] = useState(false);
 
-  const available = tattoos.filter((t) => t.status === 'available');
+  const available = tattoos.filter((t) => t.status === 'available' && !hiddenStyles.includes(t.style));
 
   const filtered = useMemo(() => {
     const pool =
@@ -154,6 +155,13 @@ export default function ShowcasePage() {
         : available.filter((t) => t.style === selectedStyle);
     return interleaveByArtist(pool);
   }, [available, selectedStyle]);
+
+  // If the currently selected style was hidden, reset to "Todos"
+  useMemo(() => {
+    if (selectedStyle !== 'Todos' && hiddenStyles.includes(selectedStyle)) {
+      setSelectedStyle('Todos');
+    }
+  }, [hiddenStyles, selectedStyle]);
 
   const openLightbox = useCallback((tattoo: Tattoo, artist?: Artist | null) => {
     setLightbox({ tattoo, artist });
@@ -183,7 +191,7 @@ export default function ShowcasePage() {
 
         {/* Style filters */}
         <div className="flex flex-wrap gap-2 mb-10">
-          {['Todos', ...TATTOO_STYLES].map((style) => (
+          {['Todos', ...TATTOO_STYLES.filter((s) => !hiddenStyles.includes(s))].map((style) => (
             <button
               key={style}
               onClick={() => setSelectedStyle(style)}
