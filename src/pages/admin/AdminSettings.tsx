@@ -8,6 +8,54 @@ import { TATTOO_STYLES } from '../../types';
 
 const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
+function StyleVisibilitySection() {
+  const hiddenStyles    = useStore((s) => s.hiddenStyles);
+  const setHiddenStyles = useStore((s) => s.setHiddenStyles);
+
+  function toggle(style: string) {
+    setHiddenStyles(
+      hiddenStyles.includes(style)
+        ? hiddenStyles.filter((s) => s !== style)
+        : [...hiddenStyles, style]
+    );
+  }
+
+  return (
+    <section>
+      <div className="mb-5">
+        <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
+          Estilos da Vitrine
+        </h2>
+        <p className="font-body text-xs text-gray-500">
+          Estilos marcados ficam visíveis no filtro público. Estilos sem tatuagens disponíveis são ocultados automaticamente.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {TATTOO_STYLES.map((style) => {
+          const hidden = hiddenStyles.includes(style);
+          return (
+            <button
+              key={style}
+              type="button"
+              onClick={() => toggle(style)}
+              className={`font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border transition-colors ${
+                hidden
+                  ? 'border-white/10 text-gray-700 line-through hover:border-white/30 hover:text-gray-500'
+                  : 'border-white text-white bg-white/10 hover:bg-white/20'
+              }`}
+            >
+              {style}
+            </button>
+          );
+        })}
+      </div>
+      <p className="font-body text-[10px] text-gray-700 mt-3">
+        Clique para ocultar/mostrar um estilo no filtro da vitrine pública.
+      </p>
+    </section>
+  );
+}
+
 /** Renders a 10-stop shade strip from a hex color */
 function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string }) {
   const shades = generateShades(hex, prefix);
@@ -507,6 +555,12 @@ export default function AdminSettings() {
       {/* ── Divider ── */}
       <div className="my-10 border-t border-white/10" />
 
+      {/* ── Estilos visíveis na Vitrine ──────────────────────────────────── */}
+      <StyleVisibilitySection />
+
+      {/* ── Divider ── */}
+      <div className="my-10 border-t border-white/10" />
+
       {/* ── Identificação ────────────────────────────────────────────────── */}
       <section>
         <div className="mb-5">
@@ -640,7 +694,7 @@ export default function AdminSettings() {
             { section: 'Vitrine',           label: 'Arquivadas',          value: archivedTattoos },
             { section: 'Vitrine',           label: 'Estilos',             value: styleSet.size },
             { section: 'Artistas',          label: 'Artistas',            value: artists.length },
-            { section: 'Merchs',            label: 'Merchs',              value: merchs.length },
+            { section: 'Merchs',            label: 'Loja',                value: merchs.length },
           ];
           return (
             <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 mb-6">

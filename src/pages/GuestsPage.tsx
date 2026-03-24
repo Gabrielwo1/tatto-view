@@ -97,37 +97,89 @@ export default function GuestsPage() {
 
       </section>
 
-      {/* ── SHOWCASE (título + imagem grande + 4 fotos) ────────────────────── */}
-      {(gc.showcase?.title || gc.showcase?.heroImage || gc.showcase?.galleryImages?.some(Boolean)) && (
+      {/* ── SHOWCASE ────────────────────────────────────────────────────────── */}
+      {(gc.showcase?.sectionTitle || gc.showcase?.guestName || gc.showcase?.heroImage || gc.showcase?.galleryImages?.some(Boolean)) && (
         <section className="px-6 lg:px-10 py-20 md:py-24 border-b border-white/8">
           <div className="max-w-5xl mx-auto">
 
-            {gc.showcase.title && (
-              <Fade>
-                <h2 className="font-display text-[clamp(2.5rem,8vw,6rem)] uppercase leading-none tracking-tight text-white mb-10 whitespace-pre-line">
-                  {gc.showcase.title}
+            {/* Cabeçalho da chamada */}
+            <Fade>
+              <div className="mb-14">
+                <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase mb-3"
+                   style={{ color: 'rgb(var(--ink-500))' }}>
+                  Guest Artist
+                </p>
+                <h2 className="font-display text-[clamp(2.5rem,8vw,5.5rem)] uppercase leading-none tracking-tight text-white mb-4">
+                  {gc.showcase.sectionTitle}
                 </h2>
-              </Fade>
-            )}
+                {gc.showcase.sectionSubtitle && (
+                  <p className="font-body text-sm text-white/40 max-w-lg leading-relaxed">
+                    {gc.showcase.sectionSubtitle}
+                  </p>
+                )}
+              </div>
+            </Fade>
 
-            {gc.showcase.heroImage && (
+            {/* Foto + descrição */}
+            {(gc.showcase.heroImage || gc.showcase.guestName || gc.showcase.guestDescription) && (
               <Fade delay={60}>
-                <div className="w-full overflow-hidden mb-3" style={{ maxHeight: 560 }}>
-                  <img
-                    src={gc.showcase.heroImage}
-                    alt="Showcase"
-                    className="w-full object-cover hover:scale-105 transition-transform duration-700"
-                    style={{ maxHeight: 560 }}
-                  />
+                <div className="grid md:grid-cols-2 gap-px bg-white/8 mb-3">
+                  {/* Foto */}
+                  <div className="relative bg-zinc-950 aspect-[4/5] overflow-hidden">
+                    {gc.showcase.heroImage ? (
+                      <img
+                        src={gc.showcase.heroImage}
+                        alt={gc.showcase.guestName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/10">
+                        <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.75}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                      </div>
+                    )}
+                    <Watermark logoSrc={logoSrc} />
+                  </div>
+
+                  {/* Descrição */}
+                  <div className="bg-black p-8 md:p-12 flex flex-col justify-center">
+                    {gc.showcase.guestName && (
+                      <p className="font-body text-[10px] font-semibold tracking-[0.4em] uppercase text-white/30 mb-3">
+                        Artista Convidado
+                      </p>
+                    )}
+                    {gc.showcase.guestName && (
+                      <h3 className="font-display text-3xl md:text-4xl uppercase tracking-tight text-white leading-none mb-6">
+                        {gc.showcase.guestName}
+                      </h3>
+                    )}
+                    {gc.showcase.guestDescription && (
+                      <p className="font-body text-sm text-white/50 leading-relaxed whitespace-pre-line">
+                        {gc.showcase.guestDescription}
+                      </p>
+                    )}
+                    {gc.showcase.instagramHandle && (
+                      <a
+                        href={`https://instagram.com/${gc.showcase.instagramHandle.replace(/^@/, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-6 inline-block font-body text-sm font-semibold tracking-widest text-white/60 hover:text-white transition-colors"
+                      >
+                        @{gc.showcase.instagramHandle.replace(/^@/, '')}
+                      </a>
+                    )}
+                  </div>
                 </div>
               </Fade>
             )}
 
+            {/* Galeria — 4 fotos */}
             {gc.showcase.galleryImages?.some(Boolean) && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8">
-                {gc.showcase.galleryImages.map((img, i) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8 mt-3">
+                {gc.showcase.galleryImages.slice(0, 4).map((img, i) => (
                   <Fade key={i} delay={i * 50}>
-                    <div className="bg-zinc-950 aspect-square overflow-hidden">
+                    <div className="relative bg-zinc-950 aspect-square overflow-hidden">
                       {img ? (
                         <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                       ) : (
@@ -209,15 +261,25 @@ export default function GuestsPage() {
                         {gc.nextGuest.guestDescription}
                       </p>
                     )}
+                    {gc.nextGuest.instagramHandle && (
+                      <a
+                        href={`https://instagram.com/${gc.nextGuest.instagramHandle.replace(/^@/, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-6 inline-block font-body text-sm font-semibold tracking-widest text-white/60 hover:text-white transition-colors"
+                      >
+                        @{gc.nextGuest.instagramHandle.replace(/^@/, '')}
+                      </a>
+                    )}
                   </div>
                 </div>
               </Fade>
             )}
 
-            {/* Portfolio de trabalhos */}
+            {/* Portfolio de trabalhos — 4 fotos */}
             {gc.nextGuest?.portfolioImages?.some(Boolean) && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-white/8 mt-3">
-                {(gc.nextGuest?.portfolioImages ?? []).map((img, i) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/8 mt-3">
+                {(gc.nextGuest?.portfolioImages ?? []).slice(0, 4).map((img, i) => (
                   <Fade key={i} delay={i * 40}>
                     <div className="relative bg-zinc-950 aspect-square overflow-hidden">
                       {img ? (
@@ -229,7 +291,6 @@ export default function GuestsPage() {
                           </svg>
                         </div>
                       )}
-                      {img && <Watermark logoSrc={logoSrc} />}
                     </div>
                   </Fade>
                 ))}

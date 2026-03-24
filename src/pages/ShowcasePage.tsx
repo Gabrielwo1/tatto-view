@@ -31,7 +31,6 @@ function interleaveByArtist(tattoos: Tattoo[]): Tattoo[] {
   return result;
 }
 
-/* ── Lightbox ──────────────────────────────────────────────────────────────── */
 /* ── Main page ─────────────────────────────────────────────────────────────── */
 export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
@@ -41,6 +40,12 @@ export default function ShowcasePage() {
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
   const available = tattoos.filter((t) => t.status === 'available' && !hiddenStyles.includes(t.style));
+
+  // Show styles that are not hidden by admin (admin config is the source of truth)
+  const activeStyles = useMemo(
+    () => TATTOO_STYLES.filter(s => !hiddenStyles.includes(s)),
+    [hiddenStyles]
+  );
 
   const filtered = useMemo(() => {
     const pool =
@@ -75,7 +80,7 @@ export default function ShowcasePage() {
 
         {/* Style filters */}
         <div className="flex flex-wrap gap-2 mb-10">
-          {['Todos', ...TATTOO_STYLES.filter((s) => !hiddenStyles.includes(s))].map((style) => (
+          {['Todos', ...activeStyles].map((style) => (
             <button
               key={style}
               onClick={() => setSelectedStyle(style)}

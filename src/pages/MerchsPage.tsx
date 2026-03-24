@@ -146,7 +146,7 @@ export default function MerchsPage() {
       <div className="flex items-end justify-between mb-10">
         <div>
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Loja</p>
-          <h1 className="font-display text-5xl uppercase tracking-wide leading-none">Merchs</h1>
+          <h1 className="font-display text-5xl uppercase tracking-wide leading-none">Loja</h1>
         </div>
         {isAdmin && (
           <button

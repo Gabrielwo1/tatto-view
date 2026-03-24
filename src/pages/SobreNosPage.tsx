@@ -3,7 +3,6 @@ import { useStore } from '../store';
 
 export default function SobreNosPage() {
   const c = useStore((s) => s.sobreNosContent);
-  const artists = useStore((s) => s.artists);
   const { hero, collective, quote, studio, contact } = c;
 
   const mapAddress = encodeURIComponent([studio.street, studio.city, studio.cep].filter(Boolean).join(', '));
@@ -40,7 +39,7 @@ export default function SobreNosPage() {
       {/* ── WHO WE ARE ───────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-20 py-20 lg:py-32">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
-          {/* Text + photos grid */}
+          {/* Text + gallery photos — flex column so gallery aligns to bottom */}
           <div className="flex flex-col">
             <div>
               <h2 className="font-display text-4xl lg:text-5xl uppercase tracking-wide mb-8">
@@ -59,21 +58,16 @@ export default function SobreNosPage() {
               </Link>
             </div>
 
-            {/* 8 artist photos — pushed to the bottom to align with the large photo */}
-            {artists.length > 0 && (
+            {/* 8 gallery photos — pushed to the bottom to align with the large photo */}
+            {collective.galleryImages?.some(Boolean) && (
               <div className="mt-auto pt-10 grid grid-cols-4 gap-1.5">
-                {artists.slice(0, 8).map((artist) => (
-                  <div key={artist.id} className="aspect-square overflow-hidden bg-zinc-800">
-                    <img
-                      src={artist.photoUrl}
-                      alt={artist.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/200/200`;
-                      }}
-                    />
-                  </div>
-                ))}
+                {collective.galleryImages.map((img, i) =>
+                  img ? (
+                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden">
+                      <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ) : null
+                )}
               </div>
             )}
           </div>
