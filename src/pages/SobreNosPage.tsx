@@ -3,6 +3,7 @@ import { useStore } from '../store';
 
 export default function SobreNosPage() {
   const c = useStore((s) => s.sobreNosContent);
+  const artists = useStore((s) => s.artists);
   const { hero, collective, quote, studio, contact } = c;
 
   const mapAddress = encodeURIComponent([studio.street, studio.city, studio.cep].filter(Boolean).join(', '));
@@ -38,23 +39,43 @@ export default function SobreNosPage() {
 
       {/* ── WHO WE ARE ───────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-20 py-20 lg:py-32">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-          {/* Text */}
-          <div>
-            <h2 className="font-display text-4xl lg:text-5xl uppercase tracking-wide mb-8">
-              {collective.title}
-            </h2>
-            <div className="space-y-5 text-white/60 font-body text-sm leading-relaxed">
-              <p>{collective.body1}</p>
-              <p>{collective.body2}</p>
-              {collective.body3 && <p>{collective.body3}</p>}
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+          {/* Text + photos grid */}
+          <div className="flex flex-col">
+            <div>
+              <h2 className="font-display text-4xl lg:text-5xl uppercase tracking-wide mb-8">
+                {collective.title}
+              </h2>
+              <div className="space-y-5 text-white/60 font-body text-sm leading-relaxed">
+                <p>{collective.body1}</p>
+                <p>{collective.body2}</p>
+                {collective.body3 && <p>{collective.body3}</p>}
+              </div>
+              <Link
+                to="/artistas"
+                className="inline-block mt-8 px-6 py-3 border border-white/30 font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
+              >
+                {collective.ctaLabel}
+              </Link>
             </div>
-            <Link
-              to="/artistas"
-              className="inline-block mt-8 px-6 py-3 border border-white/30 font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
-            >
-              {collective.ctaLabel}
-            </Link>
+
+            {/* 8 artist photos — pushed to the bottom to align with the large photo */}
+            {artists.length > 0 && (
+              <div className="mt-auto pt-10 grid grid-cols-4 gap-1.5">
+                {artists.slice(0, 8).map((artist) => (
+                  <div key={artist.id} className="aspect-square overflow-hidden bg-zinc-800">
+                    <img
+                      src={artist.photoUrl}
+                      alt={artist.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/200/200`;
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Studio image */}
