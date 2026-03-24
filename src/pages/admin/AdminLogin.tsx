@@ -3,18 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 
 export default function AdminLogin() {
-  const login   = useStore((s) => s.login);
-  const isAdmin = useStore((s) => s.isAdmin);
-  const isArtist = useStore((s) => s.isArtist);
-  const navigate = useNavigate();
+  const login          = useStore((s) => s.login);
+  const isAdmin        = useStore((s) => s.isAdmin);
+  const isArtist       = useStore((s) => s.isArtist);
+  const isMerchManager = useStore((s) => s.isMerchManager);
+  const navigate       = useNavigate();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
-  if (isAdmin)  { navigate('/admin/dashboard',  { replace: true }); return null; }
-  if (isArtist) { navigate('/admin/tatuagens', { replace: true }); return null; }
+  if (isAdmin)        { navigate('/admin/dashboard',  { replace: true }); return null; }
+  if (isArtist)       { navigate('/admin/tatuagens',  { replace: true }); return null; }
+  if (isMerchManager) { navigate('/admin/merchs',     { replace: true }); return null; }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

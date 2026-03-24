@@ -4,6 +4,15 @@ import { useStore } from '../store';
 
 const navItems = [
   {
+    to: '/admin/merchs',
+    label: 'Loja',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+    ),
+  },
+  {
     to: '/admin/dashboard',
     label: 'Dashboard',
     icon: (
@@ -132,11 +141,15 @@ const adminOnlyItems = [
 // Item shown only to artists (not admin)
 const artistOnlyItem = '/admin/meu-perfil';
 
+// Item shown only to merch managers and admins (hidden from artists)
+const merchItem = '/admin/merchs';
+
 export default function AdminLayout() {
-  const logout    = useStore((s) => s.logout);
-  const isAdmin   = useStore((s) => s.isAdmin);
-  const isArtist  = useStore((s) => s.isArtist);
-  const navigate  = useNavigate();
+  const logout          = useStore((s) => s.logout);
+  const isAdmin         = useStore((s) => s.isAdmin);
+  const isArtist        = useStore((s) => s.isArtist);
+  const isMerchManager  = useStore((s) => s.isMerchManager);
+  const navigate        = useNavigate();
   const location  = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -147,7 +160,8 @@ export default function AdminLayout() {
 
   function visibleItems() {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
-    if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to));
+    if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && item.to !== merchItem);
+    if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
     return [];
   }
 

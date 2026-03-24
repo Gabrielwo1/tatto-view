@@ -16,6 +16,7 @@ import AdminTattooForm from './pages/admin/AdminTattooForm';
 import AdminArtists from './pages/admin/AdminArtists';
 import AdminArtistForm from './pages/admin/AdminArtistForm';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminMerchs from './pages/admin/AdminMerchs';
 import AdminGuestPage from './pages/admin/AdminGuestPage';
 import AdminEventsPage from './pages/admin/AdminEventsPage';
 import GuestsPage from './pages/GuestsPage';
@@ -51,12 +52,23 @@ function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isArtist = useStore((state) => state.isArtist);
-  if (!isAdmin && !isArtist) return <Navigate to="/admin/login" replace />;
+  const isMerchManager = useStore((state) => state.isMerchManager);
+  if (!isAdmin && !isArtist && !isMerchManager) return <Navigate to="/admin/login" replace />;
+  return <>{children}</>;
+}
+
+// Allows admin or merch manager only
+function ProtectedMerchRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = useStore((state) => state.isAdmin);
+  const isMerchManager = useStore((state) => state.isMerchManager);
+  if (!isAdmin && !isMerchManager) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
 
 function AdminIndexRedirect() {
   const isAdmin = useStore((state) => state.isAdmin);
+  const isMerchManager = useStore((state) => state.isMerchManager);
+  if (isMerchManager) return <Navigate to="/admin/merchs" replace />;
   return <Navigate to={isAdmin ? '/admin/dashboard' : '/admin/tatuagens'} replace />;
 }
 
@@ -215,6 +227,9 @@ export default function App() {
           <Route path="tatuagens/nova" element={<AdminTattooForm />} />
           <Route path="tatuagens/:id/editar" element={<AdminTattooForm />} />
           <Route path="meu-perfil" element={<AdminMyProfile />} />
+
+          {/* ── Admin and merch manager ── */}
+          <Route path="merchs" element={<ProtectedMerchRoute><AdminMerchs /></ProtectedMerchRoute>} />
 
           {/* ── Admin only ── */}
           <Route path="dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />

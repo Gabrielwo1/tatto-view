@@ -549,6 +549,8 @@ interface AppState {
   artists: Artist[];
   merchs: Merch[];
   isAdmin: boolean;
+  /** True when the logged-in user is a merch manager (not admin or artist). */
+  isMerchManager: boolean;
   /** True once Supabase data has been loaded (or if Supabase is not configured). */
   dataLoaded: boolean;
   /** Theme chosen by the studio admin. null = use subdomain default. */
@@ -619,6 +621,7 @@ export const useStore = create<AppState>()(
       merchs: [],
       isAdmin: false,
       isArtist: false,
+      isMerchManager: false,
       currentArtistId: null,
       dataLoaded: false,
       themeId: null,
@@ -799,9 +802,11 @@ export const useStore = create<AppState>()(
           .single();
         if (!profile) return;
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, currentArtistId: null });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
         } else if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, currentArtistId: profile.artist_id ?? null });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+        } else if (profile.role === 'merch_manager') {
+          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
         }
       },
 
@@ -816,11 +821,15 @@ export const useStore = create<AppState>()(
           .single();
         if (!profile) return false;
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, currentArtistId: null });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
           return true;
         }
         if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, currentArtistId: profile.artist_id ?? null });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+          return true;
+        }
+        if (profile.role === 'merch_manager') {
+          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
           return true;
         }
         return false;
@@ -828,7 +837,7 @@ export const useStore = create<AppState>()(
 
       logout: async () => {
         await supabase?.auth.signOut();
-        set({ isAdmin: false, isArtist: false, currentArtistId: null });
+        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null });
       },
 
       // ── Tattoos ──────────────────────────────────────────────────────────
