@@ -115,6 +115,7 @@ export default function Navbar() {
               { to: '/', label: 'Vitrine', end: true },
               { to: '/artistas', label: 'Artistas', end: false },
               { to: '/guests', label: 'Guests', end: false },
+              { to: '/events', label: 'Events', end: false },
               { to: '/merchs', label: 'Merchs', end: false },
               { to: '/aftercare', label: 'Pós Tattoo', end: false },
               { to: '/sobre-nos', label: 'Sobre Nós', end: false },

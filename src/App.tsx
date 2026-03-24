@@ -17,7 +17,9 @@ import AdminArtists from './pages/admin/AdminArtists';
 import AdminArtistForm from './pages/admin/AdminArtistForm';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminGuestPage from './pages/admin/AdminGuestPage';
+import AdminEventsPage from './pages/admin/AdminEventsPage';
 import GuestsPage from './pages/GuestsPage';
+import EventsPage from './pages/EventsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
 import AftercareePage from './pages/AftercareePage';
@@ -132,6 +134,14 @@ export default function App() {
           }
         />
         <Route
+          path="/events"
+          element={
+            <PublicLayout>
+              <EventsPage />
+            </PublicLayout>
+          }
+        />
+        <Route
           path="/merchs"
           element={
             <PublicLayout>
@@ -189,6 +199,7 @@ export default function App() {
           <Route path="artistas/novo" element={<AdminArtistForm />} />
           <Route path="artistas/:id/editar" element={<AdminArtistForm />} />
           <Route path="guests" element={<AdminGuestPage />} />
+          <Route path="events" element={<AdminEventsPage />} />
           <Route path="aftercare" element={<AdminAftercare />} />
           <Route path="sobre-nos" element={<AdminSobreNos />} />
           <Route path="landing" element={<AdminLandingPage />} />

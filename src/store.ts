@@ -53,6 +53,73 @@ const defaultLandingContent: LandingContent = {
   },
 };
 
+// ── Events Content ───────────────────────────────────────────────────────────
+export interface EventItem {
+  id: string;
+  date: string;       // e.g. "OCT 31"
+  timeLabel: string;  // e.g. "20:00 - LATE" or "3 DAY RESIDENCY"
+  type: string;       // "flash" | "guest" | "workshop" | custom
+  image: string;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaUrl: string;
+}
+
+export interface EventsContent {
+  hero: {
+    tagline: string;
+    title: string;
+    heroImage: string;
+    description: string;
+  };
+  events: EventItem[];
+}
+
+const defaultEventsContent: EventsContent = {
+  hero: {
+    tagline: 'UPCOMING EXPERIENCES',
+    title: 'CULTURE &\nPERMANENCE',
+    heroImage: '',
+    description: "We don't just ink; we curate moments. Join our community events designed for collectors and artists alike.",
+  },
+  events: [
+    {
+      id: 'event-1',
+      date: 'OUT 31',
+      timeLabel: '20:00 - LATE',
+      type: 'flash',
+      image: '',
+      title: 'FLASH DAY: NEON NIGHTS',
+      description: 'Desenhos exclusivos inspirados em cyber-punk disponíveis por uma noite. Por ordem de chegada. DJs convidados e open bar.',
+      ctaLabel: 'SAIBA MAIS',
+      ctaUrl: '',
+    },
+    {
+      id: 'event-2',
+      date: 'NOV 12',
+      timeLabel: 'RESIDÊNCIA 3 DIAS',
+      type: 'guest',
+      image: '',
+      title: 'GUEST SPOT: MARCUS INK',
+      description: 'Mestre do fine-line brutalism visita nosso estúdio. Agendamentos extremamente limitados para projetos de blackwork em grande escala.',
+      ctaLabel: 'SAIBA MAIS',
+      ctaUrl: '',
+    },
+    {
+      id: 'event-3',
+      date: 'DEZ 05',
+      timeLabel: '14:00 - 18:00',
+      type: 'workshop',
+      image: '',
+      title: 'WORKSHOP DE TATUAGEM',
+      description: 'Introdução técnica ao linework de precisão. Aprenda teoria de agulhas e mecânica de máquina em um ambiente prático.',
+      ctaLabel: 'SAIBA MAIS',
+      ctaUrl: '',
+    },
+  ],
+};
+
 // ── Sobre Nós Content ────────────────────────────────────────────────────────
 export interface SobreNosContent {
   hero: {
@@ -495,6 +562,9 @@ interface AppState {
   /** How the logo is colorized. */
   logoColorMode: LogoColorMode;
   setLogoColorMode: (mode: LogoColorMode) => void;
+  /** Events page content editable by admin */
+  eventsContent: EventsContent;
+  setEventsContent: (content: EventsContent) => void;
   /** Landing page content editable by admin */
   landingContent: LandingContent;
   setLandingContent: (content: LandingContent) => void;
@@ -558,6 +628,12 @@ export const useStore = create<AppState>()(
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert({ key: 'logoColorMode', value: mode, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLogoColorMode:', error); });
+      },
+      eventsContent: defaultEventsContent,
+      setEventsContent: (content) => {
+        set({ eventsContent: content });
+        supabase?.from('site_config').upsert({ key: 'eventsContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setEventsContent:', error); });
       },
       landingContent: defaultLandingContent,
       setLandingContent: (content) => {
@@ -639,6 +715,7 @@ export const useStore = create<AppState>()(
             merchs:           (m ?? []).map(toMerch),
             // Always sync fichas from Supabase (source of truth for cross-device)
             ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
+            ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent     ? { guestContent:     config.guestContent     as typeof defaultGuestContent }     : {}),
@@ -798,6 +875,7 @@ export const useStore = create<AppState>()(
         merchs: state.merchs,
         fichaSubmissions: state.fichaSubmissions,
         fichaConfig: state.fichaConfig,
+        eventsContent: state.eventsContent,
         landingContent: state.landingContent,
         sobreNosContent: state.sobreNosContent,
         guestContent: state.guestContent,
@@ -831,6 +909,12 @@ export const useStore = create<AppState>()(
             hero:        { ...current.aftercareContent.hero,        ...ps.aftercareContent?.hero },
             postSession: { ...current.aftercareContent.postSession, ...ps.aftercareContent?.postSession },
             cta:         { ...current.aftercareContent.cta,         ...ps.aftercareContent?.cta },
+          },
+          eventsContent: {
+            ...current.eventsContent,
+            ...ps.eventsContent,
+            hero: { ...current.eventsContent.hero, ...ps.eventsContent?.hero },
+            events: ps.eventsContent?.events ?? current.eventsContent.events,
           },
         };
       },
