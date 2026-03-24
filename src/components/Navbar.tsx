@@ -8,6 +8,8 @@ export default function Navbar() {
   const isAdmin       = useStore((s) => s.isAdmin);
   const logout        = useStore((s) => s.logout);
   const logoColorMode = useStore((s) => s.logoColorMode);
+  const customLogo    = useStore((s) => s.customLogo);
+  const logoSrc       = customLogo ?? '/logosemo-3.png';
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function Navbar() {
                 style={{ height: scrolled ? '40px' : '120px', display: 'inline-block' }}
               >
                 <img
-                  src="/logosemo-3.png"
+                  src={logoSrc}
                   alt="El Dude"
                   className="w-auto h-full object-contain"
                   style={{ filter: 'brightness(0)' }}
@@ -61,7 +63,7 @@ export default function Navbar() {
               </div>
             ) : (
               <img
-                src="/logosemo-3.png"
+                src={logoSrc}
                 alt="El Dude"
                 className="w-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
                 style={{

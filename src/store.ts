@@ -562,6 +562,9 @@ interface AppState {
   /** How the logo is colorized. */
   logoColorMode: LogoColorMode;
   setLogoColorMode: (mode: LogoColorMode) => void;
+  /** Custom logo image URL. null = use default /logosemo-3.png */
+  customLogo: string | null;
+  setCustomLogo: (url: string | null) => void;
   /** Events page content editable by admin */
   eventsContent: EventsContent;
   setEventsContent: (content: EventsContent) => void;
@@ -628,6 +631,12 @@ export const useStore = create<AppState>()(
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert({ key: 'logoColorMode', value: mode, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLogoColorMode:', error); });
+      },
+      customLogo: null,
+      setCustomLogo: (url) => {
+        set({ customLogo: url });
+        supabase?.from('site_config').upsert({ key: 'customLogo', value: url, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setCustomLogo:', error); });
       },
       eventsContent: defaultEventsContent,
       setEventsContent: (content) => {
@@ -751,6 +760,7 @@ export const useStore = create<AppState>()(
               customSecondary: (config.customColors as { secondary: string | null }).secondary ?? null,
             } : {}),
             ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
+            ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
             dataLoaded: true,
           });
         } catch (err) {
@@ -894,6 +904,7 @@ export const useStore = create<AppState>()(
         customPrimary: state.customPrimary,
         customSecondary: state.customSecondary,
         logoColorMode: state.logoColorMode,
+        customLogo: state.customLogo,
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
