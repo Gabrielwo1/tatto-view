@@ -616,7 +616,7 @@ export const useStore = create<AppState>()(
           return;
         }
         try {
-          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs }] =
+          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs, error: fse }] =
             await Promise.all([
               supabase.from('tattoos').select('*').order('created_at', { ascending: false }),
               supabase.from('artists').select('*').order('created_at', { ascending: true }),
@@ -627,6 +627,7 @@ export const useStore = create<AppState>()(
           if (te) throw te;
           if (ae) throw ae;
           if (me) throw me;
+          if (fse) console.error('[store] ficha_submissions load error:', fse);
           // site_config may not exist yet — ignore error silently
           const config: Record<string, unknown> = {};
           if (!cfge && cfg) {
@@ -636,7 +637,8 @@ export const useStore = create<AppState>()(
             tattoos:          (t ?? []).map(toTattoo),
             artists:          (a ?? []).map(toArtist),
             merchs:           (m ?? []).map(toMerch),
-            ...(fs && fs.length > 0 ? { fichaSubmissions: fs.map((r) => r.data as FichaSubmission) } : {}),
+            // Always sync fichas from Supabase (source of truth for cross-device)
+            ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent     ? { guestContent:     config.guestContent     as typeof defaultGuestContent }     : {}),

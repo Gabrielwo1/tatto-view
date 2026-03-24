@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import type { FichaSubmission } from '../../store';
 import { downloadFichaPdf } from '../../lib/fichaPdf';
@@ -6,9 +6,27 @@ import { downloadFichaPdf } from '../../lib/fichaPdf';
 export default function AdminFichaSubmissions() {
   const submissions = useStore((s) => s.fichaSubmissions);
   const deleteFichaSubmission = useStore((s) => s.deleteFichaSubmission);
+  const loadData = useStore((s) => s.loadData);
   const [selected, setSelected] = useState<FichaSubmission | null>(null);
   const [search, setSearch] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+  // Force sync from Supabase when admin opens this page
+  useEffect(() => {
+    handleRefresh();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      await loadData();
+      setLastRefresh(new Date());
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   const filtered = submissions.filter((s) =>
     s.nome.toLowerCase().includes(search.toLowerCase()) ||
@@ -86,6 +104,17 @@ export default function AdminFichaSubmissions() {
             </h1>
             <div className="flex items-center gap-2 pb-0.5">
               <span className="font-body text-xs text-gray-600">{submissions.length} ficha(s)</span>
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                title="Buscar fichas do servidor"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors font-body text-[10px] font-semibold tracking-widest uppercase disabled:opacity-40"
+              >
+                <svg className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {refreshing ? 'Buscando...' : 'Atualizar'}
+              </button>
               {submissions.length > 0 && (
                 <button
                   onClick={exportCSV}
@@ -101,6 +130,11 @@ export default function AdminFichaSubmissions() {
             </div>
           </div>
 
+          {lastRefresh && (
+            <p className="font-body text-[10px] text-gray-700 mt-1.5">
+              Sincronizado às {lastRefresh.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </p>
+          )}
           <input
             type="text"
             value={search}

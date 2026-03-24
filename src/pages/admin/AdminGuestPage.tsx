@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import type { GuestContent } from '../../store';
+import { uploadImage } from '../../lib/uploadImage';
+import { supabase } from '../../lib/supabase';
 
 /* ── small reusable field components ─────────────────────────────────────── */
 function Field({
@@ -71,10 +73,23 @@ export default function AdminGuestPage() {
     setSaved(false);
   }
 
-  function handleSave() {
-    setGuestContent(draft);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  async function handleSave() {
+    try {
+      setGuestContent(draft);
+      if (supabase) {
+        const { error } = await supabase.from('site_config').upsert({
+          key: 'guestContent',
+          value: draft,
+          updated_at: new Date().toISOString(),
+        });
+        if (error) throw error;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error('[AdminGuestPage] save failed:', err);
+      alert('Erro ao salvar no servidor. Verifique sua conexão e tente novamente.');
+    }
   }
 
   function handleReset() {
@@ -123,14 +138,16 @@ export default function AdminGuestPage() {
 
   async function handleGuestImage(file: File) {
     const dataUrl = await readImageFile(file);
-    setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, guestImage: dataUrl } }));
+    const url = await uploadImage(dataUrl);
+    setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, guestImage: url } }));
     setSaved(false);
   }
 
   async function handlePortfolioImage(idx: number, file: File) {
     const dataUrl = await readImageFile(file);
+    const url = await uploadImage(dataUrl);
     const imgs = [...draft.nextGuest.portfolioImages] as [string, string, string, string, string];
-    imgs[idx] = dataUrl;
+    imgs[idx] = url;
     setDraft((prev) => ({ ...prev, nextGuest: { ...prev.nextGuest, portfolioImages: imgs } }));
     setSaved(false);
   }
@@ -156,14 +173,16 @@ export default function AdminGuestPage() {
 
   async function handleShowcaseHero(file: File) {
     const dataUrl = await readImageFile(file);
-    setDraft((p) => ({ ...p, showcase: { ...p.showcase, heroImage: dataUrl } }));
+    const url = await uploadImage(dataUrl);
+    setDraft((p) => ({ ...p, showcase: { ...p.showcase, heroImage: url } }));
     setSaved(false);
   }
 
   async function handleShowcaseGallery(idx: number, file: File) {
     const dataUrl = await readImageFile(file);
+    const url = await uploadImage(dataUrl);
     const imgs = [...(draft.showcase?.galleryImages ?? ['','','',''])] as [string,string,string,string];
-    imgs[idx] = dataUrl;
+    imgs[idx] = url;
     setDraft((p) => ({ ...p, showcase: { ...p.showcase, galleryImages: imgs } }));
     setSaved(false);
   }
@@ -260,12 +279,18 @@ export default function AdminGuestPage() {
             Seção exibida entre o Hero e o Próximo Guest. Título grande + imagem principal + 4 fotos menores.
           </p>
 
-          <Field
-            label="Título grande"
-            value={draft.showcase?.title ?? ''}
-            onChange={(v) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, title: v } }))}
-            placeholder="EL DUDE STUDIO"
-          />
+          <div>
+            <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1.5">
+              Título grande <span className="text-gray-700 normal-case font-normal">(até 5 linhas — use Enter para quebrar)</span>
+            </label>
+            <textarea
+              rows={5}
+              value={draft.showcase?.title ?? ''}
+              onChange={(e) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, title: e.target.value } }))}
+              placeholder={'EL DUDE STUDIO\nProximo Guest:\n@gib.tattooart'}
+              className="w-full bg-zinc-900 border border-white/10 text-white font-body text-sm px-3 py-2 focus:outline-none focus:border-white/30 transition-colors placeholder:text-white/20 resize-none"
+            />
+          </div>
 
           {/* Imagem principal */}
           <div>
