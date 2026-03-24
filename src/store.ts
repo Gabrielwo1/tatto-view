@@ -245,6 +245,14 @@ export interface GuestContent {
     whatsapp: string;
     email: string;
   };
+  nextGuest: {
+    sectionTitle: string;
+    sectionSubtitle: string;
+    guestName: string;
+    guestImage: string;
+    guestDescription: string;
+    portfolioImages: [string, string, string, string, string];
+  };
 }
 
 const defaultGuestContent: GuestContent = {
@@ -322,6 +330,14 @@ const defaultGuestContent: GuestContent = {
       'Certifique-se de que seu portfólio inclua pelo menos 10 exemplos de trabalhos concluídos. Respondemos a todos os candidatos aprovados em até 48 horas.',
     whatsapp: 'https://wa.me/5511999999999',
     email: 'contato@eldude.com',
+  },
+  nextGuest: {
+    sectionTitle: 'PRÓXIMO GUEST',
+    sectionSubtitle: 'Conheça o próximo artista em residência no El Dude Tattoo.',
+    guestName: '',
+    guestImage: '',
+    guestDescription: '',
+    portfolioImages: ['', '', '', '', ''],
   },
 };
 
