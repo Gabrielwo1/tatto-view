@@ -11,6 +11,11 @@ const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'n
 function StyleVisibilitySection() {
   const hiddenStyles    = useStore((s) => s.hiddenStyles);
   const setHiddenStyles = useStore((s) => s.setHiddenStyles);
+  const customStyles    = useStore((s) => s.customStyles);
+  const setCustomStyles = useStore((s) => s.setCustomStyles);
+  const [newStyle, setNewStyle] = useState('');
+
+  const allStyles = [...TATTOO_STYLES, ...customStyles];
 
   function toggle(style: string) {
     setHiddenStyles(
@@ -20,6 +25,18 @@ function StyleVisibilitySection() {
     );
   }
 
+  function addStyle() {
+    const trimmed = newStyle.trim();
+    if (!trimmed || allStyles.some((s) => s.toLowerCase() === trimmed.toLowerCase())) return;
+    setCustomStyles([...customStyles, trimmed]);
+    setNewStyle('');
+  }
+
+  function removeCustomStyle(style: string) {
+    setCustomStyles(customStyles.filter((s) => s !== style));
+    setHiddenStyles(hiddenStyles.filter((s) => s !== style));
+  }
+
   return (
     <section>
       <div className="mb-5">
@@ -27,10 +44,11 @@ function StyleVisibilitySection() {
           Estilos da Vitrine
         </h2>
         <p className="font-body text-xs text-gray-500">
-          Estilos marcados ficam visíveis no filtro público. Estilos sem tatuagens disponíveis são ocultados automaticamente.
+          Estilos marcados ficam visíveis no filtro público. Clique para ocultar/mostrar.
         </p>
       </div>
-      <div className="flex flex-wrap gap-2">
+
+      <div className="flex flex-wrap gap-2 mb-4">
         {TATTOO_STYLES.map((style) => {
           const hidden = hiddenStyles.includes(style);
           return (
@@ -48,9 +66,55 @@ function StyleVisibilitySection() {
             </button>
           );
         })}
+        {customStyles.map((style) => {
+          const hidden = hiddenStyles.includes(style);
+          return (
+            <div key={style} className="relative group">
+              <button
+                type="button"
+                onClick={() => toggle(style)}
+                className={`font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 pr-7 border transition-colors ${
+                  hidden
+                    ? 'border-white/10 text-gray-700 line-through hover:border-white/30 hover:text-gray-500'
+                    : 'border-ink-500 text-ink-500 bg-ink-500/10 hover:bg-ink-500/20'
+                }`}
+              >
+                {style}
+              </button>
+              <button
+                type="button"
+                onClick={() => removeCustomStyle(style)}
+                title="Remover estilo"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-red-400 transition-colors text-xs leading-none"
+              >
+                ×
+              </button>
+            </div>
+          );
+        })}
       </div>
-      <p className="font-body text-[10px] text-gray-700 mt-3">
-        Clique para ocultar/mostrar um estilo no filtro da vitrine pública.
+
+      {/* Add new style */}
+      <div className="flex gap-2 items-center mt-2">
+        <input
+          type="text"
+          value={newStyle}
+          onChange={(e) => setNewStyle(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addStyle(); } }}
+          placeholder="Novo estilo..."
+          className="bg-transparent border border-white/15 px-3 py-2 text-white text-xs font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors w-40"
+        />
+        <button
+          type="button"
+          onClick={addStyle}
+          disabled={!newStyle.trim()}
+          className="px-4 py-2 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          + Adicionar
+        </button>
+      </div>
+      <p className="font-body text-[10px] text-gray-700 mt-2">
+        Estilos personalizados aparecem com borda colorida e têm botão × para remover.
       </p>
     </section>
   );
@@ -88,8 +152,6 @@ export default function AdminSettings() {
   const setLogoColorMode = useStore((s) => s.setLogoColorMode);
   const customLogo    = useStore((s) => s.customLogo);
   const setCustomLogo = useStore((s) => s.setCustomLogo);
-  const hiddenStyles    = useStore((s) => s.hiddenStyles);
-  const setHiddenStyles = useStore((s) => s.setHiddenStyles);
 
   const [logoUploading, setLogoUploading] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
@@ -876,49 +938,6 @@ export default function AdminSettings() {
         {fichaSubmissions.length === 0 && tattoos.length === 0 && (
           <p className="font-body text-xs text-gray-700 italic">Nenhuma movimentação registrada ainda.</p>
         )}
-      </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Estilos da Vitrine ────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Estilos da Vitrine
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Estilos marcados ficam visíveis no filtro público. Estilos sem tatuagens disponíveis são ocultados automaticamente.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {TATTOO_STYLES.map((style) => {
-            const isHidden = hiddenStyles.includes(style);
-            return (
-              <button
-                key={style}
-                type="button"
-                onClick={() => {
-                  setHiddenStyles(
-                    isHidden
-                      ? hiddenStyles.filter((s) => s !== style)
-                      : [...hiddenStyles, style],
-                  );
-                }}
-                className={`px-4 py-2 font-body text-xs font-semibold tracking-widest uppercase transition-all border ${
-                  isHidden
-                    ? 'border-white/10 text-white/25 line-through'
-                    : 'border-white text-white'
-                }`}
-              >
-                {style}
-              </button>
-            );
-          })}
-        </div>
-        <p className="mt-3 font-body text-[10px] text-gray-600">
-          Clique para ocultar/mostrar um estilo no filtro da vitrine pública.
-        </p>
       </section>
 
       {/* ── Divider ── */}

@@ -4,6 +4,7 @@ import TattooCard from '../components/TattooCard';
 import ArtistHero from '../components/ArtistHero';
 import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
 import { TATTOO_STYLES } from '../types';
+import type { Tattoo } from '../types';
 
 // Intercala artes de artistas diferentes para que nunca dois do mesmo
 // artista apareçam em sequência.
@@ -36,6 +37,7 @@ export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
   const hiddenStyles = useStore((s) => s.hiddenStyles);
+  const customStyles = useStore((s) => s.customStyles);
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
@@ -43,8 +45,8 @@ export default function ShowcasePage() {
 
   // Show styles that are not hidden by admin (admin config is the source of truth)
   const activeStyles = useMemo(
-    () => TATTOO_STYLES.filter(s => !hiddenStyles.includes(s)),
-    [hiddenStyles]
+    () => [...TATTOO_STYLES, ...customStyles].filter(s => !hiddenStyles.includes(s)),
+    [hiddenStyles, customStyles]
   );
 
   const filtered = useMemo(() => {
