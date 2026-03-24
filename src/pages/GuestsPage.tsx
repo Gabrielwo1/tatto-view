@@ -159,6 +159,16 @@ export default function GuestsPage() {
                         {gc.showcase.guestDescription}
                       </p>
                     )}
+                    {gc.showcase.instagramHandle && (
+                      <a
+                        href={`https://instagram.com/${gc.showcase.instagramHandle.replace(/^@/, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-6 inline-block font-body text-sm font-semibold tracking-widest text-white/60 hover:text-white transition-colors"
+                      >
+                        @{gc.showcase.instagramHandle.replace(/^@/, '')}
+                      </a>
+                    )}
                   </div>
                 </div>
               </Fade>
@@ -179,7 +189,6 @@ export default function GuestsPage() {
                           </svg>
                         </div>
                       )}
-                      {img && <Watermark logoSrc={logoSrc} />}
                     </div>
                   </Fade>
                 ))}
@@ -252,6 +261,16 @@ export default function GuestsPage() {
                         {gc.nextGuest.guestDescription}
                       </p>
                     )}
+                    {gc.nextGuest.instagramHandle && (
+                      <a
+                        href={`https://instagram.com/${gc.nextGuest.instagramHandle.replace(/^@/, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-6 inline-block font-body text-sm font-semibold tracking-widest text-white/60 hover:text-white transition-colors"
+                      >
+                        @{gc.nextGuest.instagramHandle.replace(/^@/, '')}
+                      </a>
+                    )}
                   </div>
                 </div>
               </Fade>
@@ -272,7 +291,6 @@ export default function GuestsPage() {
                           </svg>
                         </div>
                       )}
-                      {img && <Watermark logoSrc={logoSrc} />}
                     </div>
                   </Fade>
                 ))}
