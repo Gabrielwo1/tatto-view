@@ -564,6 +564,9 @@ interface AppState {
   /** How the logo is colorized. */
   logoColorMode: LogoColorMode;
   setLogoColorMode: (mode: LogoColorMode) => void;
+  /** Styles hidden from the public vitrine filter. */
+  hiddenStyles: string[];
+  setHiddenStyles: (styles: string[]) => void;
   /** Custom logo image URL. null = use default /logosemo-3.png */
   customLogo: string | null;
   setCustomLogo: (url: string | null) => void;
@@ -633,6 +636,12 @@ export const useStore = create<AppState>()(
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert({ key: 'logoColorMode', value: mode, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLogoColorMode:', error); });
+      },
+      hiddenStyles: [],
+      setHiddenStyles: (styles) => {
+        set({ hiddenStyles: styles });
+        supabase?.from('site_config').upsert({ key: 'hiddenStyles', value: styles, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setHiddenStyles:', error); });
       },
       customLogo: null,
       setCustomLogo: (url) => {
@@ -773,6 +782,7 @@ export const useStore = create<AppState>()(
             } : {}),
             ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
             ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
+            ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             dataLoaded: true,
           });
         } catch (err) {

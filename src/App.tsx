@@ -142,7 +142,7 @@ export default function App() {
           }
         />
         <Route
-          path="/merchs"
+          path="/loja"
           element={
             <PublicLayout>
               <MerchsPage />

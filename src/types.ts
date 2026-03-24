@@ -38,6 +38,7 @@ export const TATTOO_STYLES = [
   'Geométrico',
   'Old School',
   'Tribal',
+  'Tradicional',
   'Neo-Tradicional',
   'Minimalista',
 ];

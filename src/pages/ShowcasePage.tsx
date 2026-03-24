@@ -141,11 +141,18 @@ function Lightbox({ entry, onClose }: { entry: LightboxEntry; onClose: () => voi
 export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
+  const hiddenStyles = useStore((s) => s.hiddenStyles);
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
   const [lightbox, setLightbox] = useState<LightboxEntry | null>(null);
   const [lightboxMounted, setLightboxMounted] = useState(false);
 
   const available = tattoos.filter((t) => t.status === 'available');
+
+  // Only show styles that have at least one available tattoo and are not hidden by admin
+  const activeStyles = useMemo(
+    () => TATTOO_STYLES.filter(s => available.some(t => t.style === s) && !hiddenStyles.includes(s)),
+    [available, hiddenStyles]
+  );
 
   const filtered = useMemo(() => {
     const pool =
@@ -183,7 +190,7 @@ export default function ShowcasePage() {
 
         {/* Style filters */}
         <div className="flex flex-wrap gap-2 mb-10">
-          {['Todos', ...TATTOO_STYLES].map((style) => (
+          {['Todos', ...activeStyles].map((style) => (
             <button
               key={style}
               onClick={() => setSelectedStyle(style)}

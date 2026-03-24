@@ -107,7 +107,7 @@ export default function SiteFooter() {
               { to: '/sobre-nos',  label: 'Estúdio' },
               { to: '/aftercare',  label: 'Cuidados' },
               { to: '/guests',     label: 'Guests' },
-              { to: '/merchs',     label: 'Merchs' },
+              { to: '/loja',       label: 'Loja' },
             ].map(({ to, label }) => (
               <Link key={to} to={to}
                 className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/30 hover:text-white transition-colors">
