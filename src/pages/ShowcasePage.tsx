@@ -204,7 +204,7 @@ export default function ShowcasePage() {
           </div>
         ) : (
           /* ── Grid 4:5 (Instagram 1080×1350) ── */
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {filtered.map((tattoo) => {
               const artist = artists.find((a) => a.id === tattoo.artistId);
               return (

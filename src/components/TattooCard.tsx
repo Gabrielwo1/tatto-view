@@ -29,7 +29,7 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
         )}
       </div>
 
-      <div className="pt-2 pb-1">
+      <div className="pt-2 pb-1 h-14 flex flex-col justify-start overflow-hidden">
         <h3 className="font-display text-sm uppercase tracking-wide text-white leading-tight mb-0.5 truncate">
           {tattoo.title}
         </h3>
