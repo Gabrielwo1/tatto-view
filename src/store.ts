@@ -320,6 +320,7 @@ export interface GuestContent {
     guestName: string;
     guestImage: string;
     guestDescription: string;
+    instagramHandle: string;
     portfolioImages: [string, string, string, string];
   };
   showcase: {
@@ -327,6 +328,7 @@ export interface GuestContent {
     sectionSubtitle: string;
     guestName: string;
     guestDescription: string;
+    instagramHandle: string;
     heroImage: string;
     galleryImages: [string, string, string, string];
   };
@@ -414,6 +416,7 @@ const defaultGuestContent: GuestContent = {
     guestName: '',
     guestImage: '',
     guestDescription: '',
+    instagramHandle: '',
     portfolioImages: ['', '', '', ''],
   },
   showcase: {
@@ -421,6 +424,7 @@ const defaultGuestContent: GuestContent = {
     sectionSubtitle: '',
     guestName: '',
     guestDescription: '',
+    instagramHandle: '',
     heroImage: '',
     galleryImages: ['', '', '', ''],
   },

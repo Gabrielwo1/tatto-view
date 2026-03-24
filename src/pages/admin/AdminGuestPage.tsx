@@ -340,6 +340,13 @@ export default function AdminGuestPage() {
             placeholder="Fale sobre o estilo, trajetória e o que o artista vai oferecer no estúdio..."
           />
 
+          <Field
+            label="Instagram (@handle)"
+            value={draft.showcase?.instagramHandle ?? ''}
+            onChange={(v) => setDraft((p) => ({ ...p, showcase: { ...p.showcase, instagramHandle: v } }))}
+            placeholder="@artista"
+          />
+
           {/* 4 fotos do portfólio */}
           <div>
             <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
@@ -650,6 +657,13 @@ export default function AdminGuestPage() {
             onChange={(v) => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, guestDescription: v } }))}
             multiline
             placeholder="Fale sobre o estilo, trajetória e o que o guest vai oferecer no estúdio..."
+          />
+
+          <Field
+            label="Instagram (@handle)"
+            value={draft.nextGuest?.instagramHandle ?? ''}
+            onChange={(v) => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, instagramHandle: v } }))}
+            placeholder="@artista"
           />
 
           {/* Portfolio de trabalhos */}
