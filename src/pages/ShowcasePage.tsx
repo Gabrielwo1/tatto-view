@@ -148,10 +148,10 @@ export default function ShowcasePage() {
 
   const available = tattoos.filter((t) => t.status === 'available');
 
-  // Only show styles that have at least one available tattoo and are not hidden by admin
+  // Show styles that are not hidden by admin (admin config is the source of truth)
   const activeStyles = useMemo(
-    () => TATTOO_STYLES.filter(s => available.some(t => t.style === s) && !hiddenStyles.includes(s)),
-    [available, hiddenStyles]
+    () => TATTOO_STYLES.filter(s => !hiddenStyles.includes(s)),
+    [hiddenStyles]
   );
 
   const filtered = useMemo(() => {
