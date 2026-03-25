@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../../store';
-import type { Merch, TattooSession } from '../../types';
+import type { Merch, TattooSession, ShopContent } from '../../types';
 import { uploadImage } from '../../lib/uploadImage';
 
 const inputCls =
@@ -184,15 +184,19 @@ export default function AdminMerchs() {
   const addMerch      = useStore((s) => s.addMerch);
   const updateMerch   = useStore((s) => s.updateMerch);
   const deleteMerch   = useStore((s) => s.deleteMerch);
-  const sessions      = useStore((s) => s.sessions);
-  const addSession    = useStore((s) => s.addSession);
-  const updateSession = useStore((s) => s.updateSession);
-  const deleteSession = useStore((s) => s.deleteSession);
+  const sessions       = useStore((s) => s.sessions);
+  const addSession     = useStore((s) => s.addSession);
+  const updateSession  = useStore((s) => s.updateSession);
+  const deleteSession  = useStore((s) => s.deleteSession);
+  const shopContent    = useStore((s) => s.shopContent);
+  const setShopContent = useStore((s) => s.setShopContent);
 
   const [showAddMerch, setShowAddMerch] = useState(false);
   const [editingMerch, setEditingMerch] = useState<Merch | null>(null);
   const [showAddSession, setShowAddSession] = useState(false);
   const [editingSession, setEditingSession] = useState<TattooSession | null>(null);
+  const [shopDraft, setShopDraft] = useState<ShopContent>(shopContent);
+  const [shopSaved, setShopSaved] = useState(false);
 
   function handleAddMerch(data: typeof emptyMerchForm) {
     const sizes = data.sizesRaw.split(',').map((s) => s.trim()).filter(Boolean);
@@ -264,7 +268,7 @@ export default function AdminMerchs() {
         </div>
       </div>
 
-      {/* ── 3-col grid: Sessions | Products | Config ─────────────────────── */}
+      {/* ── 3-col grid: Sessions | Products | Shop Config ─────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
 
         {/* ── COL 1: Sessions ─────────────────────────────────────────────── */}
@@ -323,8 +327,8 @@ export default function AdminMerchs() {
           )}
         </div>
 
-        {/* ── COL 2–3: Products (spans 2 cols) ────────────────────────────── */}
-        <div className="xl:col-span-2">
+        {/* ── COL 2: Products ─────────────────────────────────────────────── */}
+        <div>
           <div className="flex items-center justify-between mb-3">
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">Produtos / Apparel</p>
             <button onClick={() => setShowAddMerch(true)} className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
@@ -394,6 +398,132 @@ export default function AdminMerchs() {
             </div>
           )}
         </div>
+
+        {/* ── COL 3: Shop Page Config ──────────────────────────────────────── */}
+        <div className="space-y-3">
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Configurar página</p>
+
+          {/* Hero */}
+          <div className="border border-white/10 bg-zinc-950 p-4 space-y-3">
+            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">Hero</p>
+            <div>
+              <label className={labelCls}>Título</label>
+              <input
+                type="text"
+                value={shopDraft.hero.title}
+                onChange={(e) => setShopDraft((d) => ({ ...d, hero: { ...d.hero, title: e.target.value } }))}
+                className={inputCls}
+                placeholder="INK MANIFESTO."
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Subtítulo</label>
+              <input
+                type="text"
+                value={shopDraft.hero.subtitle}
+                onChange={(e) => setShopDraft((d) => ({ ...d, hero: { ...d.hero, subtitle: e.target.value } }))}
+                className={inputCls}
+                placeholder="HIGH CONTRAST BRUTALISM..."
+              />
+            </div>
+          </div>
+
+          {/* Section labels */}
+          <div className="border border-white/10 bg-zinc-950 p-4 space-y-3">
+            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">Rótulos</p>
+            <div>
+              <label className={labelCls}>Sessões — título</label>
+              <input
+                type="text"
+                value={shopDraft.sessionsTagline}
+                onChange={(e) => setShopDraft((d) => ({ ...d, sessionsTagline: e.target.value }))}
+                className={inputCls}
+                placeholder="TATTOO SESSIONS"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Sessões — badge</label>
+              <input
+                type="text"
+                value={shopDraft.sessionsAvailableLabel}
+                onChange={(e) => setShopDraft((d) => ({ ...d, sessionsAvailableLabel: e.target.value }))}
+                className={inputCls}
+                placeholder="AVAILABLE NOW"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Produtos — título</label>
+              <input
+                type="text"
+                value={shopDraft.apparelTagline}
+                onChange={(e) => setShopDraft((d) => ({ ...d, apparelTagline: e.target.value }))}
+                className={inputCls}
+                placeholder="APPAREL"
+              />
+            </div>
+          </div>
+
+          {/* Payment methods */}
+          <div className="border border-white/10 bg-zinc-950 p-4 space-y-3">
+            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">Métodos de pagamento</p>
+            {shopDraft.paymentMethods.map((pm, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={pm.label}
+                  onChange={(e) => setShopDraft((d) => {
+                    const p = [...d.paymentMethods];
+                    p[i] = { ...p[i], label: e.target.value };
+                    return { ...d, paymentMethods: p };
+                  })}
+                  className={`${inputCls} flex-1`}
+                  placeholder="PIX"
+                />
+                <input
+                  type="text"
+                  value={pm.sub}
+                  onChange={(e) => setShopDraft((d) => {
+                    const p = [...d.paymentMethods];
+                    p[i] = { ...p[i], sub: e.target.value };
+                    return { ...d, paymentMethods: p };
+                  })}
+                  className={`${inputCls} flex-1`}
+                  placeholder="5% OFF"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShopDraft((d) => ({ ...d, paymentMethods: d.paymentMethods.filter((_, j) => j !== i) }))}
+                  className="p-2 text-gray-700 hover:text-red-400 transition-colors shrink-0"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            ))}
+            {shopDraft.paymentMethods.length < 4 && (
+              <button
+                type="button"
+                onClick={() => setShopDraft((d) => ({ ...d, paymentMethods: [...d.paymentMethods, { label: '', sub: '' }] }))}
+                className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors"
+              >
+                + adicionar método
+              </button>
+            )}
+          </div>
+
+          {/* Save */}
+          <button
+            type="button"
+            onClick={() => {
+              setShopContent(shopDraft);
+              setShopSaved(true);
+              setTimeout(() => setShopSaved(false), 2500);
+            }}
+            className="w-full bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors"
+          >
+            {shopSaved ? '✓ Salvo' : 'Salvar Configurações'}
+          </button>
+        </div>
+
       </div>
 
       {/* Modals */}

@@ -3,6 +3,10 @@ import { useStore } from '../store';
 export default function MerchsPage() {
   const merchs = useStore((s) => s.merchs);
   const sessions = useStore((s) => s.sessions);
+  const shop = useStore((s) => s.shopContent);
+
+  // Split hero title: last word stays together, rest can wrap
+  const heroTitle = shop.hero.title;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -10,10 +14,10 @@ export default function MerchsPage() {
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-12 pt-16 pb-12 border-b border-white/10">
         <p className="font-body text-[10px] font-semibold tracking-[0.3em] uppercase text-gray-600 mb-6">
-          HIGH CONTRAST BRUTALISM FOR THE SOUL.
+          {shop.hero.subtitle}
         </p>
-        <h1 className="font-display text-6xl md:text-8xl uppercase leading-none tracking-tight text-white mb-0">
-          INK<br />MANIFESTO.
+        <h1 className="font-display text-6xl md:text-8xl uppercase leading-none tracking-tight text-white mb-0 whitespace-pre-line">
+          {heroTitle}
         </h1>
       </section>
 
@@ -22,10 +26,10 @@ export default function MerchsPage() {
         <section className="px-6 lg:px-12 py-10 border-b border-white/10">
           <div className="flex items-center gap-4 mb-8">
             <h2 className="font-display text-xs font-bold tracking-[0.3em] uppercase text-white">
-              TATTOO SESSIONS
+              {shop.sessionsTagline}
             </h2>
             <span className="font-body text-[9px] font-bold tracking-[0.25em] uppercase text-green-400 border border-green-400/40 px-2 py-0.5">
-              AVAILABLE NOW
+              {shop.sessionsAvailableLabel}
             </span>
           </div>
 
@@ -72,11 +76,8 @@ export default function MerchsPage() {
       <section className="px-6 lg:px-12 py-10 border-b border-white/10">
         <div className="flex items-center gap-4 mb-8">
           <h2 className="font-display text-xs font-bold tracking-[0.3em] uppercase text-white">
-            APPAREL
+            {shop.apparelTagline}
           </h2>
-          <span className="font-body text-[9px] font-bold tracking-[0.25em] uppercase text-gray-600">
-            STREETWEAR
-          </span>
         </div>
 
         {merchs.length === 0 ? (
@@ -175,11 +176,7 @@ export default function MerchsPage() {
           <p className="font-body text-xs text-gray-600">Secured transactions for the modern collector.</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-white/10 max-w-lg">
-          {[
-            { label: 'PIX', sub: 'INSTANT 5% OFF' },
-            { label: 'CREDIT', sub: 'UP TO 12X' },
-            { label: 'CRYPTO', sub: 'BTC/ETH' },
-          ].map(({ label, sub }) => (
+          {shop.paymentMethods.map(({ label, sub }) => (
             <div key={label} className="bg-black px-5 py-4">
               <p className="font-body text-[9px] font-bold tracking-[0.25em] uppercase text-gray-500 mb-0.5">{label}</p>
               <p className="font-body text-[9px] tracking-widest uppercase text-gray-700">{sub}</p>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch, TattooSession } from './types';
+import type { Tattoo, Artist, Merch, TattooSession, ShopContent } from './types';
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
@@ -555,6 +555,22 @@ const seedTattoos: Tattoo[] = [
   { id: 'tattoo-12', title: 'Bússola Geométrica',       description: 'Bússola com design geométrico e detalhes intrincados.', imageUrl: 'https://picsum.photos/seed/tattoo12/600/400', style: 'Geométrico',     price: 'R$ 650',   artistId: null, status: 'archived',  createdAt: new Date('2023-10-20').toISOString() },
 ];
 
+// ── Shop Content ─────────────────────────────────────────────────────────────
+export const defaultShopContent: ShopContent = {
+  hero: {
+    title: 'INK MANIFESTO.',
+    subtitle: 'HIGH CONTRAST BRUTALISM FOR THE SOUL.',
+  },
+  sessionsTagline: 'TATTOO SESSIONS',
+  sessionsAvailableLabel: 'AVAILABLE NOW',
+  apparelTagline: 'APPAREL',
+  paymentMethods: [
+    { label: 'PIX',    sub: 'INSTANT 5% OFF' },
+    { label: 'CREDIT', sub: 'UP TO 12X' },
+    { label: 'CRYPTO', sub: 'BTC/ETH' },
+  ],
+};
+
 // ── Shop Sessions ────────────────────────────────────────────────────────────
 const defaultSessions: TattooSession[] = [
   {
@@ -592,6 +608,8 @@ interface AppState {
   addSession: (data: Omit<TattooSession, 'id'>) => void;
   updateSession: (id: string, updates: Partial<TattooSession>) => void;
   deleteSession: (id: string) => void;
+  shopContent: ShopContent;
+  setShopContent: (content: ShopContent) => void;
   isAdmin: boolean;
   /** True when the logged-in user is a merch manager (not admin or artist). */
   isMerchManager: boolean;
@@ -697,6 +715,12 @@ export const useStore = create<AppState>()(
             .then(({ error }) => { if (error) console.error('[store] deleteSession:', error); });
           return { sessions };
         });
+      },
+      shopContent: defaultShopContent,
+      setShopContent: (content) => {
+        set({ shopContent: content });
+        supabase?.from('site_config').upsert({ key: 'shopContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setShopContent:', error); });
       },
       isAdmin: false,
       isArtist: false,
@@ -887,6 +911,7 @@ export const useStore = create<AppState>()(
             ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             ...(config.customStyles !== undefined ? { customStyles: config.customStyles as string[] } : {}),
             ...(config.sessions !== undefined ? { sessions: config.sessions as TattooSession[] } : {}),
+            ...(config.shopContent !== undefined ? { shopContent: { ...defaultShopContent, ...(config.shopContent as ShopContent) } } : {}),
             dataLoaded: true,
           });
         } catch (err) {
@@ -1077,6 +1102,7 @@ export const useStore = create<AppState>()(
         artists: state.artists,
         merchs: state.merchs,
         sessions: state.sessions,
+        shopContent: state.shopContent,
         fichaSubmissions: state.fichaSubmissions,
         fichaConfig: state.fichaConfig,
         eventsContent: state.eventsContent,
