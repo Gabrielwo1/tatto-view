@@ -5,6 +5,7 @@ import type { ThemeId, LogoColorMode } from '../../lib/themes';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
+import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
 
 const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
@@ -169,7 +170,6 @@ export default function AdminSettings() {
   const sobreNosContent  = useStore((s) => s.sobreNosContent);
   const guestContent     = useStore((s) => s.guestContent);
   const aftercareContent = useStore((s) => s.aftercareContent);
-  const fichaSubmissions = useStore((s) => s.fichaSubmissions);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
   const [syncError, setSyncError] = useState<string | null>(null);
   const [syncProgress, setSyncProgress] = useState<string | null>(null);
@@ -661,209 +661,135 @@ export default function AdminSettings() {
       {/* ══ ESTATÍSTICAS — full width ════════════════════════════════════════ */}
       <div className="mt-4">
       <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Estatísticas
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Movimentações reais do estúdio.
-          </p>
-        </div>
-
-        {/* ── KPI cards compactos ── */}
         {(() => {
-          const availTattoos  = tattoos.filter((t) => t.status === 'available').length;
-          const archivedTattoos = tattoos.filter((t) => t.status === 'archived').length;
-          const styleSet = new Set(tattoos.map((t) => t.style).filter(Boolean));
-          const cards = [
-            { section: 'Ficha de Anamnese', label: 'Fichas enviadas',    value: fichaSubmissions.length },
-            { section: 'Vitrine',           label: 'Tatuagens',           value: tattoos.length },
-            { section: 'Vitrine',           label: 'Disponíveis',         value: availTattoos },
-            { section: 'Vitrine',           label: 'Arquivadas',          value: archivedTattoos },
-            { section: 'Vitrine',           label: 'Estilos',             value: styleSet.size },
-            { section: 'Artistas',          label: 'Artistas',            value: artists.length },
-            { section: 'Merchs',            label: 'Loja',                value: merchs.length },
-          ];
-          return (
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 mb-6">
-              {cards.map(({ label, value }) => (
-                <div key={label} className="px-2.5 py-2.5 border border-white/10 bg-black/30 flex flex-col gap-0.5 min-w-0">
-                  <p className="font-display text-xl text-white leading-none">{value.toLocaleString('pt-BR')}</p>
-                  <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 leading-tight truncate">{label}</p>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
+          const analytics = getAnalytics();
+          const today = new Date().toISOString().slice(0, 10);
+          const todayViews = analytics.daily[today] ?? 0;
+          const uniqueSessions = analytics.sessions.length;
 
-        {/* ── Timeline SVG — fluxo de movimentações (últimas 12 semanas) ── */}
-        {(() => {
-          const W = 12; // semanas
-          const weeks = Array.from({ length: W }, (_, i) => {
-            const end = new Date();
-            end.setDate(end.getDate() - (W - 1 - i) * 7);
-            const start = new Date(end);
-            start.setDate(start.getDate() - 6);
-            return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+          // Build daily data for last 84 days (12 weeks)
+          const D = 84;
+          const days = Array.from({ length: D }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (D - 1 - i));
+            const key = d.toISOString().slice(0, 10);
+            return {
+              key,
+              label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+              views: analytics.daily[key] ?? 0,
+            };
           });
 
-          const inRange = (date: string, s: string, e: string) => date >= s && date <= e;
-
-          const data = weeks.map(({ start, end }) => ({
-            label: new Date(end + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-            fichas:    fichaSubmissions.filter((f) => inRange(f.submittedAt.slice(0, 10), start, end)).length,
-            tatuagens: tattoos.filter((t) => inRange((t.createdAt ?? '').slice(0, 10), start, end)).length,
-            artistas:  artists.filter((a) => inRange((a.createdAt ?? '').slice(0, 10), start, end)).length,
-          }));
-
-          const maxVal = Math.max(...data.flatMap((d) => [d.fichas, d.tatuagens, d.artistas]), 1);
+          const maxViews = Math.max(...days.map((d) => d.views), 1);
+          const topPages = getTopPages(5);
 
           const svgH = 80;
-          const svgW = 100; // viewBox units (percentual)
+          const svgW = 100;
           const pad = { l: 0, r: 0, t: 6, b: 18 };
           const chartH = svgH - pad.t - pad.b;
           const chartW = svgW - pad.l - pad.r;
-          const step = chartW / (W - 1);
-
-          const toY = (v: number) => pad.t + chartH - (v / maxVal) * chartH;
+          const step = chartW / (D - 1);
+          const toY = (v: number) => pad.t + chartH - (v / maxViews) * chartH;
           const toX = (i: number) => pad.l + i * step;
+          const viewsPoints = days.map((d, i) => `${toX(i).toFixed(1)},${toY(d.views).toFixed(1)}`).join(' ');
 
-          const polyline = (key: 'fichas' | 'tatuagens' | 'artistas') =>
-            data.map((d, i) => `${toX(i).toFixed(1)},${toY(d[key]).toFixed(1)}`).join(' ');
-
-          const series = [
-            { key: 'fichas'    as const, color: 'rgb(var(--ink-500))', label: 'Fichas' },
-            { key: 'tatuagens' as const, color: '#ffffff44',            label: 'Tatuagens' },
-            { key: 'artistas'  as const, color: '#ffffff22',            label: 'Artistas' },
-          ];
+          // x-axis labels: show every 14 days
+          const labelIndices = days.reduce<number[]>((acc, _, i) => {
+            if (i === 0 || i === D - 1 || i % 14 === 0) acc.push(i);
+            return acc;
+          }, []);
 
           return (
-            <div className="mb-6">
-              <div className="flex items-center gap-4 mb-2">
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Fluxo de movimentações — últimas 12 semanas</p>
-                <div className="flex items-center gap-3 ml-auto">
-                  {series.map((s) => (
-                    <span key={s.key} className="flex items-center gap-1">
-                      <span className="inline-block w-3 h-0.5" style={{ backgroundColor: s.color }} />
-                      <span className="font-body text-[9px] text-gray-600">{s.label}</span>
-                    </span>
-                  ))}
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">
+                    Analytics
+                  </h2>
+                  <p className="font-body text-xs text-gray-500">Views do site público — últimos 84 dias.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { if (confirm('Resetar todos os dados de analytics?')) { resetAnalytics(); window.location.reload(); } }}
+                  className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-700 hover:text-red-400 transition-colors"
+                >
+                  ✕ resetar
+                </button>
+              </div>
+
+              {/* KPI cards */}
+              <div className="grid grid-cols-3 gap-px bg-white/10 mb-4">
+                {[
+                  { label: 'Views totais',   value: analytics.totalViews.toLocaleString('pt-BR') },
+                  { label: 'Sessões únicas', value: uniqueSessions.toLocaleString('pt-BR') },
+                  { label: 'Hoje',           value: todayViews.toLocaleString('pt-BR') },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-black/30 px-4 py-3">
+                    <p className="font-display text-3xl text-white leading-none mb-0.5">{value}</p>
+                    <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Views chart */}
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Views por dia</p>
+                  <span className="flex items-center gap-1 ml-auto">
+                    <span className="inline-block w-3 h-0.5" style={{ backgroundColor: 'rgb(var(--ink-500))' }} />
+                    <span className="font-body text-[9px] text-gray-600">Views</span>
+                  </span>
+                </div>
+                <div className="border border-white/10 bg-black/30 px-3 pt-2 pb-1">
+                  <svg viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
+                    {[0, 0.5, 1].map((f) => (
+                      <line key={f} x1={pad.l} y1={toY(maxViews * f).toFixed(1)} x2={svgW} y2={toY(maxViews * f).toFixed(1)} stroke="rgba(255,255,255,0.05)" strokeWidth="0.3" />
+                    ))}
+                    {/* Area fill */}
+                    <polygon
+                      points={`${toX(0).toFixed(1)},${(pad.t + chartH).toFixed(1)} ${viewsPoints} ${toX(D - 1).toFixed(1)},${(pad.t + chartH).toFixed(1)}`}
+                      fill="rgb(var(--ink-500))"
+                      fillOpacity="0.08"
+                    />
+                    <polyline points={viewsPoints} fill="none" stroke="rgb(var(--ink-500))" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />
+                    {/* Dots for days with views */}
+                    {days.map((d, i) => d.views > 0 && (
+                      <circle key={i} cx={toX(i).toFixed(1)} cy={toY(d.views).toFixed(1)} r="0.7" fill="rgb(var(--ink-500))" />
+                    ))}
+                    {/* x-axis labels */}
+                    {labelIndices.map((i) => (
+                      <text key={i} x={toX(i).toFixed(1)} y={svgH - 2} textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.2)" fontFamily="monospace">
+                        {days[i].label}
+                      </text>
+                    ))}
+                  </svg>
                 </div>
               </div>
-              <div className="border border-white/10 bg-black/30 px-3 pt-2 pb-1">
-                <svg viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="none" className="w-full" style={{ height: 90 }}>
-                  {/* grid lines */}
-                  {[0, 0.5, 1].map((f) => (
-                    <line
-                      key={f}
-                      x1={pad.l} y1={toY(maxVal * f).toFixed(1)}
-                      x2={svgW - pad.r} y2={toY(maxVal * f).toFixed(1)}
-                      stroke="rgba(255,255,255,0.05)" strokeWidth="0.3"
-                    />
-                  ))}
-                  {/* series */}
-                  {series.map((s) => (
-                    <polyline
-                      key={s.key}
-                      points={polyline(s.key)}
-                      fill="none"
-                      stroke={s.color}
-                      strokeWidth={s.key === 'fichas' ? '1.2' : '0.6'}
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                  ))}
-                  {/* dots on fichas line */}
-                  {data.map((d, i) => (
-                    <circle
-                      key={i}
-                      cx={toX(i).toFixed(1)} cy={toY(d.fichas).toFixed(1)}
-                      r="0.8" fill="rgb(var(--ink-500))"
-                    />
-                  ))}
-                  {/* x-axis labels */}
-                  {data.map((d, i) => (
-                    (i % 2 === 0 || i === W - 1) && (
-                      <text
-                        key={i}
-                        x={toX(i).toFixed(1)} y={svgH - 2}
-                        textAnchor="middle"
-                        fontSize="4"
-                        fill="rgba(255,255,255,0.2)"
-                        fontFamily="monospace"
-                      >{d.label}</text>
-                    )
-                  ))}
-                </svg>
-              </div>
-            </div>
-          );
-        })()}
 
-        {/* ── Fichas por artista ── */}
-        {fichaSubmissions.length > 0 && (() => {
-          const byArtist: Record<string, number> = {};
-          fichaSubmissions.forEach((f) => {
-            const names: string[] = f.tatuadoresSelecionados?.length
-              ? f.tatuadoresSelecionados
-              : f.outroTatuador
-              ? [f.outroTatuador]
-              : ['Não informado'];
-            names.forEach((n) => { byArtist[n] = (byArtist[n] ?? 0) + 1; });
-          });
-          const sorted = Object.entries(byArtist).sort((a, b) => b[1] - a[1]);
-          const maxVal = sorted[0]?.[1] ?? 1;
-          return (
-            <div className="mb-4">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Fichas por artista</p>
-              <div className="flex flex-col gap-1.5">
-                {sorted.map(([name, count]) => (
-                  <div key={name} className="flex items-center gap-3">
-                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{name}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-500"
-                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }}
-                      />
-                    </div>
-                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
+              {/* Top pages */}
+              {topPages.length > 0 && (
+                <div>
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Páginas mais visitadas</p>
+                  <div className="flex flex-col gap-1">
+                    {topPages.map(({ path, views }) => (
+                      <div key={path} className="flex items-center gap-3">
+                        <span className="font-mono text-xs text-gray-500 truncate flex-1">{path || '/'}</span>
+                        <div className="w-24 h-1 bg-white/5 overflow-hidden shrink-0">
+                          <div className="h-full" style={{ width: `${(views / (topPages[0]?.views ?? 1)) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
+                        </div>
+                        <span className="font-body text-xs text-gray-600 w-8 text-right shrink-0">{views}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+
+              {analytics.totalViews === 0 && (
+                <p className="font-body text-xs text-gray-700 italic">Nenhuma visita registrada ainda. As visitas das páginas públicas são contadas automaticamente.</p>
+              )}
+            </>
           );
         })()}
-
-        {/* ── Tatuagens por estilo ── */}
-        {tattoos.length > 0 && (() => {
-          const byStyle: Record<string, number> = {};
-          tattoos.forEach((t) => { if (t.style) byStyle[t.style] = (byStyle[t.style] ?? 0) + 1; });
-          const sorted = Object.entries(byStyle).sort((a, b) => b[1] - a[1]);
-          const maxVal = sorted[0]?.[1] ?? 1;
-          return (
-            <div className="mb-4">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Tatuagens por estilo</p>
-              <div className="flex flex-col gap-1.5">
-                {sorted.map(([style, count]) => (
-                  <div key={style} className="flex items-center gap-3">
-                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{style}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-500"
-                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgba(255,255,255,0.25)' }}
-                      />
-                    </div>
-                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-        {fichaSubmissions.length === 0 && tattoos.length === 0 && (
-          <p className="font-body text-xs text-gray-700 italic">Nenhuma movimentação registrada ainda.</p>
-        )}
       </section>
       </div>{/* fim mt-4 estatísticas */}
     </div>
