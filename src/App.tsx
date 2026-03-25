@@ -9,6 +9,7 @@ import ArchivedPage from './pages/ArchivedPage';
 import ArtistsPage from './pages/ArtistsPage';
 import ArtistDetailPage from './pages/ArtistDetailPage';
 import AdminLogin from './pages/admin/AdminLogin';
+import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminTattoos from './pages/admin/AdminTattoos';
@@ -211,6 +212,7 @@ export default function App() {
 
         {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/reset-password" element={<AdminResetPassword />} />
         <Route
           path="/admin"
           element={
