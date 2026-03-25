@@ -172,7 +172,7 @@ export default function AdminEventsPage() {
 
   /* ── render ─────────────────────────────────────────────────────────── */
   return (
-    <div className="p-4 md:p-8 max-w-3xl">
+    <div className="p-4 md:p-8 max-w-5xl">
       {/* Header */}
       <div className="mb-8 flex items-end justify-between">
         <div>
