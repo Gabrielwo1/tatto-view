@@ -390,11 +390,6 @@ export default function AdminSettings() {
     applyCustomColors(draftPrimary, draftSecondary);
   }
 
-  const activeTheme = THEMES[active];
-  // Effective hex values (custom overrides preset)
-  const effectivePrimary   = customPrimary   ?? activeTheme.accent;
-  const effectiveSecondary = customSecondary ?? activeTheme.accent2;
-
   return (
     <div className="p-4 md:p-6 max-w-7xl">
       {/* Header */}
