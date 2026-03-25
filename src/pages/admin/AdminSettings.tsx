@@ -396,419 +396,275 @@ export default function AdminSettings() {
   const effectiveSecondary = customSecondary ?? activeTheme.accent2;
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl">
+    <div className="p-4 md:p-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-8 md:mb-10">
-        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Estúdio</p>
-        <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">
-          Configurações
-        </h1>
+      <div className="mb-6">
+        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">Estúdio</p>
+        <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Configurações</h1>
       </div>
 
-      {/* ── Aparência ─────────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-              Aparência
-            </h2>
-            <p className="font-body text-xs text-gray-500">
-              Paleta de cores aplicada em todo o site instantaneamente.
+      {/* ══ GRID 3 COLUNAS ══════════════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+
+        {/* ╠══ COL 1 — Aparência ══╣ */}
+        <div className="space-y-3">
+
+          {/* Presets */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">Tema</p>
+              {(themeId !== null || customPrimary || customSecondary) && (
+                <button type="button" onClick={handleReset}
+                  className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
+                  ↩ padrão
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {THEME_ORDER.map((id) => {
+                const theme = THEMES[id];
+                const isActive = id === active && !customPrimary;
+                return (
+                  <button key={id} type="button" onClick={() => handleSelect(id)}
+                    title={`${theme.label}`}
+                    className="group flex flex-col items-center gap-1.5 py-2 transition-all focus:outline-none">
+                    <span className="relative w-7 h-7 rounded-full block transition-all duration-200"
+                      style={{
+                        backgroundColor: theme.accent,
+                        boxShadow: isActive ? `0 0 0 2px #000, 0 0 0 3px ${theme.accent}` : `0 0 0 1px ${theme.accent}33`,
+                        transform: isActive ? 'scale(1.15)' : undefined,
+                      }}>
+                      {isActive && (
+                        <span className="absolute inset-0 flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                      )}
+                    </span>
+                    <span className={`font-body text-[8px] font-bold tracking-widest uppercase leading-none ${isActive ? 'text-white' : 'text-gray-700 group-hover:text-gray-500'}`}>
+                      {theme.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Cor da logo */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">Cor da logo</p>
+            <div className="flex flex-wrap gap-1 mb-3">
+              {([
+                { mode: 'original', label: 'Original' },
+                { mode: 'white',    label: 'Branca' },
+                { mode: 'black',    label: 'Preta' },
+                { mode: 'primary',  label: 'Primária' },
+                { mode: 'secondary',label: 'Secundária' },
+                { mode: 'invert',   label: 'Inverter' },
+              ] as { mode: LogoColorMode; label: string }[]).map(({ mode, label }) => (
+                <button key={mode} type="button" onClick={() => setLogoColorMode(mode)}
+                  className={`font-body text-[9px] font-semibold tracking-widest uppercase px-2.5 py-1 border transition-colors ${
+                    logoColorMode === mode ? 'border-white text-white bg-white/10' : 'border-white/10 text-gray-600 hover:border-white/30 hover:text-gray-400'
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="px-4 py-3 border border-white/10 bg-black/40 flex items-center justify-center" style={{ minHeight: 56 }}>
+              {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
+                <div className="relative inline-block" style={{ height: 36 }}>
+                  <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="h-full w-auto object-contain" style={{ filter: 'brightness(0)' }} />
+                  <div className="absolute inset-0" style={{ background: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))', mixBlendMode: 'screen' }} />
+                </div>
+              ) : (
+                <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" style={{ height: 36, filter: logoColorMode === 'white' ? 'brightness(0) invert(1)' : logoColorMode === 'black' ? 'brightness(0)' : logoColorMode === 'invert' ? 'invert(1)' : 'none' }} />
+              )}
+            </div>
+          </div>
+
+          {/* Logo upload */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Imagens do site</p>
+            {/* Logo row */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-16 h-10 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+                <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="max-h-full max-w-full object-contain" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Logo</p>
+                <div className="flex gap-2">
+                  <button type="button" disabled={logoUploading} onClick={() => logoFileRef.current?.click()}
+                    className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40">
+                    {logoUploading ? 'Enviando...' : '↑ Upload'}
+                  </button>
+                  {customLogo && (
+                    <button type="button" onClick={() => setCustomLogo(null)}
+                      className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
+                      ✕ Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
+
+            {/* Favicon row */}
+            <div className="flex items-center gap-3 pt-3 border-t border-white/5">
+              <div className="w-10 h-10 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+                <img src={customFavicon ?? '/dudeicone.png'} alt="Favicon" className="max-h-full max-w-full object-contain" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Favicon</p>
+                <div className="flex gap-2">
+                  <button type="button" disabled={faviconUploading} onClick={() => faviconFileRef.current?.click()}
+                    className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40">
+                    {faviconUploading ? 'Enviando...' : '↑ Upload'}
+                  </button>
+                  {customFavicon && (
+                    <button type="button" onClick={() => setCustomFavicon(null)}
+                      className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
+                      ✕ Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFaviconUpload(f); e.target.value = ''; }} />
+          </div>
+        </div>
+
+        {/* ╠══ COL 2 — Cores + Estilos ══╣ */}
+        <div className="space-y-3">
+
+          {/* Custom colors */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Cores personalizadas</p>
+            <div className="space-y-2 mb-3">
+              {/* Primary */}
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
+                  <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftPrimary}</span>
+                  <ShadeStrip hex={draftPrimary} prefix="--ink" />
+                </div>
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
+                  ))}
+                </div>
+              </div>
+              {/* Secondary */}
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Secundária</label>
+                  <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftSecondary}</span>
+                  <ShadeStrip hex={draftSecondary} prefix="--ink2" />
+                </div>
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <button type="button" onClick={handleApplyColors}
+              className="w-full font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
+              Aplicar
+            </button>
+          </div>
+
+          {/* Estilos da Vitrine — inline compacto */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Estilos da vitrine</p>
+            <StyleVisibilitySection />
+          </div>
+        </div>
+
+        {/* ╠══ COL 3 — Sistema ══╣ */}
+        <div className="space-y-3">
+
+          {/* Identificação */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Identificação</p>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-3 py-2 border border-white/10 bg-black/30">
+                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">Domínio</p>
+                <p className="font-mono text-xs text-white">{window.location.hostname}</p>
+              </div>
+              <div className="flex items-center justify-between px-3 py-2 border border-white/10 bg-black/30">
+                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">Plataforma</p>
+                <p className="font-mono text-xs text-white">vitrink.app</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sincronização */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Sincronização</p>
+            <div className="px-3 py-2 border border-white/10 bg-black/30 mb-3">
+              <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">Supabase</p>
+              <p className="font-mono text-[10px] text-gray-500 truncate">
+                {import.meta.env.VITE_SUPABASE_URL || <span className="text-red-400">não configurado</span>}
+              </p>
+            </div>
+            <div className="flex gap-2 mb-2">
+              <button type="button" onClick={handleTestConnection} disabled={connStatus === 'testing'}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/10 text-gray-400 font-body text-[9px] font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors disabled:opacity-50">
+                {connStatus === 'testing' ? <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Testando</>
+                  : connStatus === 'ok' ? <span className="text-green-400">✓ Conectado</span>
+                  : connStatus === 'error' ? <span className="text-red-400">✕ Falhou</span>
+                  : 'Testar'}
+              </button>
+              <button type="button" onClick={handleSyncToSupabase} disabled={syncStatus === 'syncing'}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/20 text-white font-body text-[9px] font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50">
+                {syncStatus === 'syncing' ? <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>{syncProgress ?? 'Sync...'}</>
+                  : syncStatus === 'ok' ? <span className="text-green-400">✓ Sincronizado</span>
+                  : syncStatus === 'error' ? <span className="text-red-400">✕ Erro</span>
+                  : '↑ Sincronizar'}
+              </button>
+            </div>
+            {connError && (
+              <div className="mb-2 px-3 py-2 border border-red-500/30 bg-red-500/10">
+                <p className="font-mono text-[10px] text-red-300 break-all">{connError}</p>
+              </div>
+            )}
+            {syncError && (
+              <div className="mb-2 px-3 py-2 border border-red-500/30 bg-red-500/10">
+                <p className="font-mono text-[10px] text-red-300 break-all">{syncError}</p>
+              </div>
+            )}
+            <p className="font-body text-[9px] text-gray-700">
+              {artists.length} artistas · {tattoos.length} tatuagens · {merchs.length} merchs
             </p>
           </div>
-          {(themeId !== null || customPrimary || customSecondary) && (
-            <button type="button" onClick={handleReset}
-              className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors shrink-0 ml-4">
-              ↩ Restaurar padrão
-            </button>
-          )}
-        </div>
 
-        {/* ── 2-col grid: left = presets + logo color | right = custom colors + uploads ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        {/* ╠═ Coluna esquerda ═╣ */}
-        <div>
-
-        {/* ── Quick presets ── */}
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
-          Presets rápidos
-        </p>
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-8">
-          {THEME_ORDER.map((id) => {
-            const theme = THEMES[id];
-            const isActive = id === active && !customPrimary;
-            return (
-              <button key={id} type="button" onClick={() => handleSelect(id)}
-                title={`${theme.label} — ${theme.description}`}
-                className="group flex flex-col items-center gap-2 py-3 px-1 transition-all focus:outline-none">
-                <span className="relative w-9 h-9 rounded-full block transition-all duration-200"
-                  style={{
-                    backgroundColor: theme.accent,
-                    boxShadow: isActive
-                      ? `0 0 0 2px #000, 0 0 0 3px ${theme.accent}, 0 0 14px ${theme.accent}66`
-                      : `0 0 0 1px ${theme.accent}33`,
-                    transform: isActive ? 'scale(1.12)' : undefined,
-                  }}>
-                  {isActive && (
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </span>
-                  )}
-                </span>
-                {/* Secondary color dot */}
-                <span className="w-3 h-3 rounded-full -mt-1" style={{ backgroundColor: theme.accent2, opacity: 0.7 }} />
-                <span className={`font-body text-[9px] font-bold tracking-widest uppercase transition-colors leading-none ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-400'}`}>
-                  {theme.label}
-                </span>
+          {/* Backup */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Backup</p>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleExportBackup}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/20 text-white font-body text-[9px] font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Baixar
               </button>
-            );
-          })}
-        </div>
-
-        {/* ── Logo ── */}
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
-          Cor da logo
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {([
-            { mode: 'original',  label: 'Original' },
-            { mode: 'white',     label: 'Branca' },
-            { mode: 'black',     label: 'Preta' },
-            { mode: 'primary',   label: 'Cor primária' },
-            { mode: 'secondary', label: 'Cor secundária' },
-            { mode: 'invert',    label: 'Inverter' },
-          ] as { mode: LogoColorMode; label: string }[]).map(({ mode, label }) => (
-            <button key={mode} type="button"
-              onClick={() => setLogoColorMode(mode)}
-              className={`font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border transition-colors ${
-                logoColorMode === mode
-                  ? 'border-white text-white bg-white/10'
-                  : 'border-white/10 text-gray-600 hover:border-white/30 hover:text-gray-400'
-              }`}>
-              {label}
-            </button>
-          ))}
-        </div>
-        {/* Logo preview */}
-        <div className="mt-4 px-6 py-4 border border-white/10 bg-black/40 flex items-center justify-center" style={{ minHeight: 80 }}>
-          {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
-            <div className="relative inline-block" style={{ height: 48 }}>
-              <img src={customLogo ?? '/logosemo-3.png'} alt="Logo preview" className="h-full w-auto object-contain" style={{ filter: 'brightness(0)' }} />
-              <div className="absolute inset-0" style={{
-                background: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
-                mixBlendMode: 'screen',
-              }} />
-            </div>
-          ) : (
-            <img src={customLogo ?? '/logosemo-3.png'} alt="Logo preview" style={{
-              height: 48,
-              filter: logoColorMode === 'white' ? 'brightness(0) invert(1)' : logoColorMode === 'black' ? 'brightness(0)' : logoColorMode === 'invert' ? 'invert(1)' : 'none',
-            }} />
-          )}
-        </div>
-
-        </div>{/* fim coluna esquerda */}
-
-        {/* ╠═ Coluna direita ═╣ */}
-        <div>
-
-        {/* ── Personalizar cores ── */}
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-4">
-          Personalizar cores
-        </p>
-        <div className="space-y-4 mb-5">
-          {/* Primary */}
-          <div className="border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">Primária</label>
-              <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
-                className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
-              <span className="font-mono text-xs text-gray-500 uppercase">{draftPrimary}</span>
-              <ShadeStrip hex={draftPrimary} prefix="--ink" />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
-              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectivePrimary }} />
-              <span className="font-mono text-xs text-gray-700 uppercase">{effectivePrimary}</span>
-              <div className="flex gap-0.5 flex-1">
-                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* Secondary */}
-          <div className="border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">Secundária</label>
-              <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
-                className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
-              <span className="font-mono text-xs text-gray-500 uppercase">{draftSecondary}</span>
-              <ShadeStrip hex={draftSecondary} prefix="--ink2" />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
-              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectiveSecondary }} />
-              <span className="font-mono text-xs text-gray-700 uppercase">{effectiveSecondary}</span>
-              <div className="flex gap-0.5 flex-1">
-                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <button type="button" onClick={handleApplyColors}
-          className="font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black px-5 py-2.5 hover:bg-white/90 transition-colors mb-8">
-          Aplicar cores personalizadas
-        </button>
-
-        {/* ── Logo upload ── */}
-        <div className="border border-white/10 bg-black/30 p-4">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
-            Trocar imagem da logo
-          </p>
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Current logo thumbnail */}
-            <div className="w-24 h-14 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
-              <img
-                src={customLogo ?? '/logosemo-3.png'}
-                alt="Logo atual"
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                disabled={logoUploading}
-                onClick={() => logoFileRef.current?.click()}
-                className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2.5 border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40 flex items-center gap-2"
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
-                {logoUploading ? 'Enviando...' : 'Fazer upload de nova logo'}
-              </button>
-
-              {customLogo && (
-                <button
-                  type="button"
-                  onClick={() => setCustomLogo(null)}
-                  className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-600 hover:text-red-400 hover:border-red-400/30 transition-colors flex items-center gap-2"
-                >
-                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Restaurar logo padrão
-                </button>
-              )}
+              <label className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/10 text-gray-500 font-body text-[9px] font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors cursor-pointer">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                Restaurar
+                <input type="file" accept=".json" className="hidden" onChange={handleImportBackup} />
+              </label>
             </div>
           </div>
 
-          <input
-            ref={logoFileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleLogoUpload(f);
-              e.target.value = '';
-            }}
-          />
+        </div>{/* fim col 3 */}
+      </div>{/* fim grid 3-col */}
 
-          <p className="font-body text-[10px] text-gray-700 mt-3">
-            Recomendado: PNG ou SVG com fundo transparente. A logo aparece na barra de navegação do site.
-          </p>
-        </div>
-
-        {/* ── Favicon upload ── */}
-        <div className="mt-6 border border-white/10 bg-black/30 p-4">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
-            Ícone da aba do navegador (favicon)
-          </p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="w-14 h-14 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
-              <img
-                src={customFavicon ?? '/dudeicone.png'}
-                alt="Favicon atual"
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                disabled={faviconUploading}
-                onClick={() => faviconFileRef.current?.click()}
-                className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2.5 border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40 flex items-center gap-2"
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
-                {faviconUploading ? 'Enviando...' : 'Fazer upload do ícone'}
-              </button>
-
-              {customFavicon && (
-                <button
-                  type="button"
-                  onClick={() => setCustomFavicon(null)}
-                  className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-600 hover:text-red-400 hover:border-red-400/30 transition-colors flex items-center gap-2"
-                >
-                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Restaurar ícone padrão
-                </button>
-              )}
-            </div>
-          </div>
-
-          <input
-            ref={faviconFileRef}
-            type="file"
-            accept="image/png,image/svg+xml,image/x-icon,image/webp"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleFaviconUpload(f);
-              e.target.value = '';
-            }}
-          />
-
-          <p className="font-body text-[10px] text-gray-700 mt-3">
-            Recomendado: PNG quadrado (32×32 ou 64×64). Aparece na aba do navegador.
-          </p>
-        </div>
-
-        </div>{/* fim coluna direita */}
-        </div>{/* fim grid 2-col */}
-      </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Estilos visíveis na Vitrine ──────────────────────────────────── */}
-      <StyleVisibilitySection />
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Identificação ────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Identificação
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Informações do estúdio na plataforma vitrink.app.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-4 py-3 border border-white/10 bg-black/30">
-            <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">Domínio</p>
-            <p className="font-body text-sm text-white font-mono">{window.location.hostname}</p>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 border border-white/10 bg-black/30">
-            <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">Plataforma</p>
-            <p className="font-body text-sm text-white font-mono">vitrink.app</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Sincronização ─────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Sincronização
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Envie todos os dados deste dispositivo para a nuvem (Supabase) e acesse em qualquer dispositivo.
-          </p>
-        </div>
-
-        {/* Connection info */}
-        <div className="mb-4 px-4 py-3 border border-white/10 bg-black/30">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">Supabase</p>
-          <p className="font-mono text-xs text-gray-400 truncate">
-            {import.meta.env.VITE_SUPABASE_URL || <span className="text-red-400">não configurado</span>}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3 mb-3">
-          {/* Test Connection */}
-          <button
-            type="button"
-            onClick={handleTestConnection}
-            disabled={connStatus === 'testing'}
-            className="flex items-center gap-2 px-5 py-3 border border-white/10 text-gray-400 font-body text-xs font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {connStatus === 'testing' ? (
-              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Testando...</>
-            ) : connStatus === 'ok' ? (
-              <><svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-green-400">Conectado!</span></>
-            ) : connStatus === 'error' ? (
-              <><svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg><span className="text-red-400">Falhou</span></>
-            ) : (
-              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>Testar Conexão</>
-            )}
-          </button>
-
-          {/* Sync button */}
-          <button
-            type="button"
-            onClick={handleSyncToSupabase}
-            disabled={syncStatus === 'syncing'}
-            className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {syncStatus === 'syncing' ? (
-              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>{syncProgress ?? 'Sincronizando...'}</>
-            ) : syncStatus === 'ok' ? (
-              <><svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-green-400">Sincronizado!</span></>
-            ) : syncStatus === 'error' ? (
-              <><svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg><span className="text-red-400">Erro ao sincronizar</span></>
-            ) : (
-              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Sincronizar para a Nuvem</>
-            )}
-          </button>
-        </div>
-
-        {/* Error messages */}
-        {connError && (
-          <div className="mb-3 px-4 py-3 border border-red-500/30 bg-red-500/10">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-red-400 mb-1">Erro de Conexão</p>
-            <p className="font-mono text-xs text-red-300 break-all">{connError}</p>
-            {connError.toLowerCase().includes('relation') && (
-              <p className="mt-2 font-body text-xs text-red-300/70">
-                → As tabelas não existem. Execute o <span className="font-mono">supabase/setup.sql</span> no SQL Editor do Supabase.
-              </p>
-            )}
-          </div>
-        )}
-        {syncError && (
-          <div className="mb-3 px-4 py-3 border border-red-500/30 bg-red-500/10">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-red-400 mb-1">Erro de Sincronização</p>
-            <p className="font-mono text-xs text-red-300 break-all">{syncError}</p>
-          </div>
-        )}
-
-        <p className="font-body text-[10px] text-gray-700 tracking-wide">
-          {artists.length} artista(s) · {tattoos.length} tatuagem(ns) · {merchs.length} merch(s) neste dispositivo.
-        </p>
-      </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Estatísticas ──────────────────────────────────────────────────── */}
+      {/* ══ ESTATÍSTICAS — full width ════════════════════════════════════════ */}
+      <div className="mt-4">
       <section>
         <div className="mb-5">
           <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
@@ -1014,49 +870,7 @@ export default function AdminSettings() {
           <p className="font-body text-xs text-gray-700 italic">Nenhuma movimentação registrada ainda.</p>
         )}
       </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Backup ───────────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Backup
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Exporte todos os dados (artistas, tatuagens, configurações) ou restaure a partir de um backup anterior.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleExportBackup}
-            className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Baixar Backup
-          </button>
-
-          <label className="flex items-center gap-2 px-5 py-3 border border-white/10 text-gray-500 font-body text-xs font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors cursor-pointer">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            Restaurar Backup
-            <input
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={handleImportBackup}
-            />
-          </label>
-        </div>
-        <p className="mt-3 font-body text-[10px] text-gray-700 tracking-wide">
-          Para migrar dados: baixe o backup aqui → acesse o site publicado → restaure o backup lá.
-        </p>
-      </section>
+      </div>{/* fim mt-4 estatísticas */}
     </div>
   );
 }
