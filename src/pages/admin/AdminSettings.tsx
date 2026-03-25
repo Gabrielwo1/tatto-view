@@ -152,9 +152,13 @@ export default function AdminSettings() {
   const setLogoColorMode = useStore((s) => s.setLogoColorMode);
   const customLogo    = useStore((s) => s.customLogo);
   const setCustomLogo = useStore((s) => s.setCustomLogo);
+  const customFavicon    = useStore((s) => s.customFavicon);
+  const setCustomFavicon = useStore((s) => s.setCustomFavicon);
 
   const [logoUploading, setLogoUploading] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
+  const [faviconUploading, setFaviconUploading] = useState(false);
+  const faviconFileRef = useRef<HTMLInputElement>(null);
 
   const [draftPrimary,   setDraftPrimary]   = useState(customPrimary   ?? '#ff4500');
   const [draftSecondary, setDraftSecondary] = useState(customSecondary ?? '#3b82f6');
@@ -191,6 +195,23 @@ export default function AdminSettings() {
       console.error('[AdminSettings] logo upload failed:', err);
     } finally {
       setLogoUploading(false);
+    }
+  }
+
+  async function handleFaviconUpload(file: File) {
+    setFaviconUploading(true);
+    try {
+      const reader = new FileReader();
+      const dataUrl = await new Promise<string>((res) => {
+        reader.onload = (e) => res(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+      const url = await uploadImage(dataUrl);
+      setCustomFavicon(url);
+    } catch (err) {
+      console.error('[AdminSettings] favicon upload failed:', err);
+    } finally {
+      setFaviconUploading(false);
     }
   }
 
@@ -610,6 +631,65 @@ export default function AdminSettings() {
 
           <p className="font-body text-[10px] text-gray-700 mt-3">
             Recomendado: PNG ou SVG com fundo transparente. A logo aparece na barra de navegação do site.
+          </p>
+        </div>
+
+        {/* ── Favicon upload ── */}
+        <div className="mt-6 border border-white/10 bg-black/30 p-4">
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
+            Ícone da aba do navegador (favicon)
+          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="w-14 h-14 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+              <img
+                src={customFavicon ?? '/dudeicone.png'}
+                alt="Favicon atual"
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                disabled={faviconUploading}
+                onClick={() => faviconFileRef.current?.click()}
+                className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2.5 border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40 flex items-center gap-2"
+              >
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                {faviconUploading ? 'Enviando...' : 'Fazer upload do ícone'}
+              </button>
+
+              {customFavicon && (
+                <button
+                  type="button"
+                  onClick={() => setCustomFavicon(null)}
+                  className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-600 hover:text-red-400 hover:border-red-400/30 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Restaurar ícone padrão
+                </button>
+              )}
+            </div>
+          </div>
+
+          <input
+            ref={faviconFileRef}
+            type="file"
+            accept="image/png,image/svg+xml,image/x-icon,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFaviconUpload(f);
+              e.target.value = '';
+            }}
+          />
+
+          <p className="font-body text-[10px] text-gray-700 mt-3">
+            Recomendado: PNG quadrado (32×32 ou 64×64). Aparece na aba do navegador.
           </p>
         </div>
       </section>

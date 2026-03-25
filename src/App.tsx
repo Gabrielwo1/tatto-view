@@ -100,6 +100,7 @@ export default function App() {
   const themeId        = useStore((s) => s.themeId);
   const customPrimary  = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
+  const customFavicon  = useStore((s) => s.customFavicon);
 
   // Apply theme + custom overrides on mount and whenever they change
   useEffect(() => {
@@ -107,6 +108,12 @@ export default function App() {
     applyTheme(id);
     applyCustomColors(customPrimary, customSecondary);
   }, [themeId, customPrimary, customSecondary]);
+
+  // Apply custom favicon dynamically
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (link) link.href = customFavicon ?? '/dudeicone.png';
+  }, [customFavicon]);
 
   useEffect(() => {
     initAuth();
