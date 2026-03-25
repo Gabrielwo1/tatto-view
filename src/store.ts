@@ -585,6 +585,9 @@ interface AppState {
   /** Custom logo image URL. null = use default /logosemo-3.png */
   customLogo: string | null;
   setCustomLogo: (url: string | null) => void;
+  /** Custom favicon URL. null = use default /dudeicone.png */
+  customFavicon: string | null;
+  setCustomFavicon: (url: string | null) => void;
   /** Events page content editable by admin */
   eventsContent: EventsContent;
   setEventsContent: (content: EventsContent) => void;
@@ -678,6 +681,12 @@ export const useStore = create<AppState>()(
         set({ customLogo: url });
         supabase?.from('site_config').upsert({ key: 'customLogo', value: url, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setCustomLogo:', error); });
+      },
+      customFavicon: null,
+      setCustomFavicon: (url) => {
+        set({ customFavicon: url });
+        supabase?.from('site_config').upsert({ key: 'customFavicon', value: url, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setCustomFavicon:', error); });
       },
       eventsContent: defaultEventsContent,
       setEventsContent: (content) => {
@@ -816,6 +825,7 @@ export const useStore = create<AppState>()(
             } : {}),
             ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
             ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
+            ...(config.customFavicon !== undefined ? { customFavicon: config.customFavicon as string | null } : {}),
             ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             ...(config.customStyles !== undefined ? { customStyles: config.customStyles as string[] } : {}),
             dataLoaded: true,
@@ -1003,6 +1013,7 @@ export const useStore = create<AppState>()(
         customSecondary: state.customSecondary,
         logoColorMode: state.logoColorMode,
         customLogo: state.customLogo,
+        customFavicon: state.customFavicon,
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
