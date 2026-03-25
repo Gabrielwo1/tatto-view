@@ -29,15 +29,15 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
         )}
       </div>
 
-      <div className="pt-2 pb-1 h-14 flex flex-col justify-start overflow-hidden">
-        <h3 className="font-display text-sm uppercase tracking-wide text-white leading-tight mb-0.5 truncate">
+      <div className="pt-2 pb-1 h-[4.25rem] flex flex-col justify-start overflow-hidden">
+        <h3 className="font-display text-base uppercase tracking-wide text-white leading-tight mb-0.5 truncate">
           {tattoo.title}
         </h3>
         {artist && (
-          <p className="font-body text-[10px] text-white/30 truncate">{artist.name}</p>
+          <p className="font-body text-xs text-white/30 truncate">{artist.name}</p>
         )}
         {tattoo.price && (
-          <p className="text-gray-500 text-[10px] font-body mt-0.5">{tattoo.price}</p>
+          <p className="text-gray-500 text-xs font-body mt-0.5">{tattoo.price}</p>
         )}
       </div>
     </>

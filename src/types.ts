@@ -28,7 +28,17 @@ export interface Merch {
   price: string;
   imageUrl: string;
   link?: string;
+  sizes?: string[];
   createdAt: string;
+}
+
+export interface TattooSession {
+  id: string;
+  typeNum: string;
+  title: string;
+  description: string;
+  price: string;
+  bookingLink: string;
 }
 
 export const TATTOO_STYLES = [

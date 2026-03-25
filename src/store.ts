@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch } from './types';
+import type { Tattoo, Artist, Merch, TattooSession } from './types';
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
@@ -555,11 +555,43 @@ const seedTattoos: Tattoo[] = [
   { id: 'tattoo-12', title: 'Bússola Geométrica',       description: 'Bússola com design geométrico e detalhes intrincados.', imageUrl: 'https://picsum.photos/seed/tattoo12/600/400', style: 'Geométrico',     price: 'R$ 650',   artistId: null, status: 'archived',  createdAt: new Date('2023-10-20').toISOString() },
 ];
 
+// ── Shop Sessions ────────────────────────────────────────────────────────────
+const defaultSessions: TattooSession[] = [
+  {
+    id: 'session-1',
+    typeNum: '01',
+    title: 'SMALL SESSION',
+    description: 'Até 5cm. Linework minimalista ou micro-realismo. Perfeito para quem está começando.',
+    price: 'R$ 250',
+    bookingLink: '',
+  },
+  {
+    id: 'session-2',
+    typeNum: '02',
+    title: 'MEDIUM SESSION',
+    description: '5 – 15cm. Projetos médios com detalhes e sombreamento elaborado.',
+    price: 'R$ 500',
+    bookingLink: '',
+  },
+  {
+    id: 'session-3',
+    typeNum: '03',
+    title: 'FULL SESSION',
+    description: 'Projetos grandes ou complexos. Área extensa, múltiplas sessões, alto detalhamento.',
+    price: 'A combinar',
+    bookingLink: '',
+  },
+];
+
 // ── Store interface ──────────────────────────────────────────────────────────
 interface AppState {
   tattoos: Tattoo[];
   artists: Artist[];
   merchs: Merch[];
+  sessions: TattooSession[];
+  addSession: (data: Omit<TattooSession, 'id'>) => void;
+  updateSession: (id: string, updates: Partial<TattooSession>) => void;
+  deleteSession: (id: string) => void;
   isAdmin: boolean;
   /** True when the logged-in user is a merch manager (not admin or artist). */
   isMerchManager: boolean;
@@ -640,6 +672,32 @@ export const useStore = create<AppState>()(
       tattoos: seedTattoos,
       artists: seedArtists,
       merchs: [],
+      sessions: defaultSessions,
+      addSession: (data) => {
+        const session: TattooSession = { ...data, id: crypto.randomUUID() };
+        set((s) => {
+          const sessions = [...s.sessions, session];
+          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+            .then(({ error }) => { if (error) console.error('[store] addSession:', error); });
+          return { sessions };
+        });
+      },
+      updateSession: (id, updates) => {
+        set((s) => {
+          const sessions = s.sessions.map((sess) => sess.id === id ? { ...sess, ...updates } : sess);
+          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+            .then(({ error }) => { if (error) console.error('[store] updateSession:', error); });
+          return { sessions };
+        });
+      },
+      deleteSession: (id) => {
+        set((s) => {
+          const sessions = s.sessions.filter((sess) => sess.id !== id);
+          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+            .then(({ error }) => { if (error) console.error('[store] deleteSession:', error); });
+          return { sessions };
+        });
+      },
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
@@ -828,6 +886,7 @@ export const useStore = create<AppState>()(
             ...(config.customFavicon !== undefined ? { customFavicon: config.customFavicon as string | null } : {}),
             ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             ...(config.customStyles !== undefined ? { customStyles: config.customStyles as string[] } : {}),
+            ...(config.sessions !== undefined ? { sessions: config.sessions as TattooSession[] } : {}),
             dataLoaded: true,
           });
         } catch (err) {
@@ -1017,6 +1076,7 @@ export const useStore = create<AppState>()(
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
+        sessions: state.sessions,
         fichaSubmissions: state.fichaSubmissions,
         fichaConfig: state.fichaConfig,
         eventsContent: state.eventsContent,
