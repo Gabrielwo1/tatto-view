@@ -61,6 +61,8 @@ export default function AdminTattooForm() {
   const navigate = useNavigate();
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
+  const customStyles = useStore((s) => s.customStyles);
+  const allStyles = [...TATTOO_STYLES, ...customStyles];
   const addTattoo = useStore((s) => s.addTattoo);
   const updateTattoo = useStore((s) => s.updateTattoo);
   const isArtist = useStore((s) => s.isArtist);
@@ -236,7 +238,7 @@ export default function AdminTattooForm() {
                 <div>
                   <label className={labelCls}>Estilo *</label>
                   <select name="style" value={editForm.style} onChange={handleEditChange} className={`${inputCls} bg-zinc-950`}>
-                    {TATTOO_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {allStyles.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
@@ -691,7 +693,7 @@ export default function AdminTattooForm() {
                       onChange={(e) => updateItemAndPropagate('style', e.target.value)}
                       className={`${inputCls} bg-zinc-950`}
                     >
-                      {TATTOO_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {allStyles.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>

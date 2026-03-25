@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
+import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
 
 export default function ArtistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
   const [tab, setTab] = useState<'available' | 'archived'>('available');
+
+  const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
   const artist = artists.find((a) => a.id === id);
   if (!artist) {
@@ -118,9 +121,18 @@ export default function ArtistDetailPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-5">
           {filtered.map((tattoo) => (
-            <TattooCard key={tattoo.id} tattoo={tattoo} artist={artist} />
+            <TattooCard
+              key={tattoo.id}
+              tattoo={tattoo}
+              artist={artist}
+              onClick={() => openLightbox(tattoo, artist)}
+            />
           ))}
         </div>
+      )}
+
+      {lightbox && lightboxMounted && (
+        <TattooLightbox entry={lightbox} onClose={closeLightbox} hideArtistLink />
       )}
     </div>
   );
