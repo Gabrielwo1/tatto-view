@@ -14,10 +14,32 @@ export default function AdminResetPassword() {
 
   useEffect(() => {
     if (!supabase) return;
-    // Supabase fires PASSWORD_RECOVERY when the user arrives via the reset link
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') setReady(true);
+
+    // ── Strategy 1: PKCE flow — URL contains ?code=XXX ───────────────────
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (!error) setReady(true);
+      });
+    }
+
+    // ── Strategy 2: Implicit flow — URL hash contains #type=recovery ─────
+    if (window.location.hash.includes('type=recovery')) {
+      setReady(true);
+    }
+
+    // ── Strategy 3: Session already established (event fired before mount) ─
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true);
     });
+
+    // ── Strategy 4: Listen for the event if it fires after mount ──────────
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setReady(true);
+      if (event === 'SIGNED_IN' && session) setReady(true);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
