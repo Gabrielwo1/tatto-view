@@ -41,6 +41,17 @@ export interface TattooSession {
   bookingLink: string;
 }
 
+export interface ShopContent {
+  hero: {
+    title: string;
+    subtitle: string;
+  };
+  sessionsTagline: string;
+  sessionsAvailableLabel: string;
+  apparelTagline: string;
+  paymentMethods: Array<{ label: string; sub: string }>;
+}
+
 export const TATTOO_STYLES = [
   'Realismo',
   'Blackwork',
