@@ -396,7 +396,7 @@ export default function AdminSettings() {
   const effectiveSecondary = customSecondary ?? activeTheme.accent2;
 
   return (
-    <div className="p-4 md:p-8 max-w-3xl">
+    <div className="p-4 md:p-8 max-w-5xl">
       {/* Header */}
       <div className="mb-8 md:mb-10">
         <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Estúdio</p>
@@ -423,6 +423,12 @@ export default function AdminSettings() {
             </button>
           )}
         </div>
+
+        {/* ── 2-col grid: left = presets + logo color | right = custom colors + uploads ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        {/* ╠═ Coluna esquerda ═╣ */}
+        <div>
 
         {/* ── Quick presets ── */}
         <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
@@ -461,76 +467,6 @@ export default function AdminSettings() {
             );
           })}
         </div>
-
-        {/* ── Personalizar cores ── */}
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-4">
-          Personalizar cores
-        </p>
-        <div className="space-y-4 mb-5">
-          {/* Primary */}
-          <div className="border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">
-                Primária
-              </label>
-              <div className="relative shrink-0">
-                <input
-                  type="color"
-                  value={draftPrimary}
-                  onChange={(e) => setDraftPrimary(e.target.value)}
-                  className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0"
-                  style={{ appearance: 'none' }}
-                />
-              </div>
-              <span className="font-mono text-xs text-gray-500 uppercase">{draftPrimary}</span>
-              <ShadeStrip hex={draftPrimary} prefix="--ink" />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
-              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectivePrimary }} />
-              <span className="font-mono text-xs text-gray-700 uppercase">{effectivePrimary}</span>
-              <div className="flex gap-0.5 flex-1">
-                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Secondary */}
-          <div className="border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">
-                Secundária
-              </label>
-              <div className="relative shrink-0">
-                <input
-                  type="color"
-                  value={draftSecondary}
-                  onChange={(e) => setDraftSecondary(e.target.value)}
-                  className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0"
-                />
-              </div>
-              <span className="font-mono text-xs text-gray-500 uppercase">{draftSecondary}</span>
-              <ShadeStrip hex={draftSecondary} prefix="--ink2" />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
-              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectiveSecondary }} />
-              <span className="font-mono text-xs text-gray-700 uppercase">{effectiveSecondary}</span>
-              <div className="flex gap-0.5 flex-1">
-                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" onClick={handleApplyColors}
-          className="font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black px-5 py-2.5 hover:bg-white/90 transition-colors mb-8">
-          Aplicar cores personalizadas
-        </button>
 
         {/* ── Logo ── */}
         <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
@@ -574,8 +510,64 @@ export default function AdminSettings() {
           )}
         </div>
 
+        </div>{/* fim coluna esquerda */}
+
+        {/* ╠═ Coluna direita ═╣ */}
+        <div>
+
+        {/* ── Personalizar cores ── */}
+        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-4">
+          Personalizar cores
+        </p>
+        <div className="space-y-4 mb-5">
+          {/* Primary */}
+          <div className="border border-white/10 bg-black/30 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">Primária</label>
+              <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
+                className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
+              <span className="font-mono text-xs text-gray-500 uppercase">{draftPrimary}</span>
+              <ShadeStrip hex={draftPrimary} prefix="--ink" />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
+              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectivePrimary }} />
+              <span className="font-mono text-xs text-gray-700 uppercase">{effectivePrimary}</span>
+              <div className="flex gap-0.5 flex-1">
+                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Secondary */}
+          <div className="border border-white/10 bg-black/30 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">Secundária</label>
+              <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
+                className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
+              <span className="font-mono text-xs text-gray-500 uppercase">{draftSecondary}</span>
+              <ShadeStrip hex={draftSecondary} prefix="--ink2" />
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
+              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectiveSecondary }} />
+              <span className="font-mono text-xs text-gray-700 uppercase">{effectiveSecondary}</span>
+              <div className="flex gap-0.5 flex-1">
+                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" onClick={handleApplyColors}
+          className="font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black px-5 py-2.5 hover:bg-white/90 transition-colors mb-8">
+          Aplicar cores personalizadas
+        </button>
+
         {/* ── Logo upload ── */}
-        <div className="mt-6 border border-white/10 bg-black/30 p-4">
+        <div className="border border-white/10 bg-black/30 p-4">
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
             Trocar imagem da logo
           </p>
@@ -692,6 +684,9 @@ export default function AdminSettings() {
             Recomendado: PNG quadrado (32×32 ou 64×64). Aparece na aba do navegador.
           </p>
         </div>
+
+        </div>{/* fim coluna direita */}
+        </div>{/* fim grid 2-col */}
       </section>
 
       {/* ── Divider ── */}

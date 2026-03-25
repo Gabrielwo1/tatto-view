@@ -65,7 +65,7 @@ export default function AdminAftercare() {
   }
 
   return (
-    <div className="p-6 lg:p-10 max-w-3xl">
+    <div className="p-6 lg:p-10 max-w-5xl">
       <div className="mb-8">
         <h1 className="font-display text-2xl uppercase tracking-wide text-white">Pós Tattoo</h1>
         <p className="font-body text-xs text-gray-500 mt-1">Edite o conteúdo da página de cuidados pós-tatuagem</p>
