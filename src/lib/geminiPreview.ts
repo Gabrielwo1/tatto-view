@@ -6,7 +6,7 @@
  */
 
 const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
-const GEMINI_MODEL = 'gemini-2.0-flash'; // More stable quota on Free Tier
+const GEMINI_MODEL = 'gemini-3.1-flash-image'; // Use the version that was working (but rate-limited)
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const PROMPT = `You are an elite tattoo visualization AI.
@@ -23,38 +23,52 @@ STYLE: The tattoo is professional art. Maintain all details of the original desi
 OUTPUT: Return only the high-resolution composited photo.`;
 
 /**
+ * Resizes an image (Blob) to a max dimension and returns base64 string.
+ */
+async function resizeAndToBase64(blob: Blob, maxDim = 1024): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let w = img.width;
+      let h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      resolve(dataUrl.replace(/^data:image\/\w+;base64,/, ''));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+/**
  * Fetches a remote image URL and returns it as { base64, mimeType }.
  */
 async function fetchImageAsBase64(url: string): Promise<{ base64: string; mimeType: string }> {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Failed to fetch image: ${resp.statusText}`);
   const blob = await resp.blob();
-  const buffer = await blob.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return {
-    base64: btoa(binary),
-    mimeType: blob.type || 'image/png',
-  };
+  const base64 = await resizeAndToBase64(blob);
+  return { base64, mimeType: 'image/jpeg' };
 }
 
 /**
- * Converts a File to base64.
+ * Converts a File to base64 with resizing.
  */
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Strip "data:image/...;base64," prefix
-      resolve(result.replace(/^data:image\/\w+;base64,/, ''));
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+async function fileToBase64(file: File): Promise<string> {
+  return resizeAndToBase64(file);
 }
 
 export interface PreviewResult {
@@ -74,7 +88,7 @@ export async function generateTattooPreview(
 ): Promise<PreviewResult> {
   // Convert body photo to base64
   const bodyBase64 = await fileToBase64(bodyPhotoFile);
-  const bodyMimeType = bodyPhotoFile.type || 'image/jpeg';
+  const bodyMimeType = 'image/jpeg';
 
   // Fetch tattoo image from URL and convert
   const tattoo = await fetchImageAsBase64(tattooImageUrl);
