@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Artist } from '../types';
 
@@ -5,7 +6,7 @@ interface ArtistCardProps {
   artist: Artist;
 }
 
-export default function ArtistCard({ artist }: ArtistCardProps) {
+function ArtistCard({ artist }: ArtistCardProps) {
   return (
     <Link
       to={`/artistas/${artist.id}`}
@@ -16,6 +17,8 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
         <img
           src={artist.photoUrl}
           alt={artist.name}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => {
             (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/400/400`;
@@ -61,3 +64,5 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
     </Link>
   );
 }
+
+export default memo(ArtistCard);

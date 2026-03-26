@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
 
@@ -8,7 +9,7 @@ interface TattooCardProps {
   onClick?: () => void;
 }
 
-export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
+function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
   const href = artist ? `/artistas/${artist.id}` : '/artistas';
 
   const inner = (
@@ -17,6 +18,8 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
         <img
           src={tattoo.imageUrl}
           alt={tattoo.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => {
             (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/600/600`;
@@ -57,3 +60,5 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
     </Link>
   );
 }
+
+export default memo(TattooCard);

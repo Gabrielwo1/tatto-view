@@ -142,32 +142,34 @@ export default function ArtistHero() {
               className="absolute left-6 right-6"
               style={{ bottom: isMobile ? '20px' : '40px' }}
             >
-              {/* Specialties */}
-              <div
-                className="flex flex-wrap gap-2 mb-3"
-                style={{
-                  opacity: active ? 1 : 0,
-                  transform: active ? 'translateY(0)' : 'translateY(10px)',
-                  transition: 'opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s',
-                }}
-              >
-                {artist.specialties.map((s) => (
-                  <span
-                    key={s}
-                    className="text-xs font-body font-semibold tracking-widest uppercase px-2 py-1 border select-none"
-                    style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }}
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
+              {/* Specialties — desktop only */}
+              {!isMobile && (
+                <div
+                  className="flex flex-wrap gap-2 mb-3"
+                  style={{
+                    opacity: isHovered ? 1 : 0,
+                    transform: isHovered ? 'translateY(0)' : 'translateY(10px)',
+                    transition: 'opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s',
+                  }}
+                >
+                  {artist.specialties.map((s) => (
+                    <span
+                      key={s}
+                      className="text-xs font-body font-semibold tracking-widest uppercase px-2 py-1 border select-none"
+                      style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }}
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Artist name */}
               <h2
                 className="font-display uppercase leading-none select-none whitespace-nowrap overflow-hidden text-ellipsis"
                 style={{
                   fontSize: isMobile
-                    ? '2.2rem'
+                    ? '1.5rem'
                     : isHovered
                     ? 'clamp(2.5rem, 4vw, 4.5rem)'
                     : 'clamp(1rem, 2vw, 2rem)',
