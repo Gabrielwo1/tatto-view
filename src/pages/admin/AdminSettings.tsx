@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { THEMES, applyTheme, applyCustomColors, generateShades, getThemeForHostname } from '../../lib/themes';
-import type { ThemeId, LogoColorMode } from '../../lib/themes';
+import type { ThemeId } from '../../lib/themes';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
@@ -149,8 +149,6 @@ export default function AdminSettings() {
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
-  const logoColorMode   = useStore((s) => s.logoColorMode);
-  const setLogoColorMode = useStore((s) => s.setLogoColorMode);
   const customLogo    = useStore((s) => s.customLogo);
   const setCustomLogo = useStore((s) => s.setCustomLogo);
   const customFavicon    = useStore((s) => s.customFavicon);
@@ -446,37 +444,48 @@ export default function AdminSettings() {
             </div>
           </div>
 
-          {/* Cor da logo */}
+          {/* Custom colors — col 1 continuation */}
           <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">Cor da logo</p>
-            <div className="flex flex-wrap gap-1 mb-3">
-              {([
-                { mode: 'original', label: 'Original' },
-                { mode: 'white',    label: 'Branca' },
-                { mode: 'black',    label: 'Preta' },
-                { mode: 'primary',  label: 'Primária' },
-                { mode: 'secondary',label: 'Secundária' },
-                { mode: 'invert',   label: 'Inverter' },
-              ] as { mode: LogoColorMode; label: string }[]).map(({ mode, label }) => (
-                <button key={mode} type="button" onClick={() => setLogoColorMode(mode)}
-                  className={`font-body text-[9px] font-semibold tracking-widest uppercase px-2.5 py-1 border transition-colors ${
-                    logoColorMode === mode ? 'border-white text-white bg-white/10' : 'border-white/10 text-gray-600 hover:border-white/30 hover:text-gray-400'
-                  }`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="px-4 py-3 border border-white/10 bg-black/40 flex items-center justify-center" style={{ minHeight: 56 }}>
-              {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
-                <div className="relative inline-block" style={{ height: 36 }}>
-                  <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="h-full w-auto object-contain" style={{ filter: 'brightness(0)' }} />
-                  <div className="absolute inset-0" style={{ background: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))', mixBlendMode: 'screen' }} />
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Cores personalizadas</p>
+            <div className="space-y-2 mb-3">
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
+                  <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftPrimary}</span>
+                  <ShadeStrip hex={draftPrimary} prefix="--ink" />
                 </div>
-              ) : (
-                <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" style={{ height: 36, filter: logoColorMode === 'white' ? 'brightness(0) invert(1)' : logoColorMode === 'black' ? 'brightness(0)' : logoColorMode === 'invert' ? 'invert(1)' : 'none' }} />
-              )}
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
+                  ))}
+                </div>
+              </div>
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Secundária</label>
+                  <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftSecondary}</span>
+                  <ShadeStrip hex={draftSecondary} prefix="--ink2" />
+                </div>
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
+                  ))}
+                </div>
+              </div>
             </div>
+            <button type="button" onClick={handleApplyColors}
+              className="w-full font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
+              Aplicar
+            </button>
           </div>
+        </div>
+
+        {/* ╠══ COL 2 — Imagens + Estilos ══╣ */}
+        <div className="space-y-3">
 
           {/* Logo upload */}
           <div className="border border-white/10 bg-black/20 p-4">
@@ -527,53 +536,8 @@ export default function AdminSettings() {
             </div>
             <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFaviconUpload(f); e.target.value = ''; }} />
           </div>
-        </div>
 
-        {/* ╠══ COL 2 — Cores + Estilos ══╣ */}
-        <div className="space-y-3">
-
-          {/* Custom colors */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Cores personalizadas</p>
-            <div className="space-y-2 mb-3">
-              {/* Primary */}
-              <div className="border border-white/10 bg-black/30 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
-                  <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
-                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
-                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftPrimary}</span>
-                  <ShadeStrip hex={draftPrimary} prefix="--ink" />
-                </div>
-                <div className="flex gap-0.5">
-                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
-                  ))}
-                </div>
-              </div>
-              {/* Secondary */}
-              <div className="border border-white/10 bg-black/30 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Secundária</label>
-                  <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
-                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
-                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftSecondary}</span>
-                  <ShadeStrip hex={draftSecondary} prefix="--ink2" />
-                </div>
-                <div className="flex gap-0.5">
-                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <button type="button" onClick={handleApplyColors}
-              className="w-full font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
-              Aplicar
-            </button>
-          </div>
-
-          {/* Estilos da Vitrine — inline compacto */}
+          {/* Estilos da Vitrine */}
           <div className="border border-white/10 bg-black/20 p-4">
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Estilos da vitrine</p>
             <StyleVisibilitySection />
