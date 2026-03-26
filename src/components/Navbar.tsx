@@ -2,10 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
-const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `font-body text-xs font-semibold tracking-widest uppercase transition-colors ${
-    isActive ? 'text-ink-500' : 'text-white/50 hover:text-ink-400'
-  }`;
+const topNavClass = 'font-body text-xs font-semibold tracking-widest uppercase transition-colors text-white/50 hover:text-ink-400';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -47,16 +44,16 @@ export default function Navbar() {
               <span className="font-body text-xs font-semibold tracking-widest uppercase">Menu</span>
             </button>
 
-            <div className="hidden lg:flex items-center gap-6">
-              <NavLink to="/artistas" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+            <div className="hidden lg:flex items-center gap-6 ml-10">
+              <Link to="/artistas" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Artistas
-              </NavLink>
-              <NavLink to="/guests" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+              </Link>
+              <Link to="/guests" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Guests
-              </NavLink>
-              <NavLink to="/events" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+              </Link>
+              <Link to="/events" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Eventos
-              </NavLink>
+              </Link>
             </div>
           </div>
 
@@ -104,16 +101,16 @@ export default function Navbar() {
 
           {/* Right group: Loja + Sobre Nós + Admin */}
           <div className="flex items-center justify-end gap-6">
-            <div className="hidden lg:flex items-center gap-6">
-              <NavLink to="/aftercare" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+            <div className="hidden lg:flex items-center gap-6 mr-10">
+              <Link to="/aftercare" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Pós Tattoo
-              </NavLink>
-              <NavLink to="/loja" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+              </Link>
+              <Link to="/loja" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Loja
-              </NavLink>
-              <NavLink to="/sobre-nos" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+              </Link>
+              <Link to="/sobre-nos" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Sobre Nós
-              </NavLink>
+              </Link>
             </div>
 
             {isAdmin ? (
