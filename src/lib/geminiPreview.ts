@@ -6,7 +6,7 @@
  */
 
 const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
-const GEMINI_MODEL = 'gemini-3.1-flash-image-preview'; // Nano Banana 2 — Latest 2026 Model
+const GEMINI_MODEL = 'gemini-2.0-flash'; // More stable quota on Free Tier
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const PROMPT = `You are an elite tattoo visualization AI.
@@ -113,7 +113,10 @@ export async function generateTattooPreview(
   if (!resp.ok) {
     const errText = await resp.text();
     console.error('Gemini API error:', errText);
-    throw new Error(`Gemini API error (${resp.status}): ${errText}`);
+    if (resp.status === 429) {
+      throw new Error('Limite de uso da IA atingido. Por favor, aguarde um minuto e tente novamente.');
+    }
+    throw new Error(`Erro na API (${resp.status}). Tente novamente mais tarde.`);
   }
 
   const data = await resp.json();
