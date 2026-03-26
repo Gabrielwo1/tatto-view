@@ -149,6 +149,9 @@ export default function AdminLayout() {
   const isArtist        = useStore((s) => s.isArtist);
   const isMerchManager  = useStore((s) => s.isMerchManager);
   const logout          = useStore((s) => s.logout);
+  const logoColorMode   = useStore((s) => s.logoColorMode);
+  const customLogo      = useStore((s) => s.customLogo);
+  const logoSrc         = customLogo ?? '/logosemo-3.png';
   const location  = useLocation();
   const navigate  = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -186,7 +189,27 @@ export default function AdminLayout() {
       <aside className="hidden md:flex w-52 bg-black border-l border-white/10 flex-col flex-shrink-0">
         <div className="p-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/logosemo-3.png" alt="El Dude" className="h-8 w-auto object-contain" />
+            <div className="relative h-8 flex-shrink-0">
+              <img
+                src={logoSrc}
+                alt="El Dude"
+                className="h-full w-auto object-contain"
+                style={{
+                  filter: (logoColorMode === 'primary' || logoColorMode === 'secondary') 
+                    ? 'brightness(0)' 
+                    : (logoColorMode === 'white' ? 'brightness(0) invert(1)' : 'none')
+                }}
+              />
+              {(logoColorMode === 'primary' || logoColorMode === 'secondary') && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundColor: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
+                    mixBlendMode: 'screen'
+                  }}
+                />
+              )}
+            </div>
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
           </Link>
         </div>
@@ -232,8 +255,28 @@ export default function AdminLayout() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 h-14">
         {/* Logo — absolute centered */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Link to="/" className="pointer-events-auto">
-            <img src="/logosemo-3.png" alt="El Dude" className="h-7 w-auto object-contain" />
+          <Link to="/" className="pointer-events-auto flex items-center h-7">
+            <div className="relative h-full">
+              <img
+                src={logoSrc}
+                alt="El Dude"
+                className="h-full w-auto object-contain"
+                style={{
+                  filter: (logoColorMode === 'primary' || logoColorMode === 'secondary') 
+                    ? 'brightness(0)' 
+                    : (logoColorMode === 'white' ? 'brightness(0) invert(1)' : 'none')
+                }}
+              />
+              {(logoColorMode === 'primary' || logoColorMode === 'secondary') && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundColor: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
+                    mixBlendMode: 'screen'
+                  }}
+                />
+              )}
+            </div>
           </Link>
         </div>
         {/* Left: section label */}
@@ -261,7 +304,27 @@ export default function AdminLayout() {
           <aside className="relative ml-auto w-64 bg-black border-l border-white/10 flex flex-col h-full">
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <Link to="/" onClick={closeDrawer} className="flex items-center gap-3">
-                <img src="/logosemo-3.png" alt="El Dude" className="h-8 w-auto object-contain" />
+                <div className="relative h-8 flex-shrink-0">
+                  <img
+                    src={logoSrc}
+                    alt="El Dude"
+                    className="h-full w-auto object-contain"
+                    style={{
+                      filter: (logoColorMode === 'primary' || logoColorMode === 'secondary') 
+                        ? 'brightness(0)' 
+                        : (logoColorMode === 'white' ? 'brightness(0) invert(1)' : 'none')
+                    }}
+                  />
+                  {(logoColorMode === 'primary' || logoColorMode === 'secondary') && (
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        backgroundColor: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
+                        mixBlendMode: 'screen'
+                      }}
+                    />
+                  )}
+                </div>
                 <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
               </Link>
               <button onClick={closeDrawer} className="p-1 text-gray-600 hover:text-white">
