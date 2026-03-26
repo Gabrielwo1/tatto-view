@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { generateFluxPreview, buildTattooPrompt } from '../lib/fluxPreview';
 
 const PLACEMENTS = ['forearm','arm','shoulder','back','chest','leg','calf','ribs','neck','hand','foot','thigh'];
+const ENV_HF_TOKEN = import.meta.env.VITE_HF_TOKEN as string | undefined;
 
 interface Props {
   tattooImageUrl: string;
@@ -11,7 +12,7 @@ interface Props {
 
 export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose }: Props) {
   const [step, setStep] = useState<'upload' | 'generating' | 'result' | 'error' | 'token'>('upload');
-  const [hfToken, setHfToken] = useState(localStorage.getItem('hf_access_token') || '');
+  const [hfToken, setHfToken] = useState(ENV_HF_TOKEN || localStorage.getItem('hf_access_token') || '');
   const [bodyPreview, setBodyPreview] = useState<string | null>(null);
   const [bodyFile, setBodyFile] = useState<File | null>(null);
   const [placement, setPlacement] = useState('forearm');
@@ -20,7 +21,7 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (hfToken) localStorage.setItem('hf_access_token', hfToken);
+    if (hfToken && !ENV_HF_TOKEN) localStorage.setItem('hf_access_token', hfToken);
   }, [hfToken]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
