@@ -11,7 +11,7 @@ ALTER TABLE artists ADD COLUMN IF NOT EXISTS auth_user_id UUID UNIQUE;
 -- Vincula cada usuário do Supabase Auth a um papel (admin, artist ou merch_manager)
 CREATE TABLE IF NOT EXISTS user_profiles (
   id         UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  role       TEXT NOT NULL CHECK (role IN ('admin', 'artist', 'merch_manager')),
+  role       TEXT NOT NULL CHECK (role IN ('admin', 'artist', 'merch_manager', 'content_editor')),
   artist_id  TEXT REFERENCES artists(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 -- Se a tabela já existe com o CHECK antigo, atualize o constraint:
 -- ALTER TABLE user_profiles DROP CONSTRAINT IF EXISTS user_profiles_role_check;
 -- ALTER TABLE user_profiles ADD CONSTRAINT user_profiles_role_check
---   CHECK (role IN ('admin', 'artist', 'merch_manager'));
+--   CHECK (role IN ('admin', 'artist', 'merch_manager', 'content_editor'));
 
 -- ── PASSO 3: Políticas de segurança para user_profiles ────────────────────
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -100,7 +100,7 @@ CREATE POLICY "merchs_insert" ON merchs
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1 FROM user_profiles
-      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager')
+      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager', 'content_editor')
     )
   );
 
@@ -108,7 +108,7 @@ CREATE POLICY "merchs_update" ON merchs
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM user_profiles
-      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager')
+      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager', 'content_editor')
     )
   );
 
@@ -116,12 +116,47 @@ CREATE POLICY "merchs_delete" ON merchs
   FOR DELETE USING (
     EXISTS (
       SELECT 1 FROM user_profiles
-      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager')
+      WHERE id = auth.uid() AND role IN ('admin', 'merch_manager', 'content_editor')
+    )
+  );
+
+-- ── PASSO 7: Políticas RLS da tabela site_config ──────────────────────────
+-- admin e content_editor podem escrever; leitura pública
+
+ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "site_config_public_read" ON site_config;
+DROP POLICY IF EXISTS "site_config_write" ON site_config;
+
+CREATE POLICY "site_config_public_read" ON site_config
+  FOR SELECT USING (true);
+
+CREATE POLICY "site_config_insert" ON site_config
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM user_profiles
+      WHERE id = auth.uid() AND role IN ('admin', 'content_editor')
+    )
+  );
+
+CREATE POLICY "site_config_update" ON site_config
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles
+      WHERE id = auth.uid() AND role IN ('admin', 'content_editor')
+    )
+  );
+
+CREATE POLICY "site_config_delete" ON site_config
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM user_profiles
+      WHERE id = auth.uid() AND role IN ('admin', 'content_editor')
     )
   );
 
 -- ══════════════════════════════════════════════════════════════════════════
--- PASSO 7: Criar usuários no Supabase e vincular perfis
+-- PASSO 8: Criar usuários no Supabase e vincular perfis
 --
 -- Instruções:
 -- 1. Vá em Authentication → Users → Invite user
@@ -168,7 +203,11 @@ CREATE POLICY "merchs_delete" ON merchs
 -- VALUES ('COLE-UUID-DIONATAN-AQUI', 'artist', 'COLE-ID-DIONATAN-AQUI');
 -- UPDATE artists SET auth_user_id = 'COLE-UUID-DIONATAN-AQUI' WHERE id = 'COLE-ID-DIONATAN-AQUI';
 
--- ── 8. Gerente de Loja — Gustavo Pacheco (gustavo_tres@hotmail.com) ───────
+-- ── 8. Editor de Conteúdo — Gustavo Pacheco (gustavo_tres@hotmail.com) ────
+-- Acesso: Guests, Landing Page, Sobre Nós, Events, Loja
 -- Não precisa de artist_id (não é artista)
 -- INSERT INTO user_profiles (id, role, artist_id)
--- VALUES ('COLE-UUID-GUSTAVO-AQUI', 'merch_manager', NULL);
+-- VALUES ('COLE-UUID-GUSTAVO-AQUI', 'content_editor', NULL);
+--
+-- Se o Gustavo já existe como merch_manager, atualize com:
+-- UPDATE user_profiles SET role = 'content_editor' WHERE id = 'COLE-UUID-GUSTAVO-AQUI';
