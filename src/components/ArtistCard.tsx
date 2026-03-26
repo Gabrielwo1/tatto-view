@@ -10,7 +10,7 @@ function ArtistCard({ artist }: ArtistCardProps) {
   return (
     <Link
       to={`/artistas/${artist.id}`}
-      className="block bg-zinc-950 overflow-hidden border border-white/[0.08] hover:border-white/30 transition-all duration-300 group hover:shadow-xl hover:shadow-white/5"
+      className="block bg-zinc-950 overflow-hidden border border-white/[0.08] hover:border-ink2-500/40 transition-all duration-300 group hover:shadow-xl hover:shadow-ink2-500/5"
     >
       {/* Photo */}
       <div className="relative overflow-hidden aspect-square">
@@ -39,7 +39,7 @@ function ArtistCard({ artist }: ArtistCardProps) {
           {artist.specialties.map((specialty) => (
             <span
               key={specialty}
-              className="px-2 py-0.5 text-ink-400 text-xs font-semibold tracking-widest uppercase border border-ink-500/30"
+              className="px-2 py-0.5 text-ink2-400 text-xs font-semibold tracking-widest uppercase border border-ink2-500/30"
             >
               {specialty}
             </span>
@@ -48,7 +48,7 @@ function ArtistCard({ artist }: ArtistCardProps) {
 
         {/* Instagram */}
         {artist.instagram && (
-          <div className="flex items-center gap-1.5 text-gray-600 text-xs font-medium tracking-wide">
+          <div className="flex items-center gap-1.5 text-ink2-500/70 text-xs font-medium tracking-wide">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-3.5 h-3.5"

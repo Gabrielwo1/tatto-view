@@ -21,7 +21,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-black border-b border-white/10 sticky top-0 z-50" onMouseLeave={() => setMenuOpen(false)}>
+    <nav className="bg-black border-b border-ink2-500/20 sticky top-0 z-50" onMouseLeave={() => setMenuOpen(false)}>
       <div className="px-6 lg:px-10">
         <div
           className="grid items-center transition-all duration-500 ease-in-out"

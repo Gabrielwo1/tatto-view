@@ -72,7 +72,7 @@ export default function ShowcasePage() {
       {/* Tattoo showcase */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-10">
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-ink-500 mb-2">
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-ink2-500 mb-2">
             Disponíveis
           </p>
           <h2 className="font-display text-5xl md:text-6xl text-white uppercase tracking-wide leading-none">

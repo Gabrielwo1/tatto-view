@@ -136,7 +136,7 @@ export default function LandingPage() {
           ref={sobre.ref}
           className={`max-w-4xl mx-auto transition-all duration-1000 ${sobre.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
         >
-          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">Manifesto</p>
+          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Manifesto</p>
           <h2 className="font-display text-5xl sm:text-7xl md:text-8xl uppercase leading-none text-white mb-10">
             {lc.manifesto.title1}<br />{lc.manifesto.title2}
           </h2>
@@ -170,7 +170,7 @@ export default function LandingPage() {
             ref={estilos.ref}
             className={`mb-14 transition-all duration-1000 ${estilos.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">Especialidades</p>
+            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Especialidades</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Seu estilo,<br />nossa arte
             </h2>
@@ -204,7 +204,7 @@ export default function LandingPage() {
             ref={team.ref}
             className={`mb-14 transition-all duration-1000 ${team.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">A equipe</p>
+            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">A equipe</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Conheça os<br />artistas
             </h2>
@@ -259,7 +259,7 @@ export default function LandingPage() {
             className={`mb-14 flex items-end justify-between transition-all duration-1000 ${galeria.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <div>
-              <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">Portfólio</p>
+              <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Portfólio</p>
               <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
                 Artes<br />recentes
               </h2>
@@ -319,7 +319,7 @@ export default function LandingPage() {
             ref={processo.ref}
             className={`mb-16 transition-all duration-1000 ${processo.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">Processo</p>
+            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Processo</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Do sonho<br />à pele
             </h2>
@@ -352,7 +352,7 @@ export default function LandingPage() {
             ref={precos.ref}
             className={`mb-14 transition-all duration-1000 ${precos.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">Investimento</p>
+            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Investimento</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Quanto<br />custa?
             </h2>
@@ -392,7 +392,7 @@ export default function LandingPage() {
             ref={faq.ref}
             className={`mb-14 transition-all duration-1000 ${faq.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-4">Dúvidas</p>
+            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Dúvidas</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Perguntas<br />frequentes
             </h2>
@@ -428,7 +428,7 @@ export default function LandingPage() {
         </p>
 
         <div className="relative z-10 max-w-2xl mx-auto">
-          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink-500 mb-6">{lc.cta.tagline}</p>
+          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-6">{lc.cta.tagline}</p>
           <h2 className="font-display text-6xl sm:text-8xl md:text-9xl uppercase leading-none text-white mb-8">
             {lc.cta.title1}<br />{lc.cta.title2}
           </h2>
