@@ -124,18 +124,23 @@ const navItems = [
   },
 ];
 
-// Items shown only to the super admin
+// Items shown only to the super admin (not content_editor, artist, or merch_manager)
 const adminOnlyItems = [
   '/admin/dashboard',
   '/admin/artistas',
-  '/admin/guests',
-  '/admin/events',
   '/admin/aftercare',
-  '/admin/landing',
-  '/admin/sobre-nos',
   '/admin/ficha-anamnese',
   '/admin/fichas',
   '/admin/configuracoes',
+];
+
+// Items accessible to both admin and content_editor
+const contentEditorItems = [
+  '/admin/guests',
+  '/admin/events',
+  '/admin/landing',
+  '/admin/sobre-nos',
+  '/admin/merchs',
 ];
 
 // Item shown only to artists (not admin)
@@ -148,6 +153,7 @@ export default function AdminLayout() {
   const isAdmin         = useStore((s) => s.isAdmin);
   const isArtist        = useStore((s) => s.isArtist);
   const isMerchManager  = useStore((s) => s.isMerchManager);
+  const isContentEditor = useStore((s) => s.isContentEditor);
   const logout          = useStore((s) => s.logout);
   const location  = useLocation();
   const navigate  = useNavigate();
@@ -160,10 +166,11 @@ export default function AdminLayout() {
 
   const items = useMemo(() => {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
-    if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && item.to !== merchItem);
+    if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && !contentEditorItems.includes(item.to) && item.to !== merchItem);
     if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
+    if (isContentEditor) return navItems.filter((item) => contentEditorItems.includes(item.to));
     return [];
-  }, [isAdmin, isArtist, isMerchManager]);
+  }, [isAdmin, isArtist, isMerchManager, isContentEditor]);
 
   const currentLabel = useMemo(
     () => navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin',

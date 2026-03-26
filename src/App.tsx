@@ -54,7 +54,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isArtist = useStore((state) => state.isArtist);
   const isMerchManager = useStore((state) => state.isMerchManager);
-  if (!isAdmin && !isArtist && !isMerchManager) return <Navigate to="/admin/login" replace />;
+  const isContentEditor = useStore((state) => state.isContentEditor);
+  if (!isAdmin && !isArtist && !isMerchManager && !isContentEditor) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
 
@@ -62,14 +63,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function ProtectedMerchRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isMerchManager = useStore((state) => state.isMerchManager);
-  if (!isAdmin && !isMerchManager) return <Navigate to="/admin/login" replace />;
+  const isContentEditor = useStore((state) => state.isContentEditor);
+  if (!isAdmin && !isMerchManager && !isContentEditor) return <Navigate to="/admin/login" replace />;
+  return <>{children}</>;
+}
+
+// Allows admin or content editor (guests, landing, sobre-nos, events, loja)
+function ProtectedContentEditorRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = useStore((state) => state.isAdmin);
+  const isContentEditor = useStore((state) => state.isContentEditor);
+  if (!isAdmin && !isContentEditor) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
 
 function AdminIndexRedirect() {
   const isAdmin = useStore((state) => state.isAdmin);
   const isMerchManager = useStore((state) => state.isMerchManager);
+  const isContentEditor = useStore((state) => state.isContentEditor);
   if (isMerchManager) return <Navigate to="/admin/merchs" replace />;
+  if (isContentEditor) return <Navigate to="/admin/guests" replace />;
   return <Navigate to={isAdmin ? '/admin/dashboard' : '/admin/tatuagens'} replace />;
 }
 
@@ -245,11 +257,11 @@ export default function App() {
           <Route path="artistas" element={<ProtectedAdminRoute><AdminArtists /></ProtectedAdminRoute>} />
           <Route path="artistas/novo" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
           <Route path="artistas/:id/editar" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
-          <Route path="guests" element={<ProtectedAdminRoute><AdminGuestPage /></ProtectedAdminRoute>} />
-          <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
+          <Route path="guests" element={<ProtectedContentEditorRoute><AdminGuestPage /></ProtectedContentEditorRoute>} />
+          <Route path="events" element={<ProtectedContentEditorRoute><AdminEventsPage /></ProtectedContentEditorRoute>} />
           <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
-          <Route path="sobre-nos" element={<ProtectedAdminRoute><AdminSobreNos /></ProtectedAdminRoute>} />
-          <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
+          <Route path="sobre-nos" element={<ProtectedContentEditorRoute><AdminSobreNos /></ProtectedContentEditorRoute>} />
+          <Route path="landing" element={<ProtectedContentEditorRoute><AdminLandingPage /></ProtectedContentEditorRoute>} />
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
