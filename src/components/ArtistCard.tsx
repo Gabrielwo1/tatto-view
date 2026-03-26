@@ -26,13 +26,13 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-display text-[1.75rem] text-white uppercase tracking-wide mb-2 group-hover:text-gray-300 transition-colors">
+        <h3 className="font-display text-xl sm:text-[1.75rem] text-white uppercase tracking-wide mb-2 group-hover:text-gray-300 transition-colors">
           {artist.name}
         </h3>
         <p className="text-gray-500 text-sm mb-3 line-clamp-2">{artist.bio}</p>
 
-        {/* Specialties */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        {/* Specialties — hidden on mobile */}
+        <div className="hidden sm:flex flex-wrap gap-1.5 mb-3">
           {artist.specialties.map((specialty) => (
             <span
               key={specialty}

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
 
 const navItems = [
@@ -145,31 +145,27 @@ const artistOnlyItem = '/admin/meu-perfil';
 const merchItem = '/admin/merchs';
 
 export default function AdminLayout() {
-  const logout          = useStore((s) => s.logout);
   const isAdmin         = useStore((s) => s.isAdmin);
   const isArtist        = useStore((s) => s.isArtist);
   const isMerchManager  = useStore((s) => s.isMerchManager);
-  const navigate        = useNavigate();
   const location  = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  async function handleLogout() {
-    await logout();
-    navigate('/admin/login');
-  }
-
-  function visibleItems() {
+  const items = useMemo(() => {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
     if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && item.to !== merchItem);
     if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
     return [];
-  }
+  }, [isAdmin, isArtist, isMerchManager]);
+
+  const currentLabel = useMemo(
+    () => navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin',
+    [location.pathname],
+  );
 
   function closeDrawer() {
     setDrawerOpen(false);
   }
-
-  const currentLabel = navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin';
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
@@ -188,7 +184,7 @@ export default function AdminLayout() {
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          {visibleItems().map((item) => (
+          {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -205,7 +201,7 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-white/10 space-y-0.5">
+        <div className="p-3 border-t border-white/10">
           <Link to="/"
             className="flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -213,32 +209,33 @@ export default function AdminLayout() {
             </svg>
             Vitrine
           </Link>
-          <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Sair
-          </button>
         </div>
       </aside>
 
       {/* ── Mobile: Top Bar ── */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 flex items-center justify-between px-4 h-14">
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/logosemo-3.png" alt="El Dude" className="h-7 w-auto object-contain" />
-        </Link>
-        <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400">{currentLabel}</span>
-        {/* Hamburger — right side */}
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="p-2 text-gray-400 hover:text-white transition-colors"
-          aria-label="Menu"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 h-14">
+        {/* Logo — absolute centered */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Link to="/" className="pointer-events-auto">
+            <img src="/logosemo-3.png" alt="El Dude" className="h-7 w-auto object-contain" />
+          </Link>
+        </div>
+        {/* Left: section label */}
+        <div className="absolute left-0 top-0 h-14 flex items-center px-4">
+          <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">{currentLabel}</span>
+        </div>
+        {/* Right: hamburger */}
+        <div className="absolute right-0 top-0 h-14 flex items-center px-4">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-1.5 text-gray-400 hover:text-white transition-colors"
+            aria-label="Menu"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* ── Mobile: Drawer (RIGHT) ── */}
@@ -258,7 +255,7 @@ export default function AdminLayout() {
               </button>
             </div>
             <nav className="flex-1 p-4 space-y-1">
-              {visibleItems().map((item) => (
+              {items.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -276,7 +273,7 @@ export default function AdminLayout() {
                 </NavLink>
               ))}
             </nav>
-            <div className="p-4 border-t border-white/10 space-y-1">
+            <div className="p-4 border-t border-white/10">
               <Link to="/" onClick={closeDrawer}
                 className="flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -284,13 +281,6 @@ export default function AdminLayout() {
                 </svg>
                 Ver Vitrine
               </Link>
-              <button onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sair
-              </button>
             </div>
           </aside>
         </div>

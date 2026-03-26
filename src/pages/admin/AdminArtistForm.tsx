@@ -1,4 +1,4 @@
-import { useState, useRef, type FormEvent } from 'react';
+import { useState, useRef, useMemo, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import type { Tattoo } from '../../types';
@@ -31,7 +31,10 @@ export default function AdminArtistForm() {
     whatsapp: existing?.whatsapp ?? '',
   });
 
-  const artistTattoos = existing ? tattoos.filter((t) => t.artistId === existing.id) : [];
+  const artistTattoos = useMemo(
+    () => (existing ? tattoos.filter((t) => t.artistId === existing.id) : []),
+    [tattoos, existing],
+  );
   const [editingTattoo, setEditingTattoo] = useState<Tattoo | null>(null);
   const [tattooCaption, setTattooCaption] = useState({ title: '', description: '', price: '' });
 
@@ -246,7 +249,6 @@ export default function AdminArtistForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {artistTattoos.map((t) => (
                 <div key={t.id} className="border border-white/10 bg-zinc-950 flex flex-col">
-                  {/* Image */}
                   <div className="aspect-square overflow-hidden bg-zinc-900 relative">
                     {t.imageUrl ? (
                       <img src={t.imageUrl} alt={t.title}
@@ -265,7 +267,6 @@ export default function AdminArtistForm() {
                     </span>
                   </div>
 
-                  {/* Caption */}
                   <div className="p-3 flex-1 flex flex-col gap-1">
                     <p className="font-display text-sm text-white uppercase leading-tight line-clamp-1">{t.title}</p>
                     {t.description && (
@@ -276,7 +277,6 @@ export default function AdminArtistForm() {
                     )}
                   </div>
 
-                  {/* Edit button */}
                   <button
                     type="button"
                     onClick={() => openTattooEdit(t)}
