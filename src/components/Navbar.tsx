@@ -54,6 +54,9 @@ export default function Navbar() {
               <Link to="/events" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Eventos
               </Link>
+              <Link to="/" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Vitrine
+              </Link>
             </div>
           </div>
 
