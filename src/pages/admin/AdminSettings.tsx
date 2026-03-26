@@ -536,7 +536,6 @@ export default function AdminSettings() {
             </div>
             <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFaviconUpload(f); e.target.value = ''; }} />
           </div>
-        </div>
 
           {/* Estilos da Vitrine */}
           <div className="border border-white/10 bg-black/20 p-4">
