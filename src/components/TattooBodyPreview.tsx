@@ -33,8 +33,8 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
     setErrorMsg('');
     try {
       const fluxPrompt = buildTattooPrompt(tattooTitle, placement);
-      const result = await generateFluxPreview(fluxPrompt);
-      setResultImage(`data:${result.mimeType};base64,${result.imageBase64}`);
+      const { url } = await generateFluxPreview(fluxPrompt);
+      setResultImage(url);
       setStep('result');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao gerar preview. Tente novamente.';
@@ -45,10 +45,7 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
 
   function handleDownload() {
     if (!resultImage) return;
-    const a = document.createElement('a');
-    a.href = resultImage;
-    a.download = `preview-${tattooTitle.replace(/\s+/g, '-').toLowerCase()}.png`;
-    a.click();
+    window.open(resultImage, '_blank');
   }
 
   function handleRetry() {
