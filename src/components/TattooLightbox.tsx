@@ -94,12 +94,19 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
               {isLoggedIn && (
                 <button
                   onClick={() => setShowBodyPreview(true)}
-                  className="font-body text-[10px] font-semibold tracking-widest uppercase px-3 py-2.5 border border-ink-500/40 text-ink-500 hover:bg-ink-500 hover:text-black transition-colors flex items-center gap-1.5"
+                  className="group relative font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2.5 overflow-hidden transition-all duration-300"
+                  style={{ 
+                    background: 'linear-gradient(45deg, rgba(var(--ink-500-rgb), 0.1), rgba(var(--ink-500-rgb), 0.2))',
+                    border: '1px solid rgba(var(--ink-500-rgb), 0.5)',
+                  }}
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  Testar no Corpo
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+                  <span className="relative flex items-center gap-2 text-ink-500 group-hover:text-white transition-colors">
+                    <svg className="w-3.5 h-3.5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    Testar no Corpo
+                  </span>
                 </button>
               )}
 

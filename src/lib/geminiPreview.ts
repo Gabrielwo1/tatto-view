@@ -6,19 +6,21 @@
  */
 
 const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
-const GEMINI_MODEL = 'gemini-2.0-flash-preview-image-generation';
+const GEMINI_MODEL = 'gemini-3.1-flash-image-preview'; // Nano Banana 2 — Latest 2026 Model
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-const PROMPT = `You are a professional tattoo mockup artist. Take the tattoo design from the SECOND image and realistically composite it onto the skin shown in the FIRST image (the body photo).
+const PROMPT = `You are an elite tattoo visualization AI.
+TASK: Composite the tattoo design (SECOND image) onto the body part shown in the FIRST image.
 
-Rules:
-- Make the tattoo look like it is ACTUALLY ON the skin — follow the contours, curves, and lighting of the body.
-- Match the skin tone and lighting conditions from the body photo.
-- Keep the tattoo design faithful to the original but warp/bend it naturally to follow the body surface.
-- The tattoo should look like a healed, professional tattoo — not a sticker.
-- Do NOT change the body photo background, clothing, or anything else — ONLY add the tattoo.
-- The output should be a single photorealistic image of the body with the tattoo applied.
-- Make it look as realistic and professional as possible.`;
+QUALITIES:
+- PHOTOREALISM: The tattoo must follow skin texture, pores, and natural body curvature.
+- LIGHTING MATCH: Match the ambient light, highlights, and shadows of the body photo perfectly.
+- HEALED LOOK: Apply a subtle natural skin overlay so it doesn't look like a computer graphic.
+- COMPOSITION: Warp the tattoo to follow the specific limb anatomy shown.
+- PRESERVATION: Do NOT change the original body photo background or skin beyond the tattoo area.
+
+STYLE: The tattoo is professional art. Maintain all details of the original design.
+OUTPUT: Return only the high-resolution composited photo.`;
 
 /**
  * Fetches a remote image URL and returns it as { base64, mimeType }.
