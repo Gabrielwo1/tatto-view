@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { generateTattooPreview } from '../lib/geminiPreview';
+import { useState, useRef, useEffect } from 'react';
+import { generateFluxPreview, generatePromptWithGemini } from '../lib/fluxPreview';
 
 interface Props {
   tattooImageUrl: string;
@@ -7,13 +7,21 @@ interface Props {
   onClose: () => void;
 }
 
+const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
+
 export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose }: Props) {
-  const [step, setStep] = useState<'upload' | 'generating' | 'result' | 'error'>('upload');
+  const [step, setStep] = useState<'upload' | 'generating' | 'result' | 'error' | 'token'>('upload');
+  const [hfToken, setHfToken] = useState(localStorage.getItem('hf_access_token') || '');
   const [bodyPreview, setBodyPreview] = useState<string | null>(null);
   const [bodyFile, setBodyFile] = useState<File | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [loadingStep, setLoadingStep] = useState<'analyzing' | 'generating'>('analyzing');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (hfToken) localStorage.setItem('hf_access_token', hfToken);
+  }, [hfToken]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -26,17 +34,37 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
 
   async function handleGenerate() {
     if (!bodyFile) return;
+    if (!hfToken) {
+      setStep('token');
+      return;
+    }
+
     setStep('generating');
+    setLoadingStep('analyzing');
     setErrorMsg('');
+
     try {
-      const result = await generateTattooPreview(tattooImageUrl, bodyFile);
+      // 1. Vision Step: Use Gemini 1.5 Flash to generate the best prompt for Flux
+      const fluxPrompt = await generatePromptWithGemini(tattooImageUrl, bodyFile, GEMINI_API_KEY);
+      
+      setLoadingStep('generating');
+      
+      // 2. Generation Step: Use Flux.1-schnell via Hugging Face
+      const result = await generateFluxPreview(fluxPrompt, hfToken);
+      
       const dataUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
       setResultImage(dataUrl);
       setStep('result');
     } catch (err: unknown) {
       console.error('Preview generation failed:', err);
-      setErrorMsg(err instanceof Error ? err.message : 'Erro ao gerar preview. Tente outra foto.');
-      setStep('error');
+      const isTokenError = err instanceof Error && (err.message.includes('401') || err.message.includes('token'));
+      if (isTokenError) {
+        setErrorMsg('Token do Hugging Face inválido ou expirado. Verifique e tente novamente.');
+        setStep('token');
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : 'Erro ao gerar preview. Tente outra foto.');
+        setStep('error');
+      }
     }
   }
 
@@ -177,6 +205,53 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
             </>
           )}
 
+          {/* ─── STEP: Token Required ─── */}
+          {step === 'token' && (
+            <div className="py-6 space-y-5">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-ink-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-ink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                </div>
+                <p className="font-display text-lg uppercase tracking-wide text-white mb-2">
+                  Configurar Acesso
+                </p>
+                <p className="font-body text-xs text-gray-500 leading-relaxed mb-6">
+                  Para usar o motor de IA Flux (Hugging Face) com mais créditos, 
+                  insira seu <b>Access Token</b> gratuito.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={hfToken}
+                    onChange={(e) => setHfToken(e.target.value)}
+                    placeholder="hf_..."
+                    className="w-full bg-zinc-900 border border-white/10 px-4 py-3 font-mono text-sm text-white focus:outline-none focus:border-ink-500 transition-colors"
+                  />
+                </div>
+                
+                {errorMsg && (
+                   <p className="text-[10px] text-red-500 font-body uppercase tracking-wider text-center">{errorMsg}</p>
+                )}
+
+                <button
+                  onClick={handleGenerate}
+                  className="w-full py-3.5 bg-ink-500 hover:bg-ink-400 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
+                >
+                  Confirmar e Gerar
+                </button>
+                
+                <p className="text-[9px] text-gray-600 text-center uppercase tracking-widest">
+                  O token fica salvo apenas no seu navegador.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ─── STEP: Generating ─── */}
           {step === 'generating' && (
             <div className="py-16 flex flex-col items-center gap-6">
@@ -184,16 +259,22 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
                 <div className="absolute inset-0 border-2 border-ink-500/20 rounded-full" />
                 <div className="absolute inset-0 border-2 border-ink-500 border-t-transparent rounded-full animate-spin" />
                 <svg className="absolute inset-0 m-auto w-8 h-8 text-ink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  {loadingStep === 'analyzing' ? (
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  ) : (
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  )}
                 </svg>
               </div>
               <div className="text-center">
                 <p className="font-display text-xl uppercase tracking-wide text-white mb-2">
-                  Gerando Preview...
+                  {loadingStep === 'analyzing' ? 'Analisando Imagem...' : 'Gerando Preview 4K...'}
                 </p>
                 <p className="font-body text-xs text-gray-500 max-w-xs leading-relaxed">
-                  A inteligência artificial está compondo a tatuagem no seu corpo.
-                  Isso pode levar de 15 a 30 segundos.
+                  {loadingStep === 'analyzing' ? 
+                    'O Gemini está lendo os detalhes da skin e da arte...' : 
+                    'O Flux está pintando a tatuagem com realismo extremo no seu corpo.'
+                  }
                 </p>
               </div>
             </div>
