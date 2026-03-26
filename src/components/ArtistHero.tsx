@@ -191,10 +191,10 @@ export default function ArtistHero() {
                   transition: 'opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s',
                 }}
               >
-                <span className="font-body font-semibold text-xs tracking-widest uppercase text-white select-none">
+                <span className="font-body font-semibold text-xs tracking-widest uppercase text-ink-400 select-none">
                   Ver trabalhos
                 </span>
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="white" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 flex-shrink-0 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </div>

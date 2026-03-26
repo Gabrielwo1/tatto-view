@@ -28,7 +28,7 @@ export default function Navbar() {
           {/* Left: Menu toggle */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2.5 text-white/50 hover:text-white transition-colors z-10"
+            className="flex items-center gap-2.5 text-white/50 hover:text-ink-400 transition-colors z-10"
           >
             <div className="flex flex-col gap-1 w-5">
               <span className="block h-px bg-current" />
@@ -132,7 +132,7 @@ export default function Navbar() {
                 onClick={() => { setMenuOpen(false); window.scrollTo(0, 0); }}
                 className={({ isActive }) =>
                   `font-display text-4xl uppercase tracking-wide transition-colors leading-tight ${
-                    isActive ? 'text-white' : 'text-white/50 hover:text-white'
+                    isActive ? 'text-ink-500' : 'text-white/50 hover:text-ink-400'
                   }`
                 }
               >
