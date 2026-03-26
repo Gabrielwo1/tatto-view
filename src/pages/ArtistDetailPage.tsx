@@ -48,7 +48,7 @@ export default function ArtistDetailPage() {
             {artist.specialties.map((s) => (
               <span
                 key={s}
-                className="px-2 py-0.5 text-ink-400 text-xs font-semibold tracking-widest uppercase border border-ink-500/30"
+                className="px-2 py-0.5 text-ink2-400 text-xs font-semibold tracking-widest uppercase border border-ink2-500/30"
               >
                 {s}
               </span>
@@ -92,7 +92,7 @@ export default function ArtistDetailPage() {
           className={`pb-3 text-xs font-body font-semibold tracking-widest uppercase transition-colors border-b-2 ${
             tab === 'available'
               ? 'border-ink-500 text-ink-400'
-              : 'border-transparent text-gray-500 hover:text-ink-400'
+              : 'border-transparent text-gray-500 hover:text-ink2-400'
           }`}
         >
           Disponíveis ({artistTattoos.filter((t) => t.status === 'available').length})
@@ -102,7 +102,7 @@ export default function ArtistDetailPage() {
           className={`pb-3 text-xs font-body font-semibold tracking-widest uppercase transition-colors border-b-2 ${
             tab === 'archived'
               ? 'border-ink-500 text-ink-400'
-              : 'border-transparent text-gray-500 hover:text-ink-400'
+              : 'border-transparent text-gray-500 hover:text-ink2-400'
           }`}
         >
           Arquivadas ({artistTattoos.filter((t) => t.status === 'archived').length})

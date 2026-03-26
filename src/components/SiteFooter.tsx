@@ -5,7 +5,7 @@ export default function SiteFooter() {
   const { studio, contact } = useStore((s) => s.sobreNosContent);
 
   return (
-    <footer className="bg-zinc-950 border-t border-white/10">
+    <footer className="bg-zinc-950 border-t border-ink2-500/20">
 
       {/* ── 3-column info row ── */}
       <div className="max-w-6xl mx-auto px-6 lg:px-10 py-12">
@@ -94,7 +94,7 @@ export default function SiteFooter() {
       </div>
 
       {/* ── Bottom bar ── */}
-      <div className="border-t border-white/5">
+      <div className="border-t border-ink2-500/10">
         <div className="max-w-6xl mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link to="/landingpage">
             <img src="/logosemo-3.png" alt="El Dude" className="h-7 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity" />
@@ -110,7 +110,7 @@ export default function SiteFooter() {
               { to: '/loja',       label: 'Loja' },
             ].map(({ to, label }) => (
               <Link key={to} to={to}
-                className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/30 hover:text-white transition-colors">
+                className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/30 hover:text-ink2-400 transition-colors">
                 {label}
               </Link>
             ))}

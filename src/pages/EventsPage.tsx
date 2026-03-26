@@ -77,7 +77,7 @@ function EventCard({ event }: { event: EventItem }) {
               {event.timeLabel}
             </p>
           </div>
-          <div className="text-ink-500 mt-1">
+          <div className="text-ink2-500 mt-1">
             <EventTypeIcon type={event.type} />
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function EventsPage() {
       <section className="px-6 lg:px-10 pt-12 pb-0">
         <div className="max-w-lg mx-auto lg:max-w-2xl">
           <Fade>
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink2-500 mb-4">
               {ec.hero.tagline || 'UPCOMING EXPERIENCES'}
             </p>
             <h1

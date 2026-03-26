@@ -40,7 +40,10 @@ function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
           <p className="font-body text-xs text-white/30 truncate">{artist.name}</p>
         )}
         {tattoo.price && (
-          <p className="text-ink-500 text-xs font-body mt-0.5">{tattoo.price}</p>
+          <p className="text-xs font-body mt-0.5">
+            <span className="text-ink2-500">a partir de </span>
+            <span className="text-ink-500">{tattoo.price}</span>
+          </p>
         )}
       </div>
     </>
