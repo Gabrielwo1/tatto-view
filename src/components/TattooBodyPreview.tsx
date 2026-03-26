@@ -15,6 +15,7 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
   const [bodyFile, setBodyFile] = useState<File | null>(null);
   const [placement, setPlacement] = useState('forearm');
   const [resultImage, setResultImage] = useState<string | null>(null);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -34,6 +35,7 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
     try {
       const fluxPrompt = buildTattooPrompt(tattooTitle, placement);
       const { url } = await generateFluxPreview(fluxPrompt);
+      setImgLoaded(false);
       setResultImage(url);
       setStep('result');
     } catch (err: unknown) {
@@ -216,11 +218,21 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
           {/* ─── STEP: Result ─── */}
           {step === 'result' && resultImage && (
             <div className="space-y-4">
-              <img
-                src={resultImage}
-                alt="Preview da tatuagem no corpo"
-                className="w-full max-h-[60vh] object-contain border border-white/10 bg-black"
-              />
+              <div className="relative w-full bg-black border border-white/10 min-h-[200px] flex items-center justify-center">
+                {!imgLoaded && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                    <div className="w-8 h-8 border-2 border-ink-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="font-body text-[10px] text-gray-500 tracking-widest uppercase">Carregando imagem...</p>
+                  </div>
+                )}
+                <img
+                  src={resultImage}
+                  alt="Preview da tatuagem no corpo"
+                  className={`w-full max-h-[60vh] object-contain transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  onLoad={() => setImgLoaded(true)}
+                  onError={() => { setErrorMsg('Não foi possível carregar a imagem gerada. Tente novamente.'); setStep('error'); }}
+                />
+              </div>
 
               <div className="flex gap-3">
                 <button
