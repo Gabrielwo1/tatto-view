@@ -1,6 +1,7 @@
 import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
+import type { Tattoo } from '../../types';
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage } from '../../lib/uploadImage';
 
@@ -13,6 +14,8 @@ export default function AdminArtistForm() {
   const artists = useStore((s) => s.artists);
   const addArtist = useStore((s) => s.addArtist);
   const updateArtist = useStore((s) => s.updateArtist);
+  const tattoos = useStore((s) => s.tattoos);
+  const updateTattoo = useStore((s) => s.updateTattoo);
 
   const existing = id ? artists.find((a) => a.id === id) : null;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,6 +30,25 @@ export default function AdminArtistForm() {
     instagram: existing?.instagram ?? '',
     whatsapp: existing?.whatsapp ?? '',
   });
+
+  const artistTattoos = existing ? tattoos.filter((t) => t.artistId === existing.id) : [];
+  const [editingTattoo, setEditingTattoo] = useState<Tattoo | null>(null);
+  const [tattooCaption, setTattooCaption] = useState({ title: '', description: '', price: '' });
+
+  function openTattooEdit(t: Tattoo) {
+    setEditingTattoo(t);
+    setTattooCaption({ title: t.title, description: t.description, price: t.price ?? '' });
+  }
+
+  function saveTattooCaption() {
+    if (!editingTattoo) return;
+    updateTattoo(editingTattoo.id, {
+      title: tattooCaption.title,
+      description: tattooCaption.description,
+      price: tattooCaption.price || undefined,
+    });
+    setEditingTattoo(null);
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -208,6 +230,111 @@ export default function AdminArtistForm() {
           </Link>
         </div>
       </form>
+
+      {/* ── Tatuagens do Artista ── */}
+      {existing && (
+        <div className="mt-10">
+          <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-5">
+            Tatuagens — {existing.name}
+          </h2>
+
+          {artistTattoos.length === 0 ? (
+            <div className="border border-white/10 py-12 text-center">
+              <p className="font-body text-xs text-gray-600 uppercase tracking-widest">Nenhuma tatuagem cadastrada</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {artistTattoos.map((t) => (
+                <div key={t.id} className="border border-white/10 bg-zinc-950 flex flex-col">
+                  {/* Image */}
+                  <div className="aspect-square overflow-hidden bg-zinc-900 relative">
+                    {t.imageUrl ? (
+                      <img src={t.imageUrl} alt={t.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg className="w-10 h-10 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    <span className="absolute top-2 left-2 font-body text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 bg-black/80 text-gray-400 border border-white/10">
+                      {t.style}
+                    </span>
+                  </div>
+
+                  {/* Caption */}
+                  <div className="p-3 flex-1 flex flex-col gap-1">
+                    <p className="font-display text-sm text-white uppercase leading-tight line-clamp-1">{t.title}</p>
+                    {t.description && (
+                      <p className="font-body text-[10px] text-gray-600 leading-relaxed line-clamp-2">{t.description}</p>
+                    )}
+                    {t.price && (
+                      <p className="font-body text-[10px] text-gray-500 mt-auto">{t.price}</p>
+                    )}
+                  </div>
+
+                  {/* Edit button */}
+                  <button
+                    type="button"
+                    onClick={() => openTattooEdit(t)}
+                    className="w-full py-2 border-t border-white/10 font-body text-[10px] font-bold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-colors"
+                  >
+                    Editar Legenda
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Modal de edição de legenda ── */}
+      {editingTattoo && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+          <div className="w-full max-w-md border border-white/15 bg-zinc-950 p-6">
+            <h3 className="font-display text-2xl text-white uppercase tracking-wide mb-5">Editar Legenda</h3>
+
+            {editingTattoo.imageUrl && (
+              <img src={editingTattoo.imageUrl} alt={editingTattoo.title}
+                className="w-full aspect-video object-cover mb-5 border border-white/10"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className={labelCls}>Título</label>
+                <input value={tattooCaption.title} onChange={(e) => setTattooCaption((c) => ({ ...c, title: e.target.value }))}
+                  className={inputCls} placeholder="Título da tatuagem" />
+              </div>
+              <div>
+                <label className={labelCls}>Descrição / Legenda</label>
+                <textarea value={tattooCaption.description} rows={4}
+                  onChange={(e) => setTattooCaption((c) => ({ ...c, description: e.target.value }))}
+                  className={`${inputCls} resize-none`} placeholder="Descrição da arte..." />
+              </div>
+              <div>
+                <label className={labelCls}>Preço</label>
+                <input value={tattooCaption.price} onChange={(e) => setTattooCaption((c) => ({ ...c, price: e.target.value }))}
+                  className={inputCls} placeholder="Ex: R$ 800" />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button type="button" onClick={saveTattooCaption}
+                className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
+                Salvar
+              </button>
+              <button type="button" onClick={() => setEditingTattoo(null)}
+                className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
