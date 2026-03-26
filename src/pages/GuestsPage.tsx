@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
+import GeneralLightbox from '../components/GeneralLightbox';
 
 /* ─── scroll visibility hook ─────────────────────────────────────────────── */
 function useVisible(threshold = 0.1) {
@@ -59,9 +60,17 @@ export default function GuestsPage() {
   const gc = useStore((s) => s.guestContent);
   const customLogo = useStore((s) => s.customLogo);
   const logoSrc = customLogo ?? '/logosemo-3.png';
+  
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   return (
     <div className="bg-zinc-900 text-white overflow-x-hidden">
+      {selectedImage && (
+        <GeneralLightbox 
+          imageUrl={selectedImage} 
+          onClose={() => setSelectedImage(null)} 
+        />
+      )}
 
       {/* ── 01 HERO ────────────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-10 pt-16 md:pt-24 pb-16 md:pb-20 border-b border-white/8">
@@ -130,7 +139,8 @@ export default function GuestsPage() {
                         <img
                           src={gc.showcase.heroImage}
                           alt={gc.showcase.guestName}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover cursor-zoom-in"
+                          onClick={() => setSelectedImage(gc.showcase.heroImage!)}
                         />
                         <Watermark logoSrc={logoSrc} />
                       </div>
@@ -173,7 +183,12 @@ export default function GuestsPage() {
                         {gc.showcase.galleryImages.slice(0, 4).map((img, i) => (
                           <div key={i} className="relative bg-zinc-950 aspect-square overflow-hidden">
                             {img ? (
-                              <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                              <img 
+                                src={img} 
+                                alt={`Galeria ${i + 1}`} 
+                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in" 
+                                onClick={() => setSelectedImage(img)}
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-white/5">
                                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -215,7 +230,8 @@ export default function GuestsPage() {
                         <img
                           src={gc.nextGuest.guestImage}
                           alt={gc.nextGuest.guestName}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover cursor-zoom-in"
+                          onClick={() => setSelectedImage(gc.nextGuest.guestImage!)}
                         />
                         <Watermark logoSrc={logoSrc} />
                       </div>
@@ -258,7 +274,12 @@ export default function GuestsPage() {
                         {(gc.nextGuest.portfolioImages ?? []).slice(0, 4).map((img, i) => (
                           <div key={i} className="relative bg-zinc-950 aspect-square overflow-hidden">
                             {img ? (
-                              <img src={img} alt={`Trabalho ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                              <img 
+                                src={img} 
+                                alt={`Trabalho ${i + 1}`} 
+                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in" 
+                                onClick={() => setSelectedImage(img)}
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-white/5">
                                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
