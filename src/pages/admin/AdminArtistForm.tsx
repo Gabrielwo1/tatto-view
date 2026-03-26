@@ -231,6 +231,18 @@ export default function AdminArtistForm() {
             className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors text-center">
             Cancelar
           </Link>
+          {existing && (
+            <Link
+              to={`/artistas/${existing.id}`}
+              target="_blank"
+              className="px-6 py-3 bg-ink-500 hover:bg-ink-400 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors text-center flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Exportar Portfólio
+            </Link>
+          )}
         </div>
       </form>
 
