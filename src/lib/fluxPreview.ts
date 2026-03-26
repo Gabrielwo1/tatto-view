@@ -23,8 +23,9 @@ export async function generateFluxPreview(
   prompt: string,
   _token?: string
 ): Promise<PreviewResult> {
-  const encoded = encodeURIComponent(prompt);
-  const url = `https://image.pollinations.ai/prompt/${encoded}?width=768&height=768&model=flux&nologo=true&seed=${Date.now()}`;
+  const shortPrompt = prompt.slice(0, 200);
+  const encoded = encodeURIComponent(shortPrompt);
+  const url = `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 90_000);
@@ -54,10 +55,7 @@ export async function generateFluxPreview(
  * Replaces the Gemini vision step with a template-based approach.
  */
 export function buildTattooPrompt(tattooTitle: string, placement: string): string {
-  const placementHint = placement
-    ? `on the ${placement}, realistic skin texture, natural lighting`
-    : 'on skin, realistic skin texture, natural lighting';
-
-  return `Photorealistic tattoo mockup photo, ${tattooTitle} tattoo design ${placementHint}, professional tattoo photography, high resolution, detailed black ink, fresh tattoo, close-up, skin pores visible, studio lighting, ultra realistic`;
+  const loc = placement || 'arm';
+  return `realistic tattoo of ${tattooTitle} on ${loc}, black ink, professional photo, skin texture, studio lighting`;
 }
 
