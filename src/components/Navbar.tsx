@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `font-body text-xs font-semibold tracking-widest uppercase transition-colors ${
+    isActive ? 'text-ink-500' : 'text-white/50 hover:text-ink-400'
+  }`;
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -22,27 +27,41 @@ export default function Navbar() {
     <nav className="bg-black border-b border-white/10 sticky top-0 z-50" onMouseLeave={() => setMenuOpen(false)}>
       <div className="px-6 lg:px-10">
         <div
-          className="relative flex items-center justify-between transition-all duration-500 ease-in-out"
-          style={{ height: scrolled ? '64px' : '160px' }}
+          className="grid items-center transition-all duration-500 ease-in-out"
+          style={{
+            height: scrolled ? '64px' : '160px',
+            gridTemplateColumns: '1fr auto 1fr',
+          }}
         >
-          {/* Left: Menu toggle */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2.5 text-white/50 hover:text-ink-400 transition-colors z-10"
-          >
-            <div className="flex flex-col gap-1 w-5">
-              <span className="block h-px bg-current" />
-              <span className="block h-px bg-current" />
-              <span className="block h-px bg-current w-3" />
+          {/* Left group: Menu + Artistas + Guests */}
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center gap-2.5 text-white/50 hover:text-ink-400 transition-colors z-10"
+            >
+              <div className="flex flex-col gap-1 w-5">
+                <span className="block h-px bg-current" />
+                <span className="block h-px bg-current" />
+                <span className="block h-px bg-current w-3" />
+              </div>
+              <span className="font-body text-xs font-semibold tracking-widest uppercase">Menu</span>
+            </button>
+
+            <div className="hidden lg:flex items-center gap-6">
+              <NavLink to="/artistas" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+                Artistas
+              </NavLink>
+              <NavLink to="/guests" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+                Guests
+              </NavLink>
             </div>
-            <span className="font-body text-xs font-semibold tracking-widest uppercase">Menu</span>
-          </button>
+          </div>
 
           {/* Center: Logo */}
-          <Link to="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <Link to="/" className="flex justify-center">
             {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
               <div
-                className="pointer-events-auto transition-all duration-500 ease-in-out relative"
+                className="transition-all duration-500 ease-in-out relative"
                 style={{ height: scrolled ? '40px' : '120px', display: 'inline-block' }}
               >
                 <img
@@ -65,7 +84,7 @@ export default function Navbar() {
               <img
                 src={logoSrc}
                 alt="El Dude"
-                className="w-auto object-contain pointer-events-auto transition-all duration-500 ease-in-out"
+                className="w-auto object-contain transition-all duration-500 ease-in-out"
                 style={{
                   height: scrolled ? '40px' : '120px',
                   filter: logoColorMode === 'white'
@@ -80,34 +99,45 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Right: Admin / Logout */}
-          {isAdmin ? (
-            <div className="flex items-center gap-4 z-10">
+          {/* Right group: Loja + Sobre Nós + Admin */}
+          <div className="flex items-center justify-end gap-6">
+            <div className="hidden lg:flex items-center gap-6">
+              <NavLink to="/loja" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+                Loja
+              </NavLink>
+              <NavLink to="/sobre-nos" className={navLinkClass} onClick={() => window.scrollTo(0, 0)}>
+                Sobre Nós
+              </NavLink>
+            </div>
+
+            {isAdmin ? (
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/admin"
+                  className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
+                >
+                  Admin
+                </Link>
+                <button
+                  onClick={() => { logout(); navigate('/'); }}
+                  className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-red-400 transition-colors"
+                  title="Sair"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sair
+                </button>
+              </div>
+            ) : (
               <Link
                 to="/admin"
                 className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
               >
                 Admin
               </Link>
-              <button
-                onClick={() => { logout(); navigate('/'); }}
-                className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-red-400 transition-colors"
-                title="Sair"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sair
-              </button>
-            </div>
-          ) : (
-            <Link
-              to="/admin"
-              className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors z-10"
-            >
-              Admin
-            </Link>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
