@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
-import GeneralLightbox from '../components/GeneralLightbox';
 
 export default function SobreNosPage() {
   const c = useStore((s) => s.sobreNosContent);
@@ -10,16 +8,8 @@ export default function SobreNosPage() {
   const mapAddress = encodeURIComponent([studio.street, studio.city, studio.cep].filter(Boolean).join(', '));
   const mapSrc = `https://maps.google.com/maps?q=${mapAddress}&z=${studio.mapZoom || 15}&output=embed`;
 
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
   return (
     <div className="bg-zinc-900 text-white">
-      {selectedImage && (
-        <GeneralLightbox 
-          imageUrl={selectedImage} 
-          onClose={() => setSelectedImage(null)} 
-        />
-      )}
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative min-h-[70vh] flex flex-col items-center justify-center overflow-hidden">
@@ -73,7 +63,7 @@ export default function SobreNosPage() {
               <div className="mt-auto pt-10 grid grid-cols-3 gap-1.5">
                 {collective.galleryImages.map((img, i) =>
                   img ? (
-                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden cursor-zoom-in" onClick={() => setSelectedImage(img)}>
+                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden">
                       <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                     </div>
                   ) : null
@@ -94,8 +84,7 @@ export default function SobreNosPage() {
                 <img
                   src={collective.image}
                   alt={collective.imageCaption || 'Estúdio'}
-                  className="w-full h-full object-cover cursor-zoom-in"
-                  onClick={() => setSelectedImage(collective.image!)}
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <span className="font-body text-[10px] tracking-widest uppercase text-white/20">

@@ -1,0 +1,183 @@
+import { useState, useEffect } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useStore } from '../store';
+
+const topNavClass = 'font-body text-xs font-semibold tracking-widest uppercase transition-colors text-white/50 hover:text-ink-400';
+
+export default function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const isAdmin       = useStore((s) => s.isAdmin);
+  const logout        = useStore((s) => s.logout);
+  const logoColorMode = useStore((s) => s.logoColorMode);
+  const customLogo    = useStore((s) => s.customLogo);
+  const logoSrc       = customLogo ?? '/logosemo-3.png';
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <nav className="bg-black border-b border-ink2-500/20 sticky top-0 z-50" onMouseLeave={() => setMenuOpen(false)}>
+      <div className="px-6 lg:px-10">
+        <div
+          className="grid items-center transition-all duration-500 ease-in-out"
+          style={{
+            height: scrolled ? '64px' : '160px',
+            gridTemplateColumns: '1fr auto 1fr',
+          }}
+        >
+          {/* Left group: Menu + Artistas + Guests */}
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="flex items-center gap-2.5 text-white/50 hover:text-ink-400 transition-colors z-10"
+            >
+              <div className="flex flex-col gap-1 w-5">
+                <span className="block h-px bg-current" />
+                <span className="block h-px bg-current" />
+                <span className="block h-px bg-current w-3" />
+              </div>
+              <span className="font-body text-xs font-semibold tracking-widest uppercase">Menu</span>
+            </button>
+
+            <div className="hidden lg:flex items-center gap-6 ml-10">
+              <Link to="/artistas" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Artistas
+              </Link>
+              <Link to="/guests" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Guests
+              </Link>
+              <Link to="/events" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Eventos
+              </Link>
+              <Link to="/" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Vitrine
+              </Link>
+            </div>
+          </div>
+
+          {/* Center: Logo */}
+          <Link to="/" className="flex justify-center">
+            {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
+              <div
+                className="transition-all duration-500 ease-in-out relative"
+                style={{ height: scrolled ? '40px' : '120px', display: 'inline-block' }}
+              >
+                <img
+                  src={logoSrc}
+                  alt="El Dude"
+                  className="w-auto h-full object-contain"
+                  style={{ filter: 'brightness(0)' }}
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: logoColorMode === 'primary'
+                      ? 'rgb(var(--ink-500))'
+                      : 'rgb(var(--ink2-500))',
+                    mixBlendMode: 'screen',
+                  }}
+                />
+              </div>
+            ) : (
+              <img
+                src={logoSrc}
+                alt="El Dude"
+                className="w-auto object-contain transition-all duration-500 ease-in-out"
+                style={{
+                  height: scrolled ? '40px' : '120px',
+                  filter: logoColorMode === 'white'
+                    ? 'brightness(0) invert(1)'
+                    : logoColorMode === 'black'
+                    ? 'brightness(0)'
+                    : logoColorMode === 'invert'
+                    ? 'invert(1)'
+                    : 'none',
+                }}
+              />
+            )}
+          </Link>
+
+          {/* Right group: Loja + Sobre Nós + Admin */}
+          <div className="flex items-center justify-end gap-6">
+            <div className="hidden lg:flex items-center gap-6 mr-10">
+              <Link to="/aftercare" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Pós Tattoo
+              </Link>
+              <Link to="/loja" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Loja
+              </Link>
+              <Link to="/sobre-nos" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Sobre Nós
+              </Link>
+            </div>
+
+            {isAdmin ? (
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/admin"
+                  className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
+                >
+                  Admin
+                </Link>
+                <button
+                  onClick={() => { logout(); navigate('/'); }}
+                  className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-red-400 transition-colors"
+                  title="Sair"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sair
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/admin"
+                className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
+              >
+                Admin
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Dropdown menu */}
+      {menuOpen && (
+        <div className="bg-black border-t border-white/10">
+          <div className="px-6 lg:px-10 py-6 flex flex-col gap-1">
+            {[
+              { to: '/', label: 'Vitrine', end: true },
+              { to: '/artistas', label: 'Artistas', end: false },
+              { to: '/guests', label: 'Guests', end: false },
+              { to: '/events', label: 'Eventos', end: false },
+              { to: '/loja', label: 'Loja', end: false },
+              { to: '/aftercare', label: 'Pós Tattoo', end: false },
+              { to: '/sobre-nos', label: 'Sobre Nós', end: false },
+              { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
+            ].map(({ to, label, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={() => { setMenuOpen(false); window.scrollTo(0, 0); }}
+                className={({ isActive }) =>
+                  `font-display text-4xl uppercase tracking-wide transition-colors leading-tight ${
+                    isActive ? 'text-ink-500' : 'text-white/50 hover:text-ink-400'
+                  }`
+                }
+              >
+                {label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}

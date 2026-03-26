@@ -3,7 +3,6 @@ import { useStore } from '../../store';
 import type { SobreNosContent } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
 import { supabase } from '../../lib/supabase';
-import GeneralLightbox from '../../components/GeneralLightbox';
 
 /** Resize image to max 1200px and re-encode as JPEG 85% to stay within localStorage limits. */
 function compressImage(base64: string, maxPx = 1200, quality = 0.85): Promise<string> {
@@ -33,7 +32,6 @@ export default function AdminSobreNos() {
 
   const [form, setForm] = useState<SobreNosContent>(sobreNosContent);
   const [saved, setSaved] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState<boolean[]>([false, false, false, false, false, false, false, false, false]);
@@ -168,12 +166,6 @@ export default function AdminSobreNos() {
 
   return (
     <div className="p-6 lg:p-10 max-w-5xl">
-      {selectedImage && (
-        <GeneralLightbox 
-          imageUrl={selectedImage} 
-          onClose={() => setSelectedImage(null)} 
-        />
-      )}
       <div className="mb-8">
         <h1 className="font-display text-2xl uppercase tracking-wide text-white">Sobre Nós</h1>
         <p className="font-body text-xs text-gray-500 mt-1">Edite o conteúdo da página "Sobre Nós"</p>
@@ -291,14 +283,9 @@ export default function AdminSobreNos() {
               <label className={labelCls}>Foto do Estúdio</label>
               <div className="flex gap-4 items-start">
                 {/* Preview */}
-                <div className="w-28 aspect-[3/4] bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center border border-white/10 group">
+                <div className="w-28 aspect-[3/4] bg-zinc-800 shrink-0 overflow-hidden flex items-center justify-center border border-white/10">
                   {form.collective.image ? (
-                    <img 
-                      src={form.collective.image} 
-                      alt="Estúdio" 
-                      className="w-full h-full object-cover cursor-zoom-in" 
-                      onClick={() => setSelectedImage(form.collective.image)}
-                    />
+                    <img src={form.collective.image} alt="Estúdio" className="w-full h-full object-cover" />
                   ) : (
                     <span className="font-body text-[9px] tracking-widest uppercase text-white/20 text-center px-2">
                       Sem imagem
@@ -342,15 +329,10 @@ export default function AdminSobreNos() {
                 {([0, 1, 2, 3, 4, 5, 6, 7, 8] as const).map((idx) => {
                   const img = form.collective.galleryImages?.[idx] ?? '';
                   return (
-                    <div key={idx} className="relative aspect-square group">
+                    <div key={idx} className="relative aspect-square">
                       {img ? (
                         <>
-                          <img 
-                            src={img} 
-                            alt={`Galeria ${idx + 1}`} 
-                            className="w-full h-full object-cover cursor-zoom-in" 
-                            onClick={() => setSelectedImage(img)}
-                          />
+                          <img src={img} alt={`Galeria ${idx + 1}`} className="w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() => clearGalleryImage(idx)}
