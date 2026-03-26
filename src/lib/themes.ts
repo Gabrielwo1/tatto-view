@@ -3,7 +3,7 @@
 // via CSS variables. Values use "R G B" format (no commas) so Tailwind opacity
 // modifiers like `text-ink-500/30` work correctly.
 
-export type ThemeId = 'ember' | 'violet' | 'cyan' | 'crimson' | 'gold' | 'neon' | 'rose';
+export type ThemeId = 'ember' | 'violet' | 'cyan' | 'crimson' | 'gold' | 'neon' | 'rose' | 'ocean' | 'forest' | 'sunset' | 'amethyst';
 export type LogoColorMode = 'original' | 'white' | 'black' | 'primary' | 'secondary' | 'invert';
 
 export interface Theme {
@@ -173,6 +173,58 @@ export const THEMES: Record<ThemeId, Theme> = {
       '--ink-400': '244 114 182', '--ink-500': '236 72 153',
       '--ink-600': '219 39 119',  '--ink-700': '190 24 93',
       '--ink-800': '157 23 77',   '--ink-900': '131 24 67',
+    },
+  },
+
+  // 8. Ocean ─ secondary: teal
+  ocean: {
+    id: 'ocean', label: 'Ocean', accent: '#0ea5e9', accent2: '#14b8a6',
+    description: 'Azul oceano — profundo e sereno',
+    vars: {
+      '--ink-50':  '240 249 255', '--ink-100': '224 242 254',
+      '--ink-200': '186 230 253', '--ink-300': '125 211 252',
+      '--ink-400': '56 189 248',  '--ink-500': '14 165 233',
+      '--ink-600': '2 132 199',   '--ink-700': '3 105 161',
+      '--ink-800': '7 89 133',    '--ink-900': '12 74 110',
+    },
+  },
+
+  // 9. Forest ─ secondary: lime
+  forest: {
+    id: 'forest', label: 'Forest', accent: '#10b981', accent2: '#84cc16',
+    description: 'Verde bosque — natural e fresco',
+    vars: {
+      '--ink-50':  '236 253 245', '--ink-100': '209 250 229',
+      '--ink-200': '167 243 208', '--ink-300': '110 231 183',
+      '--ink-400': '52 211 153',  '--ink-500': '16 185 129',
+      '--ink-600': '5 150 105',   '--ink-700': '4 120 87',
+      '--ink-800': '6 95 70',     '--ink-900': '6 78 59',
+    },
+  },
+
+  // 10. Sunset ─ secondary: yellow
+  sunset: {
+    id: 'sunset', label: 'Sunset', accent: '#f97316', accent2: '#eab308',
+    description: 'Laranja vibrante — quente e acolhedor',
+    vars: {
+      '--ink-50':  '255 247 237', '--ink-100': '255 237 213',
+      '--ink-200': '254 215 170', '--ink-300': '253 186 116',
+      '--ink-400': '251 146 60',  '--ink-500': '249 115 22',
+      '--ink-600': '234 88 12',   '--ink-700': '194 65 12',
+      '--ink-800': '154 52 18',   '--ink-900': '124 45 18',
+    },
+  },
+
+  // 11. Amethyst ─ secondary: pink
+  amethyst: {
+    id: 'amethyst', label: 'Crystal', accent: '#d946ef', accent2: '#ec4899',
+    description: 'Fúcsia brilhante — marcante e moderno',
+    vars: {
+      '--ink-50':  '253 244 255', '--ink-100': '250 232 255',
+      '--ink-200': '245 208 254', '--ink-300': '240 171 252',
+      '--ink-400': '232 121 249', '--ink-500': '217 70 239',
+      '--ink-600': '192 38 211',  '--ink-700': '162 28 175',
+      '--ink-800': '134 25 143',  '--ink-900': '112 26 117',
     },
   },
 };

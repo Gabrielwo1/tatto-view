@@ -7,7 +7,7 @@ import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
 import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
 
-const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
+const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan', 'ocean', 'forest', 'sunset', 'amethyst'];
 
 function StyleVisibilitySection() {
   const hiddenStyles    = useStore((s) => s.hiddenStyles);
@@ -383,6 +383,13 @@ export default function AdminSettings() {
     setCustomColors(null, null);
   }
 
+  function handleInvert() {
+    setDraftPrimary(draftSecondary);
+    setDraftSecondary(draftPrimary);
+    setCustomColors(draftSecondary, draftPrimary);
+    applyCustomColors(draftSecondary, draftPrimary);
+  }
+
   function handleApplyColors() {
     setCustomColors(draftPrimary, draftSecondary);
     applyCustomColors(draftPrimary, draftSecondary);
@@ -413,7 +420,7 @@ export default function AdminSettings() {
                 </button>
               )}
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="flex flex-wrap gap-2">
               {THEME_ORDER.map((id) => {
                 const theme = THEMES[id];
                 const isActive = id === active && !customPrimary;
@@ -477,10 +484,19 @@ export default function AdminSettings() {
                 </div>
               </div>
             </div>
-            <button type="button" onClick={handleApplyColors}
-              className="w-full font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
-              Aplicar
-            </button>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleInvert}
+                title="Inverter Cores"
+                className="w-12 shrink-0 flex items-center justify-center bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </button>
+              <button type="button" onClick={handleApplyColors}
+                className="flex-1 font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
+                Aplicar
+              </button>
+            </div>
           </div>
         </div>
 
