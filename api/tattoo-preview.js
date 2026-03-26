@@ -1,6 +1,6 @@
 /**
- * Vercel serverless function: proxies Pollinations.ai image generation.
- * Called as: /api/tattoo-preview?prompt=...
+ * Vercel serverless function: generates tattoo preview using HuggingFace Inference API.
+ * Requires HF_TOKEN env var in Vercel settings (free account at huggingface.co).
  */
 export default async function handler(req, res) {
   const { prompt } = req.query;
@@ -8,26 +8,36 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'prompt is required' });
   }
 
-  const encoded = encodeURIComponent(prompt.slice(0, 200));
-  const seed = Math.floor(Math.random() * 1000000);
-  const url = `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&seed=${seed}&model=flux`;
-
-  try {
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-    });
-
-    if (!response.ok) {
-      return res.status(502).json({ error: `Upstream error: ${response.status}` });
-    }
-
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    const buffer = await response.arrayBuffer();
-
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.status(200).send(Buffer.from(buffer));
-  } catch (err) {
-    res.status(502).json({ error: String(err) });
+  const token = process.env.HF_TOKEN;
+  if (!token) {
+    return res.status(500).json({ error: 'HF_TOKEN not configured' });
   }
+
+  const safePrompt = prompt.slice(0, 200);
+
+  // Use FLUX.1-schnell — fast, free tier on HuggingFace
+  const response = await fetch(
+    'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'x-wait-for-model': 'true',
+      },
+      body: JSON.stringify({ inputs: safePrompt }),
+    }
+  );
+
+  if (!response.ok) {
+    const body = await response.text();
+    return res.status(502).json({ error: `HuggingFace error: ${response.status}`, detail: body });
+  }
+
+  const contentType = response.headers.get('content-type') || 'image/jpeg';
+  const buffer = await response.arrayBuffer();
+
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(200).send(Buffer.from(buffer));
 }
