@@ -44,7 +44,14 @@ export async function uploadImage(src: string): Promise<string> {
       form.append('key', imgbbKey);
       form.append('image', base64);
 
-      const res  = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: form });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15_000);
+      let res: Response;
+      try {
+        res = await fetch('https://api.imgbb.com/1/upload', { method: 'POST', body: form, signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
       const json = await res.json();
       if (res.ok && json?.data?.url) return json.data.url as string;
       throw new Error(json?.error?.message ?? 'ImgBB error');
