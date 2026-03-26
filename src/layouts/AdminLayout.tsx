@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
 const navItems = [
@@ -148,8 +148,15 @@ export default function AdminLayout() {
   const isAdmin         = useStore((s) => s.isAdmin);
   const isArtist        = useStore((s) => s.isArtist);
   const isMerchManager  = useStore((s) => s.isMerchManager);
+  const logout          = useStore((s) => s.logout);
   const location  = useLocation();
+  const navigate  = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  async function handleLogout() {
+    await logout();
+    navigate('/admin/login', { replace: true });
+  }
 
   const items = useMemo(() => {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
@@ -201,14 +208,23 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-white/10">
+        <div className="p-3 border-t border-white/10 flex flex-col gap-1">
           <Link to="/"
-            className="flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
+            className="flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all rounded">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Vitrine
           </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 w-full text-left text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all rounded"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sair
+          </button>
         </div>
       </aside>
 
@@ -273,14 +289,23 @@ export default function AdminLayout() {
                 </NavLink>
               ))}
             </nav>
-            <div className="p-4 border-t border-white/10">
+            <div className="p-4 border-t border-white/10 flex flex-col gap-1">
               <Link to="/" onClick={closeDrawer}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
+                className="flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all rounded">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Ver Vitrine
               </Link>
+              <button
+                onClick={() => { closeDrawer(); handleLogout(); }}
+                className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all rounded"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sair
+              </button>
             </div>
           </aside>
         </div>
