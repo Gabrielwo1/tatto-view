@@ -1,0 +1,142 @@
+/**
+ * geminiPreview.ts — Calls Gemini API to composite a tattoo onto a body photo.
+ *
+ * NOTE: The API key is called directly from the frontend for simplicity.
+ * For production, move this to a Supabase Edge Function or server proxy.
+ */
+
+const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
+const GEMINI_MODEL = 'gemini-2.0-flash-preview-image-generation';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+
+const PROMPT = `You are a professional tattoo mockup artist. Take the tattoo design from the SECOND image and realistically composite it onto the skin shown in the FIRST image (the body photo).
+
+Rules:
+- Make the tattoo look like it is ACTUALLY ON the skin — follow the contours, curves, and lighting of the body.
+- Match the skin tone and lighting conditions from the body photo.
+- Keep the tattoo design faithful to the original but warp/bend it naturally to follow the body surface.
+- The tattoo should look like a healed, professional tattoo — not a sticker.
+- Do NOT change the body photo background, clothing, or anything else — ONLY add the tattoo.
+- The output should be a single photorealistic image of the body with the tattoo applied.
+- Make it look as realistic and professional as possible.`;
+
+/**
+ * Fetches a remote image URL and returns it as { base64, mimeType }.
+ */
+async function fetchImageAsBase64(url: string): Promise<{ base64: string; mimeType: string }> {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Failed to fetch image: ${resp.statusText}`);
+  const blob = await resp.blob();
+  const buffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return {
+    base64: btoa(binary),
+    mimeType: blob.type || 'image/png',
+  };
+}
+
+/**
+ * Converts a File to base64.
+ */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Strip "data:image/...;base64," prefix
+      resolve(result.replace(/^data:image\/\w+;base64,/, ''));
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+export interface PreviewResult {
+  imageBase64: string;
+  mimeType: string;
+}
+
+/**
+ * Generate a tattoo preview on a body photo.
+ * @param tattooImageUrl  URL of the tattoo design image
+ * @param bodyPhotoFile   File object from the user's upload (body photo)
+ * @returns               The generated composite image as base64
+ */
+export async function generateTattooPreview(
+  tattooImageUrl: string,
+  bodyPhotoFile: File
+): Promise<PreviewResult> {
+  // Convert body photo to base64
+  const bodyBase64 = await fileToBase64(bodyPhotoFile);
+  const bodyMimeType = bodyPhotoFile.type || 'image/jpeg';
+
+  // Fetch tattoo image from URL and convert
+  const tattoo = await fetchImageAsBase64(tattooImageUrl);
+
+  const payload = {
+    contents: [
+      {
+        parts: [
+          { text: PROMPT },
+          {
+            inline_data: {
+              mime_type: bodyMimeType,
+              data: bodyBase64,
+            },
+          },
+          {
+            inline_data: {
+              mime_type: tattoo.mimeType,
+              data: tattoo.base64,
+            },
+          },
+        ],
+      },
+    ],
+    generationConfig: {
+      responseModalities: ['TEXT', 'IMAGE'],
+    },
+  };
+
+  const resp = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    console.error('Gemini API error:', errText);
+    throw new Error(`Gemini API error (${resp.status}): ${errText}`);
+  }
+
+  const data = await resp.json();
+  const candidates = data.candidates || [];
+
+  // Extract image from response
+  for (const candidate of candidates) {
+    const parts = candidate.content?.parts || [];
+    for (const part of parts) {
+      if (part.inline_data) {
+        return {
+          imageBase64: part.inline_data.data,
+          mimeType: part.inline_data.mime_type || 'image/png',
+        };
+      }
+    }
+  }
+
+  // No image found — extract text for debugging
+  let text = '';
+  for (const candidate of candidates) {
+    for (const part of candidate.content?.parts || []) {
+      if (part.text) text += part.text;
+    }
+  }
+
+  throw new Error(text || 'Gemini did not return an image. Try a different photo.');
+}
