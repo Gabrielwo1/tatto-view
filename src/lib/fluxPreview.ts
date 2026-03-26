@@ -2,9 +2,6 @@
  * fluxPreview.ts — Calls Hugging Face API (Flux.1-schnell) to generate a tattoo mockup.
  */
 
-// NOTE: The user needs to provide this token. 
-// We will store it in localStorage or use a placeholder for now.
-const HF_TOKEN_KEY = 'hf_access_token'; 
 
 export interface PreviewResult {
   imageBase64: string;
