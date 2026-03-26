@@ -13,7 +13,7 @@ export async function generateFluxPreview(
 ): Promise<{ url: string }> {
   const shortPrompt = prompt.slice(0, 200);
   const encoded = encodeURIComponent(shortPrompt);
-  const url = `https://gen.pollinations.ai/image/${encoded}?width=512&height=512&nologo=true&nofeed=true`;
+  const url = `https://image.pollinations.ai/prompt/${encoded}?width=512&height=512&nologo=true&nofeed=true`;
   return { url };
 }
 
