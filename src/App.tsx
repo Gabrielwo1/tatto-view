@@ -35,7 +35,6 @@ import AdminMyProfile from './pages/admin/AdminMyProfile';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
-import TattooPreviewPage from './pages/TattooPreviewPage';
 
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
@@ -211,14 +210,7 @@ export default function App() {
           </PublicLayout>
         } />
 
-        {/* Prévia de Tatuagem */}
-        <Route path="/previa" element={
-          <PublicLayout>
-            <TattooPreviewPage />
-          </PublicLayout>
-        } />
-
-        {/* Ficha de Anamnese */}
+{/* Ficha de Anamnese */}
         <Route path="/ficha-anamnese" element={
           <PublicLayout>
             <FichaAnamnesePage />
