@@ -21,22 +21,23 @@ async function blobToBase64(blob: Blob): Promise<string> {
 
 export async function generateFluxPreview(
   prompt: string,
-  token: string
+  _token?: string
 ): Promise<PreviewResult> {
-  const MODEL_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell";
+  const encoded = encodeURIComponent(prompt);
+  const url = `https://image.pollinations.ai/prompt/${encoded}?width=768&height=768&model=flux&nologo=true&seed=${Date.now()}`;
 
-  const response = await fetch(MODEL_URL, {
-    headers: { Authorization: `Bearer ${token}` },
-    method: "POST",
-    body: JSON.stringify({ inputs: prompt }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90_000);
+
+  let response: Response;
+  try {
+    response = await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
-    const err = await response.text();
-    if (response.status === 429) {
-      throw new Error("Limite de cota do Hugging Face atingido. Tente novamente em instantes.");
-    }
-    throw new Error(`Erro no Hugging Face (${response.status}): ${err}`);
+    throw new Error(`Erro ao gerar imagem (${response.status}). Tente novamente.`);
   }
 
   const resultBlob = await response.blob();
