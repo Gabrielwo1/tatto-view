@@ -160,6 +160,7 @@ export default function Navbar() {
               { to: '/aftercare', label: 'Pós Tattoo', end: false },
               { to: '/sobre-nos', label: 'Sobre Nós', end: false },
               { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
+              { to: '/previa', label: 'Prévia IA', end: false },
             ].map(({ to, label, end }) => (
               <NavLink
                 key={to}
