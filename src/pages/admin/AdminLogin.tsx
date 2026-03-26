@@ -4,11 +4,13 @@ import { useStore } from '../../store';
 import { supabase } from '../../lib/supabase';
 
 export default function AdminLogin() {
-  const login          = useStore((s) => s.login);
-  const isAdmin        = useStore((s) => s.isAdmin);
-  const isArtist       = useStore((s) => s.isArtist);
-  const isMerchManager = useStore((s) => s.isMerchManager);
-  const navigate       = useNavigate();
+  const login           = useStore((s) => s.login);
+  const isAdmin         = useStore((s) => s.isAdmin);
+  const isArtist        = useStore((s) => s.isArtist);
+  const isMerchManager  = useStore((s) => s.isMerchManager);
+  const isContentEditor = useStore((s) => s.isContentEditor);
+  const customLogo      = useStore((s) => s.customLogo);
+  const navigate        = useNavigate();
 
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
@@ -21,9 +23,10 @@ export default function AdminLogin() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetSent, setResetSent]       = useState(false);
 
-  if (isAdmin)        { navigate('/admin/dashboard',  { replace: true }); return null; }
-  if (isArtist)       { navigate('/admin/tatuagens',  { replace: true }); return null; }
-  if (isMerchManager) { navigate('/admin/merchs',     { replace: true }); return null; }
+  if (isAdmin)         { navigate('/admin/dashboard',  { replace: true }); return null; }
+  if (isArtist)        { navigate('/admin/tatuagens',  { replace: true }); return null; }
+  if (isMerchManager)  { navigate('/admin/merchs',     { replace: true }); return null; }
+  if (isContentEditor) { navigate('/admin/guests',     { replace: true }); return null; }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -58,7 +61,7 @@ export default function AdminLogin() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          <img src="/logosemo-3.png" alt="El Dude" className="h-16 w-auto object-contain mx-auto mb-4" />
+          <img src={customLogo ?? '/logosemo-3.png'} alt="El Dude" className="h-16 w-auto object-contain mx-auto mb-4" />
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">
             Painel Administrativo
           </p>
