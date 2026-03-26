@@ -9,6 +9,7 @@ export default function ArtistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
+  const isArtist = useStore((s) => s.isArtist);
   const [tab, setTab] = useState<'available' | 'archived'>('available');
   const [isPrinting, setIsPrinting] = useState(false);
   const [printImage, setPrintImage] = useState<string | null>(null);
@@ -63,25 +64,27 @@ export default function ArtistDetailPage() {
         <Link to="/artistas" className="text-gray-500 hover:text-ink-400 text-xs font-body font-semibold tracking-widest uppercase inline-flex items-center gap-2 transition-colors">
           ← Artistas
         </Link>
-        <button
-          onClick={handlePrint}
-          disabled={isPrinting}
-          className="flex items-center gap-2 px-4 py-2 bg-ink-500 text-black hover:bg-ink-400 text-xs font-body font-bold tracking-widest uppercase transition-colors disabled:opacity-50"
-        >
-          {isPrinting ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              Gerando...
-            </span>
-          ) : (
-            <>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Exportar Portfólio
-            </>
-          )}
-        </button>
+        {isArtist && (
+          <button
+            onClick={handlePrint}
+            disabled={isPrinting}
+            className="flex items-center gap-2 px-4 py-2 bg-ink-500 text-black hover:bg-ink-400 text-xs font-body font-bold tracking-widest uppercase transition-colors disabled:opacity-50"
+          >
+            {isPrinting ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Gerando...
+              </span>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Exportar Portfólio
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       <div ref={printRef} className="bg-[#0a0a0a] pb-10 -m-4 p-4 sm:m-0 sm:p-0">
