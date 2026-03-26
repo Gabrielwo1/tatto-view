@@ -52,12 +52,15 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
       setStep('result');
     } catch (err: unknown) {
       console.error('Preview generation failed:', err);
-      const isTokenError = err instanceof Error && (err.message.includes('401') || err.message.includes('token'));
+      const msg = err instanceof Error ? err.message : '';
+      const isTokenError = msg.includes('401') || msg.includes('token') || msg.includes('Failed to fetch');
       if (isTokenError) {
-        setErrorMsg('Token do Hugging Face inválido ou expirado. Verifique e tente novamente.');
+        localStorage.removeItem('hf_access_token');
+        setHfToken('');
+        setErrorMsg('Token do Hugging Face inválido ou não configurado. Insira seu token para continuar.');
         setStep('token');
       } else {
-        setErrorMsg(err instanceof Error ? err.message : 'Erro ao gerar preview. Tente outra foto.');
+        setErrorMsg(msg || 'Erro ao gerar preview. Tente outra foto.');
         setStep('error');
       }
     }
