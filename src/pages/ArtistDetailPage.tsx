@@ -10,6 +10,7 @@ export default function ArtistDetailPage() {
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
   const isArtist = useStore((s) => s.isArtist);
+  const isAdmin = useStore((s) => s.isAdmin);
   const [tab, setTab] = useState<'available' | 'archived'>('available');
   const [isPrinting, setIsPrinting] = useState(false);
   const [printImage, setPrintImage] = useState<string | null>(null);
@@ -64,7 +65,7 @@ export default function ArtistDetailPage() {
         <Link to="/artistas" className="text-gray-500 hover:text-ink-400 text-xs font-body font-semibold tracking-widest uppercase inline-flex items-center gap-2 transition-colors">
           ← Artistas
         </Link>
-        {isArtist && (
+        {(isArtist || isAdmin) && (
           <button
             onClick={handlePrint}
             disabled={isPrinting}
