@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
 const navItems = [
@@ -150,33 +150,36 @@ const artistOnlyItem = '/admin/meu-perfil';
 const merchItem = '/admin/merchs';
 
 export default function AdminLayout() {
-  const logout          = useStore((s) => s.logout);
   const isAdmin         = useStore((s) => s.isAdmin);
   const isArtist        = useStore((s) => s.isArtist);
   const isMerchManager  = useStore((s) => s.isMerchManager);
   const isContentEditor = useStore((s) => s.isContentEditor);
-  const navigate        = useNavigate();
+  const logout          = useStore((s) => s.logout);
   const location  = useLocation();
+  const navigate  = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function handleLogout() {
     await logout();
-    navigate('/admin/login');
+    navigate('/admin/login', { replace: true });
   }
 
-  function visibleItems() {
+  const items = useMemo(() => {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
     if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && !contentEditorItems.includes(item.to) && item.to !== merchItem);
     if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
     if (isContentEditor) return navItems.filter((item) => contentEditorItems.includes(item.to));
     return [];
-  }
+  }, [isAdmin, isArtist, isMerchManager, isContentEditor]);
+
+  const currentLabel = useMemo(
+    () => navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin',
+    [location.pathname],
+  );
 
   function closeDrawer() {
     setDrawerOpen(false);
   }
-
-  const currentLabel = navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin';
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
@@ -195,7 +198,7 @@ export default function AdminLayout() {
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          {visibleItems().map((item) => (
+          {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -265,7 +268,7 @@ export default function AdminLayout() {
               </button>
             </div>
             <nav className="flex-1 p-4 space-y-1">
-              {visibleItems().map((item) => (
+              {items.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
