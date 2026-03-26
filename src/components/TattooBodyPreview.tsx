@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { generateFluxPreview, generatePromptWithGemini } from '../lib/fluxPreview';
+import { generateFluxPreview, buildTattooPrompt } from '../lib/fluxPreview';
+
+const PLACEMENTS = ['forearm','arm','shoulder','back','chest','leg','calf','ribs','neck','hand','foot','thigh'];
 
 interface Props {
   tattooImageUrl: string;
@@ -7,16 +9,14 @@ interface Props {
   onClose: () => void;
 }
 
-const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
-
 export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose }: Props) {
   const [step, setStep] = useState<'upload' | 'generating' | 'result' | 'error' | 'token'>('upload');
   const [hfToken, setHfToken] = useState(localStorage.getItem('hf_access_token') || '');
   const [bodyPreview, setBodyPreview] = useState<string | null>(null);
   const [bodyFile, setBodyFile] = useState<File | null>(null);
+  const [placement, setPlacement] = useState('forearm');
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
-  const [loadingStep, setLoadingStep] = useState<'analyzing' | 'generating'>('analyzing');
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -40,16 +40,10 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
     }
 
     setStep('generating');
-    setLoadingStep('analyzing');
     setErrorMsg('');
 
     try {
-      // 1. Vision Step: Use Gemini 1.5 Flash to generate the best prompt for Flux
-      const fluxPrompt = await generatePromptWithGemini(tattooImageUrl, bodyFile, GEMINI_API_KEY);
-      
-      setLoadingStep('generating');
-      
-      // 2. Generation Step: Use Flux.1-schnell via Hugging Face
+      const fluxPrompt = buildTattooPrompt(tattooTitle, placement);
       const result = await generateFluxPreview(fluxPrompt, hfToken);
       
       const dataUrl = `data:${result.mimeType};base64,${result.imageBase64}`;
@@ -172,6 +166,21 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
                       </button>
                     </div>
 
+                    <div className="mb-3">
+                      <p className="font-body text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">
+                        Local do corpo
+                      </p>
+                      <select
+                        value={placement}
+                        onChange={(e) => setPlacement(e.target.value)}
+                        className="w-full bg-zinc-900 border border-white/15 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-ink-500 transition-colors"
+                      >
+                        {PLACEMENTS.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+
                     <button
                       onClick={handleGenerate}
                       className="w-full py-3.5 bg-ink-500 hover:bg-ink-400 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors flex items-center justify-center gap-2"
@@ -259,22 +268,15 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
                 <div className="absolute inset-0 border-2 border-ink-500/20 rounded-full" />
                 <div className="absolute inset-0 border-2 border-ink-500 border-t-transparent rounded-full animate-spin" />
                 <svg className="absolute inset-0 m-auto w-8 h-8 text-ink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  {loadingStep === 'analyzing' ? (
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  ) : (
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  )}
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
               </div>
               <div className="text-center">
                 <p className="font-display text-xl uppercase tracking-wide text-white mb-2">
-                  {loadingStep === 'analyzing' ? 'Analisando Imagem...' : 'Gerando Preview 4K...'}
+                  Gerando Preview...
                 </p>
                 <p className="font-body text-xs text-gray-500 max-w-xs leading-relaxed">
-                  {loadingStep === 'analyzing' ? 
-                    'O Gemini está lendo os detalhes da skin e da arte...' : 
-                    'O Flux está pintando a tatuagem com realismo extremo no seu corpo.'
-                  }
+                  O Flux está criando sua prévia. Isso pode levar alguns segundos.
                 </p>
               </div>
             </div>
