@@ -39,7 +39,7 @@ function ArtistCard({ artist }: ArtistCardProps) {
           {artist.specialties.map((specialty) => (
             <span
               key={specialty}
-              className="px-2 py-0.5 text-white/70 text-xs font-semibold tracking-widest uppercase border border-white/20"
+              className="px-2 py-0.5 text-ink-400 text-xs font-semibold tracking-widest uppercase border border-ink-500/30"
             >
               {specialty}
             </span>
