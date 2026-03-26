@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
 
@@ -151,18 +151,21 @@ export default function AdminLayout() {
   const location  = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  function visibleItems() {
+  const items = useMemo(() => {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
     if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && item.to !== merchItem);
     if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
     return [];
-  }
+  }, [isAdmin, isArtist, isMerchManager]);
+
+  const currentLabel = useMemo(
+    () => navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin',
+    [location.pathname],
+  );
 
   function closeDrawer() {
     setDrawerOpen(false);
   }
-
-  const currentLabel = navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin';
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
@@ -181,7 +184,7 @@ export default function AdminLayout() {
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          {visibleItems().map((item) => (
+          {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -252,7 +255,7 @@ export default function AdminLayout() {
               </button>
             </div>
             <nav className="flex-1 p-4 space-y-1">
-              {visibleItems().map((item) => (
+              {items.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
