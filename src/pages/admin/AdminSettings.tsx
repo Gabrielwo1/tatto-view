@@ -211,10 +211,10 @@ export default function AdminSettings() {
         <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Configurações</h1>
       </div>
 
-      {/* ══ GRID 3 COLUNAS ══════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+      {/* ══ GRID 2 COLUNAS: configurações | analytics ══════════════════════ */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 items-start">
 
-        {/* ╠══ COL 1 — Aparência ══╣ */}
+        {/* ╠══ COL ESQUERDA — Aparência + Imagens + Estilos ══╣ */}
         <div className="space-y-3">
 
           {/* Custom colors — col 1 continuation */}
@@ -264,11 +264,6 @@ export default function AdminSettings() {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* ╠══ COL 2 — Imagens + Estilos ══╣ */}
-        <div className="space-y-3">
-
           {/* Logo upload */}
           <div className="border border-white/10 bg-black/20 p-4">
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Imagens do site</p>
@@ -324,13 +319,11 @@ export default function AdminSettings() {
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Estilos da vitrine</p>
             <StyleVisibilitySection />
           </div>
-        </div>
+        </div>{/* fim col esquerda */}
 
-      </div>{/* fim grid 3-col */}
-
-      {/* ══ ESTATÍSTICAS — full width ════════════════════════════════════════ */}
-      <div className="mt-4">
-      <section>
+        {/* ╠══ COL DIREITA — Analytics ══╣ */}
+        <div className="border border-white/10 bg-black/20 p-4">
+        <section>
         {(() => {
           const analytics = getAnalytics();
           const today = new Date().toISOString().slice(0, 10);
@@ -467,7 +460,9 @@ export default function AdminSettings() {
           );
         })()}
       </section>
-      </div>{/* fim mt-4 estatísticas */}
+        </div>{/* fim col direita */}
+
+      </div>{/* fim grid 2-col */}
     </div>
   );
 }
