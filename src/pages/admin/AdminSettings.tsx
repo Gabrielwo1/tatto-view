@@ -1,13 +1,11 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../../store';
-import { THEMES, applyTheme, applyCustomColors, generateShades, getThemeForHostname } from '../../lib/themes';
-import type { ThemeId } from '../../lib/themes';
+import { applyCustomColors, generateShades } from '../../lib/themes';
 import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
 import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
 
-const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan', 'ocean', 'forest', 'sunset', 'amethyst'];
 
 function StyleVisibilitySection() {
   const hiddenStyles    = useStore((s) => s.hiddenStyles);
@@ -145,7 +143,6 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 
 export default function AdminSettings() {
   const themeId  = useStore((s) => s.themeId);
-  const setTheme = useStore((s) => s.setTheme);
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
@@ -363,26 +360,6 @@ export default function AdminSettings() {
     URL.revokeObjectURL(url);
   }
 
-  const subdomainDefault = getThemeForHostname(window.location.hostname);
-  const active = themeId ?? subdomainDefault;
-
-  function handleSelect(id: ThemeId) {
-    setTheme(id);
-    applyTheme(id);
-    // Sync draft pickers to preset colors (clear custom)
-    setDraftPrimary(THEMES[id].accent);
-    setDraftSecondary(THEMES[id].accent2);
-    setCustomColors(null, null);
-  }
-
-  function handleReset() {
-    setTheme(null);
-    applyTheme(subdomainDefault);
-    setDraftPrimary(THEMES[subdomainDefault].accent);
-    setDraftSecondary(THEMES[subdomainDefault].accent2);
-    setCustomColors(null, null);
-  }
-
   function handleInvert() {
     setDraftPrimary(draftSecondary);
     setDraftSecondary(draftPrimary);
@@ -408,48 +385,6 @@ export default function AdminSettings() {
 
         {/* ╠══ COL 1 — Aparência ══╣ */}
         <div className="space-y-3">
-
-          {/* Presets */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">Tema</p>
-              {(themeId !== null || customPrimary || customSecondary) && (
-                <button type="button" onClick={handleReset}
-                  className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-                  ↩ padrão
-                </button>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {THEME_ORDER.map((id) => {
-                const theme = THEMES[id];
-                const isActive = id === active && !customPrimary;
-                return (
-                  <button key={id} type="button" onClick={() => handleSelect(id)}
-                    title={`${theme.label}`}
-                    className="group flex flex-col items-center gap-1.5 py-2 transition-all focus:outline-none">
-                    <span className="relative w-7 h-7 rounded-full block transition-all duration-200"
-                      style={{
-                        backgroundColor: theme.accent,
-                        boxShadow: isActive ? `0 0 0 2px #000, 0 0 0 3px ${theme.accent}` : `0 0 0 1px ${theme.accent}33`,
-                        transform: isActive ? 'scale(1.15)' : undefined,
-                      }}>
-                      {isActive && (
-                        <span className="absolute inset-0 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </span>
-                      )}
-                    </span>
-                    <span className={`font-body text-[8px] font-bold tracking-widest uppercase leading-none ${isActive ? 'text-white' : 'text-gray-700 group-hover:text-gray-500'}`}>
-                      {theme.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Custom colors — col 1 continuation */}
           <div className="border border-white/10 bg-black/20 p-4">
