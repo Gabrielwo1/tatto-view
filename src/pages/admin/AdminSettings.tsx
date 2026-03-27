@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { applyCustomColors, generateShades } from '../../lib/themes';
-import { supabase } from '../../lib/supabase';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
 import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
@@ -142,7 +141,6 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 }
 
 export default function AdminSettings() {
-  const themeId  = useStore((s) => s.themeId);
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
@@ -158,23 +156,6 @@ export default function AdminSettings() {
 
   const [draftPrimary,   setDraftPrimary]   = useState(customPrimary   ?? '#ff4500');
   const [draftSecondary, setDraftSecondary] = useState(customSecondary ?? '#3b82f6');
-  const tattoos          = useStore((s) => s.tattoos);
-  const artists          = useStore((s) => s.artists);
-  const merchs           = useStore((s) => s.merchs);
-  const landingContent   = useStore((s) => s.landingContent);
-  const sobreNosContent  = useStore((s) => s.sobreNosContent);
-  const guestContent     = useStore((s) => s.guestContent);
-  const aftercareContent = useStore((s) => s.aftercareContent);
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [syncProgress, setSyncProgress] = useState<string | null>(null);
-  const [connStatus, setConnStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
-  const [connError, setConnError] = useState<string | null>(null);
-
-  const updateArtist = useStore((s) => s.updateArtist);
-  const updateTattoo = useStore((s) => s.updateTattoo);
-  const updateMerch  = useStore((s) => s.updateMerch);
-  const setSobreNosContent = useStore((s) => s.setSobreNosContent);
 
   async function handleLogoUpload(file: File) {
     setLogoUploading(true);
@@ -208,156 +189,6 @@ export default function AdminSettings() {
     } finally {
       setFaviconUploading(false);
     }
-  }
-
-  async function handleSyncToSupabase() {
-    if (!supabase) {
-      alert('Supabase não está configurado. Verifique as variáveis de ambiente.');
-      return;
-    }
-    setSyncStatus('syncing');
-    setSyncError(null);
-
-    try {
-      // ── Re-upload base64 images to Supabase Storage ──────────────────────
-      setSyncProgress('Fazendo upload das imagens...');
-
-      const processedArtists = await Promise.all(artists.map(async (a) => {
-        if (!a.photoUrl?.startsWith('data:')) return a;
-        const url = await uploadImage(a.photoUrl);
-        if (url !== a.photoUrl) updateArtist(a.id, { photoUrl: url });
-        return { ...a, photoUrl: url };
-      }));
-
-      const processedTattoos = await Promise.all(tattoos.map(async (t) => {
-        if (!t.imageUrl?.startsWith('data:')) return t;
-        const url = await uploadImage(t.imageUrl);
-        if (url !== t.imageUrl) updateTattoo(t.id, { imageUrl: url });
-        return { ...t, imageUrl: url };
-      }));
-
-      const processedMerchs = await Promise.all(merchs.map(async (m) => {
-        if (!m.imageUrl?.startsWith('data:')) return m;
-        const url = await uploadImage(m.imageUrl);
-        if (url !== m.imageUrl) updateMerch(m.id, { imageUrl: url });
-        return { ...m, imageUrl: url };
-      }));
-
-      // Re-upload collective image in sobreNosContent if base64
-      let finalSobreNos = sobreNosContent;
-      if (sobreNosContent.collective?.image?.startsWith('data:')) {
-        const url = await uploadImage(sobreNosContent.collective.image);
-        if (url !== sobreNosContent.collective.image) {
-          finalSobreNos = { ...sobreNosContent, collective: { ...sobreNosContent.collective, image: url } };
-          setSobreNosContent(finalSobreNos);
-        }
-      }
-
-      setSyncProgress('Sincronizando dados...');
-
-      // ── Build rows ────────────────────────────────────────────────────────
-      const artistRows = processedArtists.map((a) => ({
-        id: a.id, name: a.name, bio: a.bio, photo_url: a.photoUrl,
-        specialties: a.specialties, instagram: a.instagram, whatsapp: a.whatsapp,
-        created_at: a.createdAt,
-      }));
-      const tattooRows = processedTattoos.map((t) => ({
-        id: t.id, title: t.title, description: t.description,
-        image_url: t.imageUrl, style: t.style, price: t.price,
-        artist_id: t.artistId, status: t.status, created_at: t.createdAt,
-      }));
-      const merchRows = processedMerchs.map((m) => ({
-        id: m.id, name: m.name, description: m.description,
-        price: m.price, image_url: m.imageUrl, link: m.link, created_at: m.createdAt,
-      }));
-
-      const configRows = [
-        { key: 'landingContent',   value: landingContent,    updated_at: new Date().toISOString() },
-        { key: 'sobreNosContent',  value: finalSobreNos,     updated_at: new Date().toISOString() },
-        { key: 'guestContent',     value: guestContent,     updated_at: new Date().toISOString() },
-        { key: 'aftercareContent', value: aftercareContent, updated_at: new Date().toISOString() },
-        { key: 'themeId',          value: themeId,          updated_at: new Date().toISOString() },
-      ];
-
-      const results = await Promise.all([
-        artistRows.length ? supabase.from('artists').upsert(artistRows)     : Promise.resolve({ error: null }),
-        tattooRows.length ? supabase.from('tattoos').upsert(tattooRows)     : Promise.resolve({ error: null }),
-        merchRows.length  ? supabase.from('merchs').upsert(merchRows)       : Promise.resolve({ error: null }),
-        supabase.from('site_config').upsert(configRows),
-      ]);
-
-      const err = results.find((r) => r.error)?.error;
-      if (err) throw err;
-
-      setSyncStatus('ok');
-      setSyncError(null);
-      setSyncProgress(null);
-      setTimeout(() => setSyncStatus('idle'), 4000);
-    } catch (err: unknown) {
-      console.error('[sync]', err);
-      setSyncStatus('error');
-      setSyncProgress(null);
-      setSyncError(err instanceof Error ? err.message : JSON.stringify(err));
-      setTimeout(() => { setSyncStatus('idle'); setSyncError(null); }, 8000);
-    }
-  }
-
-  async function handleTestConnection() {
-    if (!supabase) {
-      setConnStatus('error');
-      setConnError('Variáveis VITE_SUPABASE_URL e/ou VITE_SUPABASE_ANON_KEY não configuradas.');
-      return;
-    }
-    setConnStatus('testing');
-    setConnError(null);
-    try {
-      const { error } = await supabase.from('artists').select('count', { count: 'exact', head: true });
-      if (error) throw error;
-      setConnStatus('ok');
-      setTimeout(() => setConnStatus('idle'), 5000);
-    } catch (err: unknown) {
-      setConnStatus('error');
-      setConnError(err instanceof Error ? err.message : JSON.stringify(err));
-    }
-  }
-
-  function handleImportBackup(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
-        Object.entries(data).forEach(([key, value]) => {
-          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-        });
-        alert('Backup restaurado com sucesso! A página será recarregada.');
-        window.location.reload();
-      } catch {
-        alert('Arquivo inválido. Certifique-se de usar um backup gerado por este sistema.');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  }
-
-  function handleExportBackup() {
-    const data: Record<string, unknown> = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)!;
-      try {
-        data[key] = JSON.parse(localStorage.getItem(key)!);
-      } catch {
-        data[key] = localStorage.getItem(key);
-      }
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup-eldude-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   function handleInvert() {
@@ -495,82 +326,6 @@ export default function AdminSettings() {
           </div>
         </div>
 
-        {/* ╠══ COL 3 — Sistema ══╣ */}
-        <div className="space-y-3">
-
-          {/* Identificação */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Identificação</p>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between px-3 py-2 border border-white/10 bg-black/30">
-                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">Domínio</p>
-                <p className="font-mono text-xs text-white">{window.location.hostname}</p>
-              </div>
-              <div className="flex items-center justify-between px-3 py-2 border border-white/10 bg-black/30">
-                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">Plataforma</p>
-                <p className="font-mono text-xs text-white">vitrink.app</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Sincronização */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Sincronização</p>
-            <div className="px-3 py-2 border border-white/10 bg-black/30 mb-3">
-              <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">Supabase</p>
-              <p className="font-mono text-[10px] text-gray-500 truncate">
-                {import.meta.env.VITE_SUPABASE_URL || <span className="text-red-400">não configurado</span>}
-              </p>
-            </div>
-            <div className="flex gap-2 mb-2">
-              <button type="button" onClick={handleTestConnection} disabled={connStatus === 'testing'}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/10 text-gray-400 font-body text-[9px] font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors disabled:opacity-50">
-                {connStatus === 'testing' ? <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Testando</>
-                  : connStatus === 'ok' ? <span className="text-green-400">✓ Conectado</span>
-                  : connStatus === 'error' ? <span className="text-red-400">✕ Falhou</span>
-                  : 'Testar'}
-              </button>
-              <button type="button" onClick={handleSyncToSupabase} disabled={syncStatus === 'syncing'}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/20 text-white font-body text-[9px] font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50">
-                {syncStatus === 'syncing' ? <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>{syncProgress ?? 'Sync...'}</>
-                  : syncStatus === 'ok' ? <span className="text-green-400">✓ Sincronizado</span>
-                  : syncStatus === 'error' ? <span className="text-red-400">✕ Erro</span>
-                  : '↑ Sincronizar'}
-              </button>
-            </div>
-            {connError && (
-              <div className="mb-2 px-3 py-2 border border-red-500/30 bg-red-500/10">
-                <p className="font-mono text-[10px] text-red-300 break-all">{connError}</p>
-              </div>
-            )}
-            {syncError && (
-              <div className="mb-2 px-3 py-2 border border-red-500/30 bg-red-500/10">
-                <p className="font-mono text-[10px] text-red-300 break-all">{syncError}</p>
-              </div>
-            )}
-            <p className="font-body text-[9px] text-gray-700">
-              {artists.length} artistas · {tattoos.length} tatuagens · {merchs.length} merchs
-            </p>
-          </div>
-
-          {/* Backup */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Backup</p>
-            <div className="flex gap-2">
-              <button type="button" onClick={handleExportBackup}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/20 text-white font-body text-[9px] font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                Baixar
-              </button>
-              <label className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/10 text-gray-500 font-body text-[9px] font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors cursor-pointer">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                Restaurar
-                <input type="file" accept=".json" className="hidden" onChange={handleImportBackup} />
-              </label>
-            </div>
-          </div>
-
-        </div>{/* fim col 3 */}
       </div>{/* fim grid 3-col */}
 
       {/* ══ ESTATÍSTICAS — full width ════════════════════════════════════════ */}
@@ -598,9 +353,9 @@ export default function AdminSettings() {
           const maxViews = Math.max(...days.map((d) => d.views), 1);
           const topPages = getTopPages(5);
 
-          const svgH = 80;
+          const svgH = 60;
           const svgW = 100;
-          const pad = { l: 0, r: 0, t: 6, b: 18 };
+          const pad = { l: 0, r: 0, t: 6, b: 4 };
           const chartH = svgH - pad.t - pad.b;
           const chartW = svgW - pad.l - pad.r;
           const step = chartW / (D - 1);
@@ -671,13 +426,19 @@ export default function AdminSettings() {
                     {days.map((d, i) => d.views > 0 && (
                       <circle key={i} cx={toX(i).toFixed(1)} cy={toY(d.views).toFixed(1)} r="0.7" fill="rgb(var(--ink-500))" />
                     ))}
-                    {/* x-axis labels */}
-                    {labelIndices.map((i) => (
-                      <text key={i} x={toX(i).toFixed(1)} y={svgH - 2} textAnchor="middle" fontSize="4" fill="rgba(255,255,255,0.2)" fontFamily="monospace">
-                        {days[i].label}
-                      </text>
-                    ))}
                   </svg>
+                  {/* x-axis labels as HTML for readability */}
+                  <div className="relative h-5 mt-1">
+                    {labelIndices.map((i) => (
+                      <span
+                        key={i}
+                        className="absolute font-mono text-[9px] text-white/50 -translate-x-1/2 select-none"
+                        style={{ left: `${(i / (D - 1)) * 100}%` }}
+                      >
+                        {days[i].label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
