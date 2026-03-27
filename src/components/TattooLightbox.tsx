@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
-import { useStore } from '../store';
-import TattooBodyPreview from './TattooBodyPreview';
+
 
 export interface LightboxEntry { tattoo: Tattoo; artist?: Artist | null }
 
 export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: LightboxEntry; onClose: () => void; hideArtistLink?: boolean }) {
   const [visible, setVisible] = useState(false);
-  const [showBodyPreview, setShowBodyPreview] = useState(false);
-  const isLoggedIn = useStore((s) => s.isAdmin || s.isArtist || s.isMerchManager);
 
   useEffect(() => {
     const id = requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
@@ -90,26 +87,6 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Testar no Corpo — only for logged-in users */}
-              {isLoggedIn && (
-                <button
-                  onClick={() => setShowBodyPreview(true)}
-                  className="group relative font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2.5 overflow-hidden transition-all duration-300"
-                  style={{ 
-                    background: 'linear-gradient(45deg, rgba(var(--ink-500-rgb), 0.1), rgba(var(--ink-500-rgb), 0.2))',
-                    border: '1px solid rgba(var(--ink-500-rgb), 0.5)',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
-                  <span className="relative flex items-center gap-2 text-ink-500 group-hover:text-white transition-colors">
-                    <svg className="w-3.5 h-3.5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    Testar no Corpo
-                  </span>
-                </button>
-              )}
-
               {artist && !hideArtistLink && (
                 <Link
                   to={`/artistas/${artist.id}`}
@@ -124,14 +101,6 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
         </div>
       </div>
 
-      {/* Body Preview Modal */}
-      {showBodyPreview && (
-        <TattooBodyPreview
-          tattooImageUrl={tattoo.imageUrl}
-          tattooTitle={tattoo.title}
-          onClose={() => setShowBodyPreview(false)}
-        />
-      )}
     </>
   );
 }
