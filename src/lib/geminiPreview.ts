@@ -6,8 +6,7 @@
  */
 
 const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
-const GEMINI_MODEL = 'gemini-2.0-flash-exp';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+// GEMINI_URL is now built dynamically in generateTattooPreview using the auto-detected model
 
 const PROMPT = `You are an elite tattoo visualization AI.
 TASK: Composite the tattoo design (SECOND image) onto the body part shown in the FIRST image.
