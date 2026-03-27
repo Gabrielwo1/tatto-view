@@ -117,7 +117,7 @@ export default function SiteFooter() {
           </nav>
 
           <p className="font-body text-[10px] tracking-widest uppercase text-white/20">
-            © {new Date().getFullYear()} El Dude Tattoo
+            © {new Date().getFullYear()} VITRINK.APP
           </p>
         </div>
       </div>
