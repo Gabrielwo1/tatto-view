@@ -82,10 +82,30 @@ export interface PreviewResult {
  * @param bodyPhotoFile   File object from the user's upload (body photo)
  * @returns               The generated composite image as base64
  */
+async function findBestImageModel(): Promise<string> {
+  const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+  const data = await resp.json();
+  const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data.models || [];
+  // Find a model that supports generateContent and has image/flash in name
+  const candidate = models.find(m =>
+    m.supportedGenerationMethods?.includes('generateContent') &&
+    (m.name.includes('flash') || m.name.includes('imagen')) &&
+    (m.name.includes('image') || m.name.includes('exp') || m.name.includes('preview'))
+  );
+  if (candidate) return candidate.name.replace('models/', '');
+  // Fallback: list all available for debugging
+  const names = models.map(m => m.name).join(', ');
+  throw new Error(`Nenhum modelo de imagem encontrado. Modelos disponíveis: ${names}`);
+}
+
 export async function generateTattooPreview(
   tattooImageUrl: string,
   bodyPhotoFile: File
 ): Promise<PreviewResult> {
+  // Auto-detect the correct image generation model
+  const model = await findBestImageModel();
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+
   // Convert body photo to base64
   const bodyBase64 = await fileToBase64(bodyPhotoFile);
   const bodyMimeType = 'image/jpeg';
@@ -118,7 +138,7 @@ export async function generateTattooPreview(
     },
   };
 
-  const resp = await fetch(GEMINI_URL, {
+  const resp = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
