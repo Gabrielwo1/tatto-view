@@ -42,6 +42,18 @@ function isMarketingDomain() {
   return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */;
 }
 
+// Detects Supabase password recovery tokens in the URL and redirects to the reset page.
+function RecoveryRedirect() {
+  const hash = window.location.hash;
+  const search = window.location.search;
+  const isRecovery = hash.includes('type=recovery') || new URLSearchParams(search).has('code');
+  if (isRecovery) {
+    window.location.replace('/admin/reset-password' + search + hash);
+    return null;
+  }
+  return null;
+}
+
 // Requires super admin
 function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -127,6 +139,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <RecoveryRedirect />
       <PageTracker />
       <Routes>
         {/* Public routes */}
