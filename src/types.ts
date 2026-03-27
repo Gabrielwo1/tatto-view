@@ -32,6 +32,15 @@ export interface Merch {
   createdAt: string;
 }
 
+export interface TatuadoPost {
+  id: string;
+  imageUrl: string;
+  caption: string;
+  artistId: string | null;
+  size: 'small' | 'medium' | 'large'; // controls mosaic cell size
+  createdAt: string;
+}
+
 export interface TattooSession {
   id: string;
   typeNum: string;

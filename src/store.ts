@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch, TattooSession, ShopContent } from './types';
+import type { Tattoo, Artist, Merch, TattooSession, ShopContent, TatuadoPost } from './types';
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
@@ -658,6 +658,11 @@ interface AppState {
   /** Tatuados archive page content editable by admin */
   tatuadosContent: TatuadosContent;
   setTatuadosContent: (content: TatuadosContent) => void;
+  /** Tatuados posts — independent photo posts linked to artists */
+  tatuadoPosts: TatuadoPost[];
+  addTatuadoPost: (post: TatuadoPost) => void;
+  updateTatuadoPost: (post: TatuadoPost) => void;
+  deleteTatuadoPost: (id: string) => void;
   /** Sobre Nós page content editable by admin */
   sobreNosContent: SobreNosContent;
   setSobreNosContent: (content: SobreNosContent) => void;
@@ -802,6 +807,25 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert({ key: 'tatuadosContent', value: content, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setTatuadosContent:', error); });
       },
+      tatuadoPosts: [],
+      addTatuadoPost: (post) => {
+        const posts = [...get().tatuadoPosts, post];
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] addTatuadoPost:', error); });
+      },
+      updateTatuadoPost: (post) => {
+        const posts = get().tatuadoPosts.map((p) => (p.id === post.id ? post : p));
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] updateTatuadoPost:', error); });
+      },
+      deleteTatuadoPost: (id) => {
+        const posts = get().tatuadoPosts.filter((p) => p.id !== id);
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] deleteTatuadoPost:', error); });
+      },
       sobreNosContent: defaultSobreNosContent,
       setSobreNosContent: (content) => {
         set({ sobreNosContent: content });
@@ -889,6 +913,7 @@ export const useStore = create<AppState>()(
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
             ...(config.tatuadosContent  ? { tatuadosContent:  config.tatuadosContent  as TatuadosContent }               : {}),
+            ...(config.tatuadoPosts     ? { tatuadoPosts:     config.tatuadoPosts     as TatuadoPost[] }                  : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent ? (() => {
               const stored = config.guestContent as GuestContent;
