@@ -8,6 +8,7 @@ const PAGE_SIZE = 9;
 export default function TatuadosPage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
+  const { title, subtitle } = useStore((s) => s.tatuadosContent);
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [selected, setSelected] = useState<Tattoo | null>(null);
 
@@ -25,11 +26,10 @@ export default function TatuadosPage() {
       <div className="px-6 md:px-12 pt-16 pb-10 border-b border-white/5">
         <div className="w-1 h-10 bg-ink-500 mb-8" />
         <h1 className="font-display text-[clamp(3rem,12vw,9rem)] uppercase leading-none tracking-tight text-white mb-6">
-          The Archive
+          {title}
         </h1>
         <p className="font-body text-sm text-white/40 max-w-md leading-relaxed">
-          A curated selection of permanence. Our portfolio represents the
-          intersection of anatomical precision and avant-garde artistry.
+          {subtitle}
         </p>
       </div>
 
