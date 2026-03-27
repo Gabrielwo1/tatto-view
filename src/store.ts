@@ -120,6 +120,17 @@ const defaultEventsContent: EventsContent = {
   ],
 };
 
+// ── Tatuados Content ─────────────────────────────────────────────────────────
+export interface TatuadosContent {
+  title: string;
+  subtitle: string;
+}
+
+const defaultTatuadosContent: TatuadosContent = {
+  title: 'THE ARCHIVE',
+  subtitle: 'A curated selection of permanence. Our portfolio represents the intersection of anatomical precision and avant-garde artistry.',
+};
+
 // ── Sobre Nós Content ────────────────────────────────────────────────────────
 export interface SobreNosContent {
   hero: {
@@ -644,6 +655,9 @@ interface AppState {
   /** Landing page content editable by admin */
   landingContent: LandingContent;
   setLandingContent: (content: LandingContent) => void;
+  /** Tatuados archive page content editable by admin */
+  tatuadosContent: TatuadosContent;
+  setTatuadosContent: (content: TatuadosContent) => void;
   /** Sobre Nós page content editable by admin */
   sobreNosContent: SobreNosContent;
   setSobreNosContent: (content: SobreNosContent) => void;
@@ -782,6 +796,12 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert({ key: 'landingContent', value: content, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLandingContent:', error); });
       },
+      tatuadosContent: defaultTatuadosContent,
+      setTatuadosContent: (content) => {
+        set({ tatuadosContent: content });
+        supabase?.from('site_config').upsert({ key: 'tatuadosContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setTatuadosContent:', error); });
+      },
       sobreNosContent: defaultSobreNosContent,
       setSobreNosContent: (content) => {
         set({ sobreNosContent: content });
@@ -868,6 +888,7 @@ export const useStore = create<AppState>()(
             ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
+            ...(config.tatuadosContent  ? { tatuadosContent:  config.tatuadosContent  as TatuadosContent }               : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent ? (() => {
               const stored = config.guestContent as GuestContent;
