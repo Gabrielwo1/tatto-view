@@ -6,7 +6,7 @@
  */
 
 const GEMINI_API_KEY = 'AIzaSyCNfhldj2L54kNxge_V03Kyw23Bp8S_iys';
-const GEMINI_MODEL = 'gemini-2.5-flash-image'; // Optimized for high volume / stable quota
+const GEMINI_MODEL = 'gemini-2.0-flash-exp'; // Supports multimodal image generation/editing
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 const PROMPT = `You are an elite tattoo visualization AI.
