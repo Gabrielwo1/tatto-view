@@ -330,8 +330,8 @@ export default function AdminSettings() {
           const todayViews = analytics.daily[today] ?? 0;
           const uniqueSessions = analytics.sessions.length;
 
-          // Build daily data for last 84 days (12 weeks)
-          const D = 84;
+          // Build daily data for last 60 days
+          const D = 60;
           const days = Array.from({ length: D }, (_, i) => {
             const d = new Date();
             d.setDate(d.getDate() - (D - 1 - i));
@@ -369,7 +369,7 @@ export default function AdminSettings() {
                   <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">
                     Analytics
                   </h2>
-                  <p className="font-body text-xs text-gray-500">Views do site público — últimos 84 dias.</p>
+                  <p className="font-body text-xs text-gray-500">Views do site público — últimos 60 dias.</p>
                 </div>
                 <button
                   type="button"
