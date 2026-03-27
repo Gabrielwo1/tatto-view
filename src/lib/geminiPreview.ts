@@ -130,7 +130,10 @@ export async function generateTattooPreview(
     if (resp.status === 429) {
       throw new Error('Limite de uso da IA atingido. Por favor, aguarde um minuto e tente novamente.');
     }
-    throw new Error(`Erro na API (${resp.status}). Tente novamente mais tarde.`);
+    // Show actual error message from Gemini for debugging
+    let detail = '';
+    try { detail = JSON.parse(errText)?.error?.message || errText; } catch { detail = errText; }
+    throw new Error(`Erro na API (${resp.status}): ${detail}`);
   }
 
   const data = await resp.json();
