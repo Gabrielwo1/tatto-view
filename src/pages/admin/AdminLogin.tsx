@@ -8,6 +8,8 @@ export default function AdminLogin() {
   const isAdmin        = useStore((s) => s.isAdmin);
   const isArtist       = useStore((s) => s.isArtist);
   const isMerchManager = useStore((s) => s.isMerchManager);
+  const customLogo     = useStore((s) => s.customLogo);
+  const logoSrc        = customLogo ?? '/logosemo-3.png';
   const navigate       = useNavigate();
 
   const [email, setEmail]       = useState('');
@@ -58,7 +60,7 @@ export default function AdminLogin() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          <img src="/logosemo-3.png" alt="El Dude" className="h-16 w-auto object-contain mx-auto mb-4" />
+          <img src={logoSrc} alt="Logo" className="h-16 w-auto object-contain mx-auto mb-4" />
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">
             Painel Administrativo
           </p>
