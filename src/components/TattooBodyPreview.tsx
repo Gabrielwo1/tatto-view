@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { generateFluxPreview, buildTattooPrompt } from '../lib/fluxPreview';
+import { generateTattooPreview } from '../lib/geminiPreview';
 
 const PLACEMENTS = ['forearm','arm','shoulder','back','chest','leg','calf','ribs','neck','hand','foot','thigh'];
 
@@ -33,10 +33,10 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
     setStep('generating');
     setErrorMsg('');
     try {
-      const fluxPrompt = buildTattooPrompt(tattooTitle, placement);
-      const { url } = await generateFluxPreview(fluxPrompt);
+      const { imageBase64, mimeType } = await generateTattooPreview(tattooImageUrl, bodyFile);
+      const dataUrl = `data:${mimeType};base64,${imageBase64}`;
       setImgLoaded(false);
-      setResultImage(url);
+      setResultImage(dataUrl);
       setStep('result');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao gerar preview. Tente novamente.';
@@ -47,7 +47,10 @@ export default function TattooBodyPreview({ tattooImageUrl, tattooTitle, onClose
 
   function handleDownload() {
     if (!resultImage) return;
-    window.open(resultImage, '_blank');
+    const a = document.createElement('a');
+    a.href = resultImage;
+    a.download = `tattoo-preview-${tattooTitle.toLowerCase().replace(/\s+/g, '-')}.jpg`;
+    a.click();
   }
 
   function handleRetry() {
