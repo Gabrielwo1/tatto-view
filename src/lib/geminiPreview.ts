@@ -85,16 +85,9 @@ async function findBestImageModel(): Promise<string> {
   const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
   const data = await resp.json();
   const models: Array<{ name: string; supportedGenerationMethods?: string[] }> = data.models || [];
-  // Find a model that supports generateContent and has image/flash in name
-  const candidate = models.find(m =>
-    m.supportedGenerationMethods?.includes('generateContent') &&
-    (m.name.includes('flash') || m.name.includes('imagen')) &&
-    (m.name.includes('image') || m.name.includes('exp') || m.name.includes('preview'))
-  );
-  if (candidate) return candidate.name.replace('models/', '');
-  // Fallback: list all available for debugging
-  const names = models.map(m => m.name).join(', ');
-  throw new Error(`Nenhum modelo de imagem encontrado. Modelos disponíveis: ${names}`);
+  // Show all model names for debugging — throw with full list
+  const names = models.map(m => `${m.name}[${(m.supportedGenerationMethods || []).join('|')}]`).join(' | ');
+  throw new Error(`Modelos disponíveis: ${names || 'nenhum (API key inválida?)'}`);
 }
 
 export async function generateTattooPreview(
