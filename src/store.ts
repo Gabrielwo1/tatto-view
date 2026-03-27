@@ -622,6 +622,8 @@ interface AppState {
   shopContent: ShopContent;
   setShopContent: (content: ShopContent) => void;
   isAdmin: boolean;
+  /** True once the initial auth check (initAuth) has completed. */
+  authChecked: boolean;
   /** True when the logged-in user is a merch manager (not admin or artist). */
   isMerchManager: boolean;
   /** True once Supabase data has been loaded (or if Supabase is not configured). */
@@ -745,6 +747,7 @@ export const useStore = create<AppState>()(
       isArtist: false,
       isMerchManager: false,
       currentArtistId: null,
+      authChecked: false,
       dataLoaded: false,
       themeId: null,
       setTheme: (id) => {
@@ -968,21 +971,25 @@ export const useStore = create<AppState>()(
 
       // ── Auth ─────────────────────────────────────────────────────────────
       initAuth: async () => {
-        if (!supabase) return;
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) return;
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role, artist_id')
-          .eq('id', session.user.id)
-          .single();
-        if (!profile) return;
-        if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
-        } else if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
-        } else if (profile.role === 'merch_manager') {
-          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+        if (!supabase) { set({ authChecked: true }); return; }
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.user) { set({ authChecked: true }); return; }
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('role, artist_id')
+            .eq('id', session.user.id)
+            .single();
+          if (!profile) { set({ authChecked: true }); return; }
+          if (profile.role === 'admin') {
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
+          } else if (profile.role === 'artist') {
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+          } else if (profile.role === 'merch_manager') {
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+          }
+        } finally {
+          set({ authChecked: true });
         }
       },
 
