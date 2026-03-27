@@ -59,6 +59,8 @@ function RecoveryRedirect() {
 // Requires super admin
 function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
+  const authChecked = useStore((state) => state.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
   if (!isAdmin) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
@@ -68,6 +70,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isArtist = useStore((state) => state.isArtist);
   const isMerchManager = useStore((state) => state.isMerchManager);
+  const authChecked = useStore((state) => state.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
   if (!isAdmin && !isArtist && !isMerchManager) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
@@ -76,6 +80,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function ProtectedMerchRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isMerchManager = useStore((state) => state.isMerchManager);
+  const authChecked = useStore((state) => state.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
   if (!isAdmin && !isMerchManager) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
