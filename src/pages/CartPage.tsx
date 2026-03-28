@@ -27,7 +27,7 @@ export default function CartPage() {
     if (c.itemType === 'tattoo') {
       const t = tattoos.find((x) => x.id === c.itemId);
       if (!t) return null;
-      const cents = t.depositAmount ?? 5000;
+      const cents = t.depositAmount ?? 15000;
       return { ...c, name: t.title, image: t.imageUrl, priceCents: cents, priceLabel: `Sinal: R$${(cents / 100).toFixed(2).replace('.', ',')}`, subtitle: 'Reserva de design' };
     } else {
       const m = merchs.find((x) => x.id === c.itemId);
