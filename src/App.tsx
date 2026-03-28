@@ -37,6 +37,10 @@ import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
 import TatuadosPage from './pages/TatuadosPage';
+import LoginPage from './pages/LoginPage';
+import WishlistPage from './pages/WishlistPage';
+import CartPage from './pages/CartPage';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
@@ -223,6 +227,14 @@ export default function App() {
             </PublicLayout>
           }
         />
+
+        {/* Public user auth */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Wishlist & Cart */}
+        <Route path="/lista-de-desejos" element={<PublicLayout><WishlistPage /></PublicLayout>} />
+        <Route path="/carrinho" element={<PublicLayout><CartPage /></PublicLayout>} />
+        <Route path="/checkout/sucesso" element={<CheckoutSuccessPage />} />
 
         {/* Tatuados archive page */}
         <Route path="/tatuados" element={

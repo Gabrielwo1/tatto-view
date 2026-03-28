@@ -688,6 +688,23 @@ interface AppState {
   currentArtistId: string | null;
   /** Email of the currently logged-in user. null when not logged in. */
   currentUserEmail: string | null;
+  // ── Public user (customer) auth ───────────────────────────────────────
+  publicUser: { id: string; email: string; name: string } | null;
+  publicLogin: (email: string, password: string) => Promise<boolean>;
+  publicRegister: (email: string, password: string, name: string) => Promise<boolean>;
+  publicLogout: () => Promise<void>;
+  // ── Wishlist ──────────────────────────────────────────────────────────
+  wishlist: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  loadWishlist: () => Promise<void>;
+  addToWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  removeFromWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Cart ──────────────────────────────────────────────────────────────
+  cart: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  loadCart: () => Promise<void>;
+  addToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  moveToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Admin auth ────────────────────────────────────────────────────────
   /** Check existing Supabase session on app load. */
   initAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
@@ -745,6 +762,9 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert({ key: 'shopContent', value: content, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setShopContent:', error); });
       },
+      publicUser: null,
+      wishlist: [],
+      cart: [],
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
@@ -972,7 +992,90 @@ export const useStore = create<AppState>()(
         }
       },
 
-      // ── Auth ─────────────────────────────────────────────────────────────
+      // ── Public user auth ─────────────────────────────────────────────────
+      publicLogin: async (email, password) => {
+        if (!supabase) return false;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) return false;
+        // Check it's NOT an admin/artist account
+        const { data: profile } = await supabase.from('user_profiles').select('role').eq('id', data.user.id).single();
+        if (profile && profile.role !== 'customer') {
+          // Admin/artist trying to use public login — still allow, just set publicUser
+        }
+        const name = data.user.user_metadata?.name ?? email.split('@')[0];
+        set({ publicUser: { id: data.user.id, email: data.user.email!, name } });
+        get().loadWishlist();
+        get().loadCart();
+        return true;
+      },
+
+      publicRegister: async (email, password, name) => {
+        if (!supabase) return false;
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { name } },
+        });
+        if (error || !data.user) return false;
+        // Insert customer profile
+        await supabase.from('user_profiles').upsert({ id: data.user.id, role: 'customer', artist_id: null });
+        return true;
+      },
+
+      publicLogout: async () => {
+        await supabase?.auth.signOut();
+        set({ publicUser: null, wishlist: [], cart: [] });
+      },
+
+      // ── Wishlist ─────────────────────────────────────────────────────────
+      loadWishlist: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('wishlists').select('item_type, item_id').eq('user_id', publicUser.id);
+        if (data) set({ wishlist: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+      },
+
+      addToWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: [...s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)), { itemType, itemId }] }));
+        await supabase.from('wishlists').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+      },
+
+      removeFromWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)) }));
+        await supabase.from('wishlists').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+      },
+
+      // ── Cart ─────────────────────────────────────────────────────────────
+      loadCart: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('cart_items').select('item_type, item_id').eq('user_id', publicUser.id);
+        if (data) set({ cart: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+      },
+
+      addToCart: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { itemType, itemId }] }));
+        await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+      },
+
+      removeFromCart: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)) }));
+        await supabase.from('cart_items').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+      },
+
+      moveToCart: async (itemType, itemId) => {
+        await get().addToCart(itemType, itemId);
+        await get().removeFromWishlist(itemType, itemId);
+      },
+
+      // ── Admin Auth ───────────────────────────────────────────────────────
       initAuth: async () => {
         if (!supabase) { set({ authChecked: true }); return; }
         try {
@@ -991,6 +1094,11 @@ export const useStore = create<AppState>()(
             set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email });
           } else if (profile.role === 'merch_manager') {
             set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email });
+          } else if (profile.role === 'customer') {
+            const name = session.user.user_metadata?.name ?? (email?.split('@')[0] ?? 'Cliente');
+            set({ publicUser: { id: session.user.id, email: email!, name } });
+            get().loadWishlist();
+            get().loadCart();
           }
         } finally {
           set({ authChecked: true });

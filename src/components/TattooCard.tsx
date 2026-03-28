@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
+import WishlistButton from './WishlistButton';
 
 interface TattooCardProps {
   tattoo: Tattoo;
@@ -30,6 +31,9 @@ function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
             Arquivada
           </div>
         )}
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <WishlistButton itemType="tattoo" itemId={tattoo.id} className="bg-black/60 rounded-full" />
+        </div>
       </div>
 
       <div className="pt-2 pb-1 h-[4.25rem] flex flex-col justify-start overflow-hidden">
