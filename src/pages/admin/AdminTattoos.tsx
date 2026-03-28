@@ -41,11 +41,11 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
         onClick={(e) => e.stopPropagation()}
       >
         {/* Left: image */}
-        <div className="sm:w-52 flex-shrink-0 relative">
+        <div className="sm:w-52 flex-shrink-0 relative bg-zinc-900">
           <img
             src={tattoo.imageUrl}
             alt={tattoo.title}
-            className="w-full h-48 sm:h-full object-cover"
+            className="w-full object-contain"
             onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
           />
           <div className={`absolute top-2 right-2 px-2 py-0.5 text-[9px] font-body font-bold tracking-widest uppercase ${
