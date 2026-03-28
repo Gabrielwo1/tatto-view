@@ -5,9 +5,28 @@ export interface Tattoo {
   imageUrl: string;
   style: string;
   price?: string;
+  depositAmount?: number; // valor do sinal em centavos (ex: 5000 = R$50)
   artistId: string | null;
   status: 'available' | 'archived';
   createdAt: string;
+}
+
+export interface PublicUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface WishlistItem {
+  id: string;
+  itemType: 'tattoo' | 'merch';
+  itemId: string;
+}
+
+export interface CartItem {
+  id: string;
+  itemType: 'tattoo' | 'merch';
+  itemId: string;
 }
 
 export interface Artist {
