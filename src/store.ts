@@ -690,7 +690,7 @@ interface AppState {
   currentUserEmail: string | null;
   // ── Public user (customer) auth ───────────────────────────────────────
   publicUser: { id: string; email: string; name: string } | null;
-  publicLogin: (email: string, password: string) => Promise<boolean>;
+  publicLogin: (email: string, password: string) => Promise<'customer' | 'admin' | 'artist' | 'merch_manager' | false>;
   publicRegister: (email: string, password: string, name: string) => Promise<boolean>;
   publicLogout: () => Promise<void>;
   // ── Wishlist ──────────────────────────────────────────────────────────
@@ -997,16 +997,26 @@ export const useStore = create<AppState>()(
         if (!supabase) return false;
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) return false;
-        // Check it's NOT an admin/artist account
-        const { data: profile } = await supabase.from('user_profiles').select('role').eq('id', data.user.id).single();
-        if (profile && profile.role !== 'customer') {
-          // Admin/artist trying to use public login — still allow, just set publicUser
+        // Check role — artists/admins get redirected to admin panel
+        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id').eq('id', data.user.id).single();
+        if (profile) {
+          if (profile.role === 'admin') {
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'admin';
+          } else if (profile.role === 'artist') {
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'artist';
+          } else if (profile.role === 'merch_manager') {
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'merch_manager';
+          }
         }
+        // Regular customer
         const name = data.user.user_metadata?.name ?? email.split('@')[0];
         set({ publicUser: { id: data.user.id, email: data.user.email!, name } });
         get().loadWishlist();
         get().loadCart();
-        return true;
+        return 'customer';
       },
 
       publicRegister: async (email, password, name) => {

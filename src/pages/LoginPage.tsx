@@ -23,9 +23,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        const ok = await publicLogin(email, password);
-        if (!ok) { setError('Email ou senha incorretos.'); return; }
-        navigate(-1);
+        const result = await publicLogin(email, password);
+        if (!result) { setError('Email ou senha incorretos.'); return; }
+        // Artists/admins go to admin panel
+        if (result === 'admin' || result === 'artist' || result === 'merch_manager') {
+          navigate('/admin');
+        } else {
+          navigate(-1);
+        }
       } else {
         const ok = await publicRegister(email, password, name);
         if (!ok) { setError('Não foi possível criar a conta. Tente outro email.'); return; }
