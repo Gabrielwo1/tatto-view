@@ -7,12 +7,20 @@ const topNavClass = 'font-body text-xs font-semibold tracking-widest uppercase t
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const isAdmin       = useStore((s) => s.isAdmin);
-  const logout        = useStore((s) => s.logout);
-  const logoColorMode = useStore((s) => s.logoColorMode);
-  const customLogo    = useStore((s) => s.customLogo);
-  const logoSrc       = customLogo ?? '/logosemo-3.png';
+  const isAdmin        = useStore((s) => s.isAdmin);
+  const isArtist       = useStore((s) => s.isArtist);
+  const isMerchManager = useStore((s) => s.isMerchManager);
+  const currentArtistId = useStore((s) => s.currentArtistId);
+  const artists        = useStore((s) => s.artists);
+  const logout         = useStore((s) => s.logout);
+  const logoColorMode  = useStore((s) => s.logoColorMode);
+  const customLogo     = useStore((s) => s.customLogo);
+  const logoSrc        = customLogo ?? '/logosemo-3.png';
   const navigate = useNavigate();
+
+  const isLoggedIn = isAdmin || isArtist || isMerchManager;
+  const currentArtistName = artists.find((a) => a.id === currentArtistId)?.name ?? null;
+  const displayName = isAdmin ? 'Admin' : (currentArtistName ?? (isMerchManager ? 'Loja' : null));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -116,13 +124,13 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {isAdmin ? (
+            {isLoggedIn ? (
               <div className="flex items-center gap-4">
                 <Link
                   to="/admin"
                   className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
                 >
-                  Admin
+                  {displayName}
                 </Link>
                 <button
                   onClick={() => { logout(); navigate('/'); }}
@@ -137,10 +145,10 @@ export default function Navbar() {
               </div>
             ) : (
               <Link
-                to="/admin"
+                to="/admin/login"
                 className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors"
               >
-                Admin
+                Login
               </Link>
             )}
           </div>
