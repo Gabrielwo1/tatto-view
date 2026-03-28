@@ -37,17 +37,19 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
       <div
-        className="bg-zinc-950 border border-white/15 w-full max-w-2xl flex flex-col sm:flex-row overflow-hidden max-h-[90vh]"
+        className="bg-zinc-950 border border-white/15 w-full max-w-3xl flex flex-col sm:flex-row overflow-hidden max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Left: image */}
-        <div className="sm:w-52 flex-shrink-0 relative bg-zinc-900">
-          <img
-            src={tattoo.imageUrl}
-            alt={tattoo.title}
-            className="w-full object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
-          />
+        {/* Left: image — square 1:1 Instagram format */}
+        <div className="sm:w-80 flex-shrink-0 relative bg-zinc-900">
+          <div className="aspect-square w-full overflow-hidden">
+            <img
+              src={tattoo.imageUrl}
+              alt={tattoo.title}
+              className="w-full h-full object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
+            />
+          </div>
           <div className={`absolute top-2 right-2 px-2 py-0.5 text-[9px] font-body font-bold tracking-widest uppercase ${
             form.status === 'available' ? 'bg-white text-black' : 'bg-white/20 text-white/60'
           }`}>
