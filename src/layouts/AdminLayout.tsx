@@ -155,13 +155,19 @@ const artistOnlyItem = '/admin/meu-perfil';
 const merchItem = '/admin/merchs';
 
 export default function AdminLayout() {
-  const isAdmin         = useStore((s) => s.isAdmin);
-  const isArtist        = useStore((s) => s.isArtist);
-  const isMerchManager  = useStore((s) => s.isMerchManager);
-  const logout          = useStore((s) => s.logout);
-  const logoColorMode   = useStore((s) => s.logoColorMode);
-  const customLogo      = useStore((s) => s.customLogo);
-  const logoSrc         = customLogo ?? '/logosemo-3.png';
+  const isAdmin          = useStore((s) => s.isAdmin);
+  const isArtist         = useStore((s) => s.isArtist);
+  const isMerchManager   = useStore((s) => s.isMerchManager);
+  const currentArtistId  = useStore((s) => s.currentArtistId);
+  const currentUserEmail = useStore((s) => s.currentUserEmail);
+  const artists          = useStore((s) => s.artists);
+  const logout           = useStore((s) => s.logout);
+  const logoColorMode    = useStore((s) => s.logoColorMode);
+  const customLogo       = useStore((s) => s.customLogo);
+  const logoSrc          = customLogo ?? '/logosemo-3.png';
+
+  const artistName = artists.find((a) => a.id === currentArtistId)?.name ?? null;
+  const displayName = artistName ?? (currentUserEmail ? currentUserEmail.split('@')[0] : 'Admin');
   const location  = useLocation();
   const navigate  = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -220,7 +226,7 @@ export default function AdminLayout() {
                 />
               )}
             </div>
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 truncate max-w-[100px]">{displayName}</p>
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
@@ -335,7 +341,7 @@ export default function AdminLayout() {
                     />
                   )}
                 </div>
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
+                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 truncate max-w-[100px]">{displayName}</p>
               </Link>
               <button onClick={closeDrawer} className="p-1 text-gray-600 hover:text-white">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

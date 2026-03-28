@@ -686,6 +686,8 @@ interface AppState {
   isArtist: boolean;
   /** The artist row id linked to the logged-in artist user. null when admin. */
   currentArtistId: string | null;
+  /** Email of the currently logged-in user. null when not logged in. */
+  currentUserEmail: string | null;
   /** Check existing Supabase session on app load. */
   initAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
@@ -747,6 +749,7 @@ export const useStore = create<AppState>()(
       isArtist: false,
       isMerchManager: false,
       currentArtistId: null,
+      currentUserEmail: null,
       authChecked: false,
       dataLoaded: false,
       themeId: null,
@@ -981,12 +984,13 @@ export const useStore = create<AppState>()(
             .eq('id', session.user.id)
             .single();
           if (!profile) { set({ authChecked: true }); return; }
+          const email = session.user.email ?? null;
           if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: email });
           } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email });
           } else if (profile.role === 'merch_manager') {
-            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email });
           }
         } finally {
           set({ authChecked: true });
@@ -1003,12 +1007,13 @@ export const useStore = create<AppState>()(
           .eq('id', data.user.id)
           .single();
         if (!profile) return false;
+        const userEmail = data.user.email ?? null;
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'merch_manager') {
@@ -1020,7 +1025,7 @@ export const useStore = create<AppState>()(
 
       logout: async () => {
         await supabase?.auth.signOut();
-        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null });
+        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: null });
       },
 
       // ── Tattoos ──────────────────────────────────────────────────────────
