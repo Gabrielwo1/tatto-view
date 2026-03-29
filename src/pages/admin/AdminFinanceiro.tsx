@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import type { Expense, ExpenseCategory } from '../../types';
 import { EXPENSE_CATEGORIES } from '../../types';
+import type { FichaSubmission } from '../../store';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function centsToBRL(cents: number): string {
@@ -9,9 +10,14 @@ function centsToBRL(cents: number): string {
 }
 
 function parseAmountInput(raw: string): number {
-  // Accept "248,38" or "248.38" → 24838 cents
   const normalized = raw.replace(',', '.');
   return Math.round(parseFloat(normalized) * 100) || 0;
+}
+
+function parseFichaValue(raw: string): number {
+  // "R$ 500,00" or "500,00" or "500.00" → cents
+  const cleaned = raw.replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').trim();
+  return Math.round(parseFloat(cleaned) * 100) || 0;
 }
 
 function formatDateGroup(isoDate: string): string {
@@ -19,15 +25,34 @@ function formatDateGroup(isoDate: string): string {
   return new Date(y, m - 1, d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function formatInputDate(isoDate: string): string {
-  return isoDate; // already YYYY-MM-DD
-}
-
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// Compute net balances and simplified debts
+// Compute income per artist from ficha submissions
+function computeIncome(
+  fichas: FichaSubmission[],
+  artists: { id: string; name: string }[],
+): Record<string, number> {
+  const income: Record<string, number> = {};
+  for (const a of artists) income[a.id] = 0;
+
+  for (const ficha of fichas) {
+    const total = parseFichaValue(ficha.valorAcordado);
+    if (!total) continue;
+    const matched = ficha.tatuadoresSelecionados
+      .map((name) => artists.find((a) => a.name === name))
+      .filter(Boolean) as { id: string; name: string }[];
+    if (matched.length === 0) continue;
+    const share = Math.round(total / matched.length);
+    for (const artist of matched) {
+      income[artist.id] = (income[artist.id] ?? 0) + share;
+    }
+  }
+  return income;
+}
+
+// Compute net expense balances and simplified debts
 function computeBalances(expenses: Expense[], artistIds: string[]) {
   const net: Record<string, number> = {};
   for (const id of artistIds) net[id] = 0;
@@ -36,15 +61,14 @@ function computeBalances(expenses: Expense[], artistIds: string[]) {
     const share = exp.participants.length > 0 ? exp.amount / exp.participants.length : 0;
     for (const pid of exp.participants) {
       if (!(pid in net)) net[pid] = 0;
-      net[pid] -= share; // owes this share
+      net[pid] -= share;
     }
     if (!(exp.paidBy in net)) net[exp.paidBy] = 0;
-    net[exp.paidBy] += exp.amount; // paid the total
+    net[exp.paidBy] += exp.amount;
   }
 
-  // Simplify: who owes whom
   const debts: { from: string; to: string; amount: number }[] = [];
-  const debtors  = Object.entries(net).filter(([, v]) => v < -0.5).map(([k, v]) => ({ id: k, bal: v }));
+  const debtors   = Object.entries(net).filter(([, v]) => v < -0.5).map(([k, v]) => ({ id: k, bal: v }));
   const creditors = Object.entries(net).filter(([, v]) => v > 0.5).map(([k, v]) => ({ id: k, bal: v }));
 
   let di = 0; let ci = 0;
@@ -171,7 +195,7 @@ function ExpenseModal({
           </div>
           <div>
             <label className={labelCls}>Data</label>
-            <input type="date" className={inputCls} value={formatInputDate(form.date)}
+            <input type="date" className={inputCls} value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} required />
           </div>
         </div>
@@ -251,8 +275,8 @@ function ExpenseModal({
 
 // ── Tab: Despesas ─────────────────────────────────────────────────────────────
 function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
-  const expenses    = useStore((s) => s.expenses);
-  const addExpense  = useStore((s) => s.addExpense);
+  const expenses      = useStore((s) => s.expenses);
+  const addExpense    = useStore((s) => s.addExpense);
   const updateExpense = useStore((s) => s.updateExpense);
   const deleteExpense = useStore((s) => s.deleteExpense);
   const currentArtistId = useStore((s) => s.currentArtistId);
@@ -264,7 +288,6 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
   const myExpenses  = expenses.reduce((sum, e) => sum + (e.paidBy === currentArtistId ? e.amount : 0), 0);
   const allExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  // Group by date
   const grouped = useMemo(() => {
     const map = new Map<string, Expense[]>();
     for (const e of expenses) {
@@ -274,7 +297,6 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
     return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
   }, [expenses]);
 
-  // Category icon
   const catIcon: Record<string, string> = {
     Studio: '🏢', Material: '🎨', Alimentação: '🍔', Marketing: '📣',
     Equipamento: '🔧', Aluguel: '🏠', Salário: '💰', Outros: '📦',
@@ -282,7 +304,6 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
 
   return (
     <div>
-      {/* Summary */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         {currentArtistId && (
           <div className="bg-zinc-900 border border-white/10 p-4">
@@ -300,7 +321,6 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
         </div>
       </div>
 
-      {/* Expense list grouped by date */}
       {grouped.length === 0 ? (
         <div className="text-center py-20 text-gray-600">
           <p className="font-display text-3xl tracking-widest uppercase">Nenhuma despesa</p>
@@ -337,7 +357,6 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
         </div>
       )}
 
-      {/* FAB */}
       <button onClick={() => setShowModal(true)}
         className="fixed bottom-8 right-8 w-14 h-14 bg-ink-500 hover:bg-ink-400 text-black flex items-center justify-center shadow-2xl transition-colors z-40">
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -365,38 +384,152 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
   );
 }
 
+// ── Tab: Receitas ─────────────────────────────────────────────────────────────
+function TabReceitas({ artists }: { artists: { id: string; name: string }[] }) {
+  const fichas = useStore((s) => s.fichaSubmissions);
+
+  const income = useMemo(() => computeIncome(fichas, artists), [fichas, artists]);
+
+  const totalIncome = Object.values(income).reduce((s, v) => s + v, 0);
+
+  // Fichas sorted by date desc, only those with a parsed value
+  const fichasWithValue = useMemo(() =>
+    [...fichas]
+      .filter((f) => parseFichaValue(f.valorAcordado) > 0)
+      .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt)),
+    [fichas]
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-zinc-900 border border-white/10 p-4">
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">
+            Total Receitas
+          </p>
+          <p className="font-display text-2xl text-green-400">{centsToBRL(totalIncome)}</p>
+        </div>
+        <div className="bg-zinc-900 border border-white/10 p-4">
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">
+            Fichas com Valor
+          </p>
+          <p className="font-display text-2xl text-white">{fichasWithValue.length}</p>
+        </div>
+      </div>
+
+      {/* Per-artist income */}
+      {artists.length > 0 && (
+        <div>
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
+            Receita por artista
+          </p>
+          <div className="space-y-2">
+            {artists
+              .map((a) => ({ ...a, total: income[a.id] ?? 0 }))
+              .sort((a, b) => b.total - a.total)
+              .map((a) => {
+                const pct = totalIncome > 0 ? (a.total / totalIncome) * 100 : 0;
+                return (
+                  <div key={a.id} className="bg-zinc-900 border border-white/[0.07] px-4 py-3">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-body text-sm text-white">{a.name}</span>
+                      <span className="font-body text-sm font-semibold text-green-400">{centsToBRL(a.total)}</span>
+                    </div>
+                    <div className="h-1.5 bg-zinc-800 overflow-hidden">
+                      <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* Ficha list */}
+      {fichasWithValue.length === 0 ? (
+        <div className="text-center py-16 text-gray-600">
+          <p className="font-display text-2xl tracking-widest uppercase">Sem receitas</p>
+          <p className="font-body text-sm mt-2">As fichas com valor acordado aparecerão aqui</p>
+        </div>
+      ) : (
+        <div>
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
+            Histórico de fichas
+          </p>
+          <div className="space-y-1.5">
+            {fichasWithValue.map((f) => {
+              const val = parseFichaValue(f.valorAcordado);
+              const date = f.submittedAt.slice(0, 10);
+              return (
+                <div key={f.id} className="flex items-center gap-3 bg-zinc-900 border border-white/[0.07] px-4 py-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-body text-sm text-white truncate">{f.nome}</p>
+                    <p className="font-body text-[10px] text-gray-600 mt-0.5">
+                      {f.tatuadoresSelecionados.join(', ') || '—'}
+                      {' · '}
+                      {formatDateGroup(date)}
+                    </p>
+                  </div>
+                  <p className="font-body text-sm font-semibold text-green-400 flex-shrink-0">{centsToBRL(val)}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Tab: Saldos ───────────────────────────────────────────────────────────────
 function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
   const expenses = useStore((s) => s.expenses);
+  const fichas   = useStore((s) => s.fichaSubmissions);
   const artistMap = useMemo(() => new Map(artists.map((a) => [a.id, a.name])), [artists]);
   const artistIds = artists.map((a) => a.id);
 
   const { net, debts } = useMemo(() => computeBalances(expenses, artistIds), [expenses, artistIds]);
+  const income = useMemo(() => computeIncome(fichas, artists), [fichas, artists]);
 
   return (
     <div className="space-y-8">
-      {/* Net balance per person */}
+      {/* Net position per artist (income - expense_share) */}
       <div>
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Saldo por membro</p>
+        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
+          Posição líquida por artista
+        </p>
+        <p className="font-body text-[10px] text-gray-700 mb-3">Receitas de fichas menos despesas partilhadas</p>
         <div className="space-y-2">
           {artists.map((a) => {
-            const balance = Math.round(net[a.id] ?? 0);
-            const positive = balance >= 0;
+            const expenseNet = Math.round(net[a.id] ?? 0);
+            const artistIncome = income[a.id] ?? 0;
+            const netPos = artistIncome + expenseNet;
             return (
-              <div key={a.id} className="flex items-center gap-3 bg-zinc-900 border border-white/[0.07] px-4 py-3">
-                <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center flex-shrink-0">
-                  <span className="font-display text-xs text-white">{a.name[0]}</span>
+              <div key={a.id} className="bg-zinc-900 border border-white/[0.07] px-4 py-3">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center flex-shrink-0">
+                    <span className="font-display text-xs text-white">{a.name[0]}</span>
+                  </div>
+                  <span className="font-body text-sm text-white flex-1">{a.name}</span>
+                  <div className="text-right">
+                    <p className={`font-body text-sm font-semibold ${netPos >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {netPos >= 0 ? '+' : ''}{centsToBRL(netPos)}
+                    </p>
+                    <p className="font-body text-[9px] text-gray-600 mt-0.5">posição líquida</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-body text-sm text-white">{a.name}</p>
-                </div>
-                <div className="text-right">
-                  <p className={`font-body text-sm font-semibold ${positive ? 'text-green-400' : 'text-red-400'}`}>
-                    {positive ? '+' : ''}{centsToBRL(balance)}
-                  </p>
-                  <p className="font-body text-[9px] text-gray-600 mt-0.5">
-                    {positive ? 'a receber' : 'a pagar'}
-                  </p>
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+                  <div>
+                    <p className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Receitas</p>
+                    <p className="font-body text-xs text-green-400 font-semibold">{centsToBRL(artistIncome)}</p>
+                  </div>
+                  <div>
+                    <p className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Saldo despesas</p>
+                    <p className={`font-body text-xs font-semibold ${expenseNet >= 0 ? 'text-white' : 'text-red-400'}`}>
+                      {expenseNet >= 0 ? '+' : ''}{centsToBRL(expenseNet)}
+                    </p>
+                  </div>
                 </div>
               </div>
             );
@@ -407,7 +540,7 @@ function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
       {/* Simplified debts */}
       {debts.length > 0 && (
         <div>
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Quem deve a quem</p>
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Quem deve a quem (despesas)</p>
           <div className="space-y-2">
             {debts.map((d, i) => (
               <div key={i} className="flex items-center gap-3 bg-zinc-900 border border-white/[0.07] px-4 py-3">
@@ -423,7 +556,7 @@ function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
 
       {debts.length === 0 && expenses.length > 0 && (
         <div className="text-center py-10 text-gray-600">
-          <p className="font-body text-sm">Todos os saldos estão quites ✓</p>
+          <p className="font-body text-sm">Todos os saldos de despesas estão quites ✓</p>
         </div>
       )}
     </div>
@@ -492,75 +625,106 @@ function TabCategorias() {
 // ── Tab: Gráficos ─────────────────────────────────────────────────────────────
 function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
   const expenses = useStore((s) => s.expenses);
+  const fichas   = useStore((s) => s.fichaSubmissions);
 
-  // Last 12 months
+  const income = useMemo(() => computeIncome(fichas, artists), [fichas, artists]);
+
+  // Last 12 months: expenses + income
   const monthly = useMemo(() => {
     const now = new Date();
-    const months: { label: string; key: string; total: number }[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const label = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
-      const total = expenses
+      const totalExp = expenses
         .filter((e) => e.date.startsWith(key))
         .reduce((s, e) => s + e.amount, 0);
-      months.push({ label, key, total });
-    }
-    return months;
-  }, [expenses]);
+      const totalInc = fichas
+        .filter((f) => f.submittedAt.startsWith(key))
+        .reduce((s, f) => s + parseFichaValue(f.valorAcordado), 0);
+      return { label, key, totalExp, totalInc };
+    });
+  }, [expenses, fichas]);
 
-  // Per-artist total
+  // Per-artist totals
   const byArtist = useMemo(() => {
-    const map = new Map<string, number>();
+    const expMap = new Map<string, number>();
     for (const e of expenses) {
-      map.set(e.paidBy, (map.get(e.paidBy) ?? 0) + e.amount);
+      expMap.set(e.paidBy, (expMap.get(e.paidBy) ?? 0) + e.amount);
     }
-    return artists.map((a) => ({ name: a.name, total: map.get(a.id) ?? 0 }))
-      .sort((a, b) => b.total - a.total);
-  }, [expenses, artists]);
+    return artists
+      .map((a) => ({ name: a.name, expense: expMap.get(a.id) ?? 0, income: income[a.id] ?? 0 }))
+      .sort((a, b) => (b.income + b.expense) - (a.income + a.expense));
+  }, [expenses, income, artists]);
 
-  const maxMonthly = Math.max(...monthly.map((m) => m.total), 1);
+  const maxMonthly = Math.max(...monthly.map((m) => Math.max(m.totalExp, m.totalInc)), 1);
 
   return (
     <div className="space-y-10">
-      {/* Monthly bar chart */}
+      {/* Monthly grouped bar chart */}
       <div>
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-6">
-          Despesas mensais (últimos 12 meses)
+        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
+          Receitas vs Despesas (últimos 12 meses)
         </p>
-        <div className="flex items-end gap-1.5 h-40">
+        <div className="flex items-center gap-4 mb-4">
+          <span className="flex items-center gap-1.5 font-body text-[10px] text-gray-500">
+            <span className="w-3 h-3 bg-green-500 inline-block" /> Receitas
+          </span>
+          <span className="flex items-center gap-1.5 font-body text-[10px] text-gray-500">
+            <span className="w-3 h-3 bg-ink-500/80 inline-block" /> Despesas
+          </span>
+        </div>
+        <div className="flex items-end gap-1 h-40">
           {monthly.map((m) => (
-            <div key={m.key} className="flex-1 flex flex-col items-center gap-1.5 group relative">
-              {m.total > 0 && (
-                <div className="absolute bottom-7 left-1/2 -translate-x-1/2 bg-zinc-800 border border-white/10 px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                  <span className="font-body text-[10px] text-white">{centsToBRL(m.total)}</span>
+            <div key={m.key} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+              {(m.totalInc > 0 || m.totalExp > 0) && (
+                <div className="absolute bottom-7 left-1/2 -translate-x-1/2 bg-zinc-800 border border-white/10 px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 text-left">
+                  <p className="font-body text-[10px] text-green-400">+{centsToBRL(m.totalInc)}</p>
+                  <p className="font-body text-[10px] text-ink-400">-{centsToBRL(m.totalExp)}</p>
                 </div>
               )}
-              <div className="w-full bg-ink-500/80 hover:bg-ink-500 transition-colors"
-                style={{ height: `${(m.total / maxMonthly) * 100}%`, minHeight: m.total > 0 ? '4px' : '0' }} />
-              <span className="font-body text-[9px] text-gray-600 tracking-wide">{m.label}</span>
+              <div className="w-full flex gap-0.5 items-end" style={{ height: '128px' }}>
+                {/* Income bar */}
+                <div className="flex-1 bg-green-500/80 hover:bg-green-500 transition-colors"
+                  style={{ height: `${(m.totalInc / maxMonthly) * 100}%`, minHeight: m.totalInc > 0 ? '3px' : '0' }} />
+                {/* Expense bar */}
+                <div className="flex-1 bg-ink-500/80 hover:bg-ink-500 transition-colors"
+                  style={{ height: `${(m.totalExp / maxMonthly) * 100}%`, minHeight: m.totalExp > 0 ? '3px' : '0' }} />
+              </div>
+              <span className="font-body text-[9px] text-gray-600 tracking-wide mt-1">{m.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* By artist */}
-      {byArtist.some((a) => a.total > 0) && (
+      {/* Per-artist income vs expenses */}
+      {byArtist.some((a) => a.income > 0 || a.expense > 0) && (
         <div>
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">
-            Total pago por artista
+            Por artista
           </p>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {byArtist.map((a) => {
-              const pct = expenses.reduce((s, e) => s + e.amount, 0);
-              const share = pct > 0 ? (a.total / pct) * 100 : 0;
+              const maxVal = Math.max(...byArtist.map((x) => Math.max(x.income, x.expense)), 1);
               return (
-                <div key={a.name} className="flex items-center gap-3">
-                  <span className="font-body text-sm text-white w-32 truncate flex-shrink-0">{a.name}</span>
-                  <div className="flex-1 h-2 bg-zinc-800 overflow-hidden">
-                    <div className="h-full bg-ink2-500 transition-all duration-500" style={{ width: `${share}%` }} />
+                <div key={a.name}>
+                  <p className="font-body text-xs text-white mb-1.5">{a.name}</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">Receitas</span>
+                      <div className="flex-1 h-2 bg-zinc-800 overflow-hidden">
+                        <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${(a.income / maxVal) * 100}%` }} />
+                      </div>
+                      <span className="font-body text-xs text-green-400 w-24 text-right shrink-0">{centsToBRL(a.income)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">Despesas</span>
+                      <div className="flex-1 h-2 bg-zinc-800 overflow-hidden">
+                        <div className="h-full bg-ink-500/80 transition-all duration-500" style={{ width: `${(a.expense / maxVal) * 100}%` }} />
+                      </div>
+                      <span className="font-body text-xs text-gray-400 w-24 text-right shrink-0">{centsToBRL(a.expense)}</span>
+                    </div>
                   </div>
-                  <span className="font-body text-sm text-white w-24 text-right flex-shrink-0">{centsToBRL(a.total)}</span>
                 </div>
               );
             })}
@@ -572,13 +736,14 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-type Tab = 'despesas' | 'saldos' | 'categorias' | 'graficos';
+type Tab = 'despesas' | 'receitas' | 'saldos' | 'categorias' | 'graficos';
 
 export default function AdminFinanceiro() {
   const artists = useStore((s) => s.artists);
-  const [tab, setTab] = useState<Tab>('despesas');
+  const [tab, setTab] = useState<Tab>('receitas');
 
   const tabs: { id: Tab; label: string }[] = [
+    { id: 'receitas',   label: 'Receitas' },
     { id: 'despesas',   label: 'Despesas' },
     { id: 'saldos',     label: 'Saldos' },
     { id: 'categorias', label: 'Categorias' },
@@ -587,14 +752,13 @@ export default function AdminFinanceiro() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-      {/* Header */}
       <div className="mb-8">
         <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">El Dude</p>
         <h1 className="font-display text-4xl text-white uppercase tracking-wide">Financeiro</h1>
       </div>
 
       {/* Tab bar */}
-      <div className="grid grid-cols-4 mb-8 border border-white/10 overflow-hidden">
+      <div className="grid grid-cols-5 mb-8 border border-white/10 overflow-hidden">
         {tabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`py-2.5 font-body text-[10px] font-semibold tracking-widest uppercase transition-colors ${
@@ -607,7 +771,7 @@ export default function AdminFinanceiro() {
         ))}
       </div>
 
-      {/* Tab content */}
+      {tab === 'receitas'   && <TabReceitas   artists={artists} />}
       {tab === 'despesas'   && <TabDespesas   artists={artists} />}
       {tab === 'saldos'     && <TabSaldos     artists={artists} />}
       {tab === 'categorias' && <TabCategorias />}

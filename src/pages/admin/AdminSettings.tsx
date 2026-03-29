@@ -4,6 +4,7 @@ import { applyCustomColors, generateShades } from '../../lib/themes';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
 import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
+import { toSlug } from '../../utils';
 
 
 function StyleVisibilitySection() {
@@ -141,6 +142,7 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 }
 
 export default function AdminSettings() {
+  const artists         = useStore((s) => s.artists);
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
@@ -344,7 +346,15 @@ export default function AdminSettings() {
           });
 
           const maxViews = Math.max(...days.map((d) => d.views), 1);
-          const topPages = getTopPages(5);
+          const topPages = getTopPages(0);
+          function labelForPath(path: string): string {
+            const m = path.match(/^\/artistas\/(.+)$/);
+            if (m) {
+              const artist = artists.find((a) => toSlug(a.name) === m[1]);
+              if (artist) return `Artista: ${artist.name}`;
+            }
+            return path || '/';
+          }
 
           const svgH = 60;
           const svgW = 100;
@@ -438,11 +448,11 @@ export default function AdminSettings() {
               {/* Top pages */}
               {topPages.length > 0 && (
                 <div>
-                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Páginas mais visitadas</p>
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Todas as páginas visitadas</p>
                   <div className="flex flex-col gap-1">
                     {topPages.map(({ path, views }) => (
                       <div key={path} className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-gray-500 truncate flex-1">{path || '/'}</span>
+                        <span className="font-mono text-xs text-gray-500 truncate flex-1">{labelForPath(path)}</span>
                         <div className="w-24 h-1 bg-white/5 overflow-hidden shrink-0">
                           <div className="h-full" style={{ width: `${(views / (topPages[0]?.views ?? 1)) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
                         </div>
