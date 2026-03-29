@@ -120,7 +120,8 @@ export default function FichaAnamnesePage() {
       });
       if (error) {
         console.error('[ficha] Supabase insert error:', error);
-        setSubmitError('Erro ao enviar para o servidor. Verifique sua conexão e tente novamente.');
+        const errMsg = error.message || error.code || 'Erro desconhecido';
+        setSubmitError(`Erro ao enviar: ${errMsg}`);
         setSubmitting(false);
         return;
       }
@@ -312,7 +313,7 @@ export default function FichaAnamnesePage() {
                 />
               </div>
 
-              <Field label="SÃO PAULO, DATA *">
+              <Field label={`${form.cidade?.toUpperCase() || 'CIDADE'}, DATA *`}>
                 <input type="date" name="dataAssinatura" value={form.dataAssinatura}
                   onChange={handleChange} required className="input-field" />
               </Field>
