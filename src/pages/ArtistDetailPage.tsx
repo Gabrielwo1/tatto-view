@@ -4,9 +4,10 @@ import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
 import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
 import domtoimage from 'dom-to-image-more';
+import { toSlug } from '../utils';
 
 export default function ArtistDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
   const isArtist = useStore((s) => s.isArtist);
@@ -18,7 +19,7 @@ export default function ArtistDetailPage() {
 
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
-  const artist = artists.find((a) => a.id === id);
+  const artist = artists.find((a) => toSlug(a.name) === slug);
   if (!artist) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">

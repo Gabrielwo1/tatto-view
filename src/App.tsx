@@ -180,7 +180,7 @@ export default function App() {
           }
         />
         <Route
-          path="/artistas/:id"
+          path="/artistas/:slug"
           element={
             <PublicLayout>
               <ArtistDetailPage />

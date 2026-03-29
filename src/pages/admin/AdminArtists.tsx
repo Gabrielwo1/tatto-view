@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
+import { toSlug } from '../../utils';
 
 export default function AdminArtists() {
   const artists = useStore((s) => s.artists);
@@ -152,7 +153,7 @@ export default function AdminArtists() {
                 {/* Actions */}
                 <div className="col-span-2 flex items-center justify-end gap-1.5">
                   <Link
-                    to={`/artistas/${artist.id}`}
+                    to={`/artistas/${toSlug(artist.name)}`}
                     target="_blank"
                     title="Ver vitrine"
                     onClick={(e) => e.stopPropagation()}
