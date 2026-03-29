@@ -3,6 +3,9 @@
   "functions": {
     "api/tattoo-preview.js": {
       "maxDuration": 60
+    },
+    "api/og-image.js": {
+      "maxDuration": 10
     }
   }
 }
