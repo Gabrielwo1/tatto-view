@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
@@ -19,7 +19,7 @@ export default function ArtistDetailPage() {
 
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
-  const artist = artists.find((a) => toSlug(a.name) === slug);
+  const artist = useMemo(() => artists.find((a) => toSlug(a.name) === slug), [artists, slug]);
   if (!artist) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
@@ -55,7 +55,7 @@ export default function ArtistDetailPage() {
     if (!printImage) return;
     const a = document.createElement('a');
     a.href = printImage;
-    a.download = `portfolio-${artist.name.replace(/\s+/g, '-').toLowerCase()}.png`;
+    a.download = `portfolio-${toSlug(artist.name)}.png`;
     a.click();
   };
 

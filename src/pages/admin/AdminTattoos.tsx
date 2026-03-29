@@ -41,7 +41,7 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
         onClick={(e) => e.stopPropagation()}
       >
         {/* Left: image — fills full modal height */}
-        <div className="sm:w-80 flex-shrink-0 relative bg-zinc-900 self-stretch flex items-center justify-center">
+        <div className="w-full sm:w-80 flex-shrink-0 relative bg-zinc-900 self-stretch flex items-center justify-center">
           <img
             src={tattoo.imageUrl}
             alt={tattoo.title}
