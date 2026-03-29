@@ -40,16 +40,14 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
         className="bg-zinc-950 border border-white/15 w-full max-w-3xl flex flex-col sm:flex-row overflow-hidden max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Left: image — square 1:1 Instagram format */}
-        <div className="sm:w-80 flex-shrink-0 relative bg-zinc-900">
-          <div className="aspect-square w-full overflow-hidden">
-            <img
-              src={tattoo.imageUrl}
-              alt={tattoo.title}
-              className="w-full h-full object-contain"
-              onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
-            />
-          </div>
+        {/* Left: image — fills full modal height */}
+        <div className="sm:w-80 flex-shrink-0 relative bg-zinc-900 self-stretch flex items-center justify-center">
+          <img
+            src={tattoo.imageUrl}
+            alt={tattoo.title}
+            className="w-full h-full object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
+          />
           <div className={`absolute top-2 right-2 px-2 py-0.5 text-[9px] font-body font-bold tracking-widest uppercase ${
             form.status === 'available' ? 'bg-white text-black' : 'bg-white/20 text-white/60'
           }`}>
