@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
+import { toSlug } from '../utils';
 
 // Smooth multi-stop gradients — avoids banding artifacts
 const GRADIENT_DARK =
@@ -66,7 +67,7 @@ export default function ArtistHero() {
             }
             onMouseEnter={() => !isMobile && setHoveredId(artist.id)}
             onMouseLeave={() => !isMobile && setHoveredId(null)}
-            onClick={() => navigate(`/artistas/${artist.id}`)}
+            onClick={() => navigate(`/artistas/${toSlug(artist.name)}`)}
           >
             {/* Background image — GPU-composited */}
             <img

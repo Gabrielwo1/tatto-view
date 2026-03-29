@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
+import { toSlug } from '../utils';
 
 
 export interface LightboxEntry { tattoo: Tattoo; artist?: Artist | null }
@@ -89,7 +90,7 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
             <div className="flex items-center gap-2 flex-shrink-0">
               {artist && !hideArtistLink && (
                 <Link
-                  to={`/artistas/${artist.id}`}
+                  to={`/artistas/${toSlug(artist.name)}`}
                   onClick={onClose}
                   className="shrink-0 font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2.5 border border-white/20 text-white hover:bg-white hover:text-black transition-colors"
                 >

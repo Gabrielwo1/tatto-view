@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
 import { TATTOO_STYLES, type Tattoo } from '../types';
+import { toSlug } from '../utils';
 
 /* ─── interleave by artist (same algorithm as ShowcasePage) ─── */
 function interleaveByArtist(tattoos: Tattoo[]): Tattoo[] {
@@ -214,7 +215,7 @@ export default function LandingPage() {
             {artists.map((artist, i) => (
               <Link
                 key={artist.id}
-                to={`/artistas/${artist.id}`}
+                to={`/artistas/${toSlug(artist.name)}`}
                 className={`group relative overflow-hidden aspect-[2/3] bg-zinc-900 block transition-all duration-700 ${team.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                 style={{ transitionDelay: `${i * 80}ms` }}
               >

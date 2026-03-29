@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Artist } from '../types';
+import { toSlug } from '../utils';
 
 interface ArtistCardProps {
   artist: Artist;
@@ -9,7 +10,7 @@ interface ArtistCardProps {
 function ArtistCard({ artist }: ArtistCardProps) {
   return (
     <Link
-      to={`/artistas/${artist.id}`}
+      to={`/artistas/${toSlug(artist.name)}`}
       className="block bg-zinc-950 overflow-hidden border border-white/[0.08] hover:border-ink2-500/40 transition-all duration-300 group hover:shadow-xl hover:shadow-ink2-500/5"
     >
       {/* Photo */}

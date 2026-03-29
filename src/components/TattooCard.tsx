@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
 import WishlistButton from './WishlistButton';
+import { toSlug } from '../utils';
 
 interface TattooCardProps {
   tattoo: Tattoo;
@@ -11,7 +12,7 @@ interface TattooCardProps {
 }
 
 function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
-  const href = artist ? `/artistas/${artist.id}` : '/artistas';
+  const href = artist ? `/artistas/${toSlug(artist.name)}` : '/artistas';
 
   const inner = (
     <>

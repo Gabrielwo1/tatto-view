@@ -4,6 +4,7 @@ import { useStore } from '../../store';
 import type { Tattoo } from '../../types';
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage } from '../../lib/uploadImage';
+import { toSlug } from '../../utils';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -233,7 +234,7 @@ export default function AdminArtistForm() {
           </Link>
           {existing && (
             <Link
-              to={`/artistas/${existing.id}`}
+              to={`/artistas/${toSlug(existing.name)}`}
               target="_blank"
               className="px-6 py-3 bg-ink-500 hover:bg-ink-400 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors text-center flex items-center gap-2"
             >
