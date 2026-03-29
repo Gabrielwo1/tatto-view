@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch, TattooSession, ShopContent, TatuadoPost, TattooRow, ArtistRow, MerchRow } from './types';
+import type { Tattoo, Artist, Merch, TattooSession, ShopContent, TatuadoPost, TattooRow, ArtistRow, MerchRow, Expense, ExpenseCategory } from './types';
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
@@ -678,6 +678,11 @@ interface AppState {
   fichaSubmissions: FichaSubmission[];
   addFichaSubmission: (submission: Omit<FichaSubmission, 'id' | 'submittedAt'>) => void;
   deleteFichaSubmission: (id: string) => void;
+  // ── Financeiro ──────────────────────────────────────────────────────────────
+  expenses: Expense[];
+  addExpense: (data: Omit<Expense, 'id' | 'createdAt'>) => void;
+  updateExpense: (id: string, updates: Partial<Omit<Expense, 'id' | 'createdAt'>>) => void;
+  deleteExpense: (id: string) => void;
   loadData: () => Promise<void>;
   /** True when the logged-in user is an artist (not super admin). */
   isArtist: boolean;
@@ -893,6 +898,35 @@ export const useStore = create<AppState>()(
           .then(({ error }) => { if (error) console.error('[store] deleteFichaSubmission:', error); });
       },
 
+      // ── Financeiro ────────────────────────────────────────────────────────
+      expenses: [],
+      addExpense: (data) => {
+        const expense: Expense = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+        set((s) => ({ expenses: [expense, ...s.expenses] }));
+        supabase?.from('expenses').insert({
+          id: expense.id, description: expense.description, amount: expense.amount,
+          paid_by: expense.paidBy, date: expense.date, category: expense.category,
+          participants: expense.participants, created_at: expense.createdAt,
+        }).then(({ error }) => { if (error) console.error('[store] addExpense:', error); });
+      },
+      updateExpense: (id, updates) => {
+        set((s) => ({ expenses: s.expenses.map((e) => e.id === id ? { ...e, ...updates } : e) }));
+        const row: Record<string, unknown> = {};
+        if (updates.description !== undefined) row.description = updates.description;
+        if (updates.amount      !== undefined) row.amount      = updates.amount;
+        if (updates.paidBy      !== undefined) row.paid_by     = updates.paidBy;
+        if (updates.date        !== undefined) row.date        = updates.date;
+        if (updates.category    !== undefined) row.category    = updates.category;
+        if (updates.participants !== undefined) row.participants = updates.participants;
+        supabase?.from('expenses').update(row).eq('id', id)
+          .then(({ error }) => { if (error) console.error('[store] updateExpense:', error); });
+      },
+      deleteExpense: (id) => {
+        set((s) => ({ expenses: s.expenses.filter((e) => e.id !== id) }));
+        supabase?.from('expenses').delete().eq('id', id)
+          .then(({ error }) => { if (error) console.error('[store] deleteExpense:', error); });
+      },
+
       // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
         if (!supabase) {
@@ -900,13 +934,14 @@ export const useStore = create<AppState>()(
           return;
         }
         try {
-          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs, error: fse }] =
+          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs, error: fse }, { data: ex }] =
             await Promise.all([
               supabase.from('tattoos').select('*').order('created_at', { ascending: false }),
               supabase.from('artists').select('*').order('created_at', { ascending: true }),
               supabase.from('merchs').select('*').order('created_at', { ascending: false }),
               supabase.from('site_config').select('*'),
               supabase.from('ficha_submissions').select('*').order('submitted_at', { ascending: false }),
+              supabase.from('expenses').select('*').order('date', { ascending: false }),
             ]);
           if (te) throw te;
           if (ae) throw ae;
@@ -933,6 +968,11 @@ export const useStore = create<AppState>()(
             merchs:           (m ?? []).map(toMerch),
             // Always sync fichas from Supabase (source of truth for cross-device)
             ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
+            expenses: (ex ?? []).map((r) => ({
+              id: r.id, description: r.description, amount: r.amount,
+              paidBy: r.paid_by, date: r.date, category: r.category as ExpenseCategory,
+              participants: r.participants as string[], createdAt: r.created_at,
+            })),
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
             ...(config.tatuadosContent  ? { tatuadosContent:  config.tatuadosContent  as TatuadosContent }               : {}),
@@ -1277,6 +1317,7 @@ export const useStore = create<AppState>()(
         sessions: state.sessions,
         shopContent: state.shopContent,
         fichaSubmissions: state.fichaSubmissions,
+        expenses: state.expenses,
         fichaConfig: state.fichaConfig,
         eventsContent: state.eventsContent,
         landingContent: state.landingContent,

@@ -125,3 +125,28 @@ export const TATTOO_STYLES = [
   'Neo-Tradicional',
   'Minimalista',
 ];
+
+// ── Financeiro ────────────────────────────────────────────────────────────────
+export const EXPENSE_CATEGORIES = [
+  'Studio',
+  'Material',
+  'Alimentação',
+  'Marketing',
+  'Equipamento',
+  'Aluguel',
+  'Salário',
+  'Outros',
+] as const;
+
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;       // in BRL cents (e.g. 24838 = R$248,38)
+  paidBy: string;       // artist id
+  date: string;         // ISO date string YYYY-MM-DD
+  category: ExpenseCategory;
+  participants: string[]; // array of artist ids who share this expense
+  createdAt: string;
+}
