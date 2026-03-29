@@ -74,10 +74,10 @@ export function getLast7Days(): { date: string; views: number }[] {
 
 export function getTopPages(limit = 5): { path: string; views: number }[] {
   const { pages } = load();
-  return Object.entries(pages)
+  const sorted = Object.entries(pages)
     .map(([path, views]) => ({ path, views }))
-    .sort((a, b) => b.views - a.views)
-    .slice(0, limit);
+    .sort((a, b) => b.views - a.views);
+  return limit > 0 ? sorted.slice(0, limit) : sorted;
 }
 
 export function resetAnalytics() {
