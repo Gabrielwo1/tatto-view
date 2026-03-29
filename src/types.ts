@@ -5,9 +5,28 @@ export interface Tattoo {
   imageUrl: string;
   style: string;
   price?: string;
+  depositAmount?: number; // valor do sinal em centavos (ex: 5000 = R$50)
   artistId: string | null;
   status: 'available' | 'archived';
   createdAt: string;
+}
+
+export interface PublicUser {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface WishlistItem {
+  id: string;
+  itemType: 'tattoo' | 'merch';
+  itemId: string;
+}
+
+export interface CartItem {
+  id: string;
+  itemType: 'tattoo' | 'merch';
+  itemId: string;
 }
 
 export interface Artist {
@@ -32,6 +51,15 @@ export interface Merch {
   createdAt: string;
 }
 
+export interface TatuadoPost {
+  id: string;
+  imageUrl: string;
+  caption: string;
+  artistId: string | null;
+  size: 'small' | 'medium' | 'large'; // controls mosaic cell size
+  createdAt: string;
+}
+
 export interface TattooSession {
   id: string;
   typeNum: string;
@@ -39,6 +67,17 @@ export interface TattooSession {
   description: string;
   price: string;
   bookingLink: string;
+}
+
+export interface ShopContent {
+  hero: {
+    title: string;
+    subtitle: string;
+  };
+  sessionsTagline: string;
+  sessionsAvailableLabel: string;
+  apparelTagline: string;
+  paymentMethods: Array<{ label: string; sub: string }>;
 }
 
 // Supabase DB row shapes (snake_case) — used in store converters

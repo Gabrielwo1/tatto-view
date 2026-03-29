@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
 const navItems = [
@@ -76,6 +76,15 @@ const navItems = [
     ),
   },
   {
+    to: '/admin/tatuados',
+    label: 'Tatuados',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
+  {
     to: '/admin/sobre-nos',
     label: 'Sobre Nós',
     icon: (
@@ -132,6 +141,7 @@ const adminOnlyItems = [
   '/admin/events',
   '/admin/aftercare',
   '/admin/landing',
+  '/admin/tatuados',
   '/admin/sobre-nos',
   '/admin/ficha-anamnese',
   '/admin/fichas',
@@ -145,31 +155,43 @@ const artistOnlyItem = '/admin/meu-perfil';
 const merchItem = '/admin/merchs';
 
 export default function AdminLayout() {
-  const logout          = useStore((s) => s.logout);
-  const isAdmin         = useStore((s) => s.isAdmin);
-  const isArtist        = useStore((s) => s.isArtist);
-  const isMerchManager  = useStore((s) => s.isMerchManager);
-  const navigate        = useNavigate();
+  const isAdmin          = useStore((s) => s.isAdmin);
+  const isArtist         = useStore((s) => s.isArtist);
+  const isMerchManager   = useStore((s) => s.isMerchManager);
+  const currentArtistId  = useStore((s) => s.currentArtistId);
+  const currentUserEmail = useStore((s) => s.currentUserEmail);
+  const artists          = useStore((s) => s.artists);
+  const logout           = useStore((s) => s.logout);
+  const logoColorMode    = useStore((s) => s.logoColorMode);
+  const customLogo       = useStore((s) => s.customLogo);
+  const logoSrc          = customLogo ?? '/logosemo-3.png';
+
+  const artistName = artists.find((a) => a.id === currentArtistId)?.name ?? null;
+  const displayName = artistName ?? (currentUserEmail ? currentUserEmail.split('@')[0] : 'Admin');
   const location  = useLocation();
+  const navigate  = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function handleLogout() {
     await logout();
-    navigate('/admin/login');
+    navigate('/admin/login', { replace: true });
   }
 
-  function visibleItems() {
+  const items = useMemo(() => {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
     if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && item.to !== merchItem);
     if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
     return [];
-  }
+  }, [isAdmin, isArtist, isMerchManager]);
+
+  const currentLabel = useMemo(
+    () => navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin',
+    [location.pathname],
+  );
 
   function closeDrawer() {
     setDrawerOpen(false);
   }
-
-  const currentLabel = navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin';
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
@@ -183,12 +205,32 @@ export default function AdminLayout() {
       <aside className="hidden md:flex w-52 bg-black border-l border-white/10 flex-col flex-shrink-0">
         <div className="p-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/logosemo-3.png" alt="El Dude" className="h-8 w-auto object-contain" />
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
+            <div className="relative h-8 flex-shrink-0">
+              <img
+                src={logoSrc}
+                alt="El Dude"
+                className="h-full w-auto object-contain"
+                style={{
+                  filter: (logoColorMode === 'primary' || logoColorMode === 'secondary') 
+                    ? 'brightness(0)' 
+                    : (logoColorMode === 'white' ? 'brightness(0) invert(1)' : 'none')
+                }}
+              />
+              {(logoColorMode === 'primary' || logoColorMode === 'secondary') && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundColor: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
+                    mixBlendMode: 'screen'
+                  }}
+                />
+              )}
+            </div>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 truncate max-w-[100px]">{displayName}</p>
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          {visibleItems().map((item) => (
+          {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -205,16 +247,18 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-white/10 space-y-0.5">
+        <div className="p-3 border-t border-white/10 flex flex-col gap-1">
           <Link to="/"
-            className="flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
+            className="flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all rounded">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Vitrine
           </Link>
-          <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 w-full text-left text-xs font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all rounded"
+          >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -224,21 +268,49 @@ export default function AdminLayout() {
       </aside>
 
       {/* ── Mobile: Top Bar ── */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 flex items-center justify-between px-4 h-14">
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/logosemo-3.png" alt="El Dude" className="h-7 w-auto object-contain" />
-        </Link>
-        <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400">{currentLabel}</span>
-        {/* Hamburger — right side */}
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="p-2 text-gray-400 hover:text-white transition-colors"
-          aria-label="Menu"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 h-14">
+        {/* Logo — absolute centered */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Link to="/" className="pointer-events-auto flex items-center h-7">
+            <div className="relative h-full">
+              <img
+                src={logoSrc}
+                alt="El Dude"
+                className="h-full w-auto object-contain"
+                style={{
+                  filter: (logoColorMode === 'primary' || logoColorMode === 'secondary') 
+                    ? 'brightness(0)' 
+                    : (logoColorMode === 'white' ? 'brightness(0) invert(1)' : 'none')
+                }}
+              />
+              {(logoColorMode === 'primary' || logoColorMode === 'secondary') && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundColor: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
+                    mixBlendMode: 'screen'
+                  }}
+                />
+              )}
+            </div>
+          </Link>
+        </div>
+        {/* Left: section label */}
+        <div className="absolute left-0 top-0 h-14 flex items-center px-4">
+          <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">{currentLabel}</span>
+        </div>
+        {/* Right: hamburger */}
+        <div className="absolute right-0 top-0 h-14 flex items-center px-4">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-1.5 text-gray-400 hover:text-white transition-colors"
+            aria-label="Menu"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* ── Mobile: Drawer (RIGHT) ── */}
@@ -248,8 +320,28 @@ export default function AdminLayout() {
           <aside className="relative ml-auto w-64 bg-black border-l border-white/10 flex flex-col h-full">
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <Link to="/" onClick={closeDrawer} className="flex items-center gap-3">
-                <img src="/logosemo-3.png" alt="El Dude" className="h-8 w-auto object-contain" />
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
+                <div className="relative h-8 flex-shrink-0">
+                  <img
+                    src={logoSrc}
+                    alt="El Dude"
+                    className="h-full w-auto object-contain"
+                    style={{
+                      filter: (logoColorMode === 'primary' || logoColorMode === 'secondary') 
+                        ? 'brightness(0)' 
+                        : (logoColorMode === 'white' ? 'brightness(0) invert(1)' : 'none')
+                    }}
+                  />
+                  {(logoColorMode === 'primary' || logoColorMode === 'secondary') && (
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        backgroundColor: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
+                        mixBlendMode: 'screen'
+                      }}
+                    />
+                  )}
+                </div>
+                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 truncate max-w-[100px]">{displayName}</p>
               </Link>
               <button onClick={closeDrawer} className="p-1 text-gray-600 hover:text-white">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -258,7 +350,7 @@ export default function AdminLayout() {
               </button>
             </div>
             <nav className="flex-1 p-4 space-y-1">
-              {visibleItems().map((item) => (
+              {items.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -276,16 +368,18 @@ export default function AdminLayout() {
                 </NavLink>
               ))}
             </nav>
-            <div className="p-4 border-t border-white/10 space-y-1">
+            <div className="p-4 border-t border-white/10 flex flex-col gap-1">
               <Link to="/" onClick={closeDrawer}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
+                className="flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all rounded">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Ver Vitrine
               </Link>
-              <button onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-all">
+              <button
+                onClick={() => { closeDrawer(); handleLogout(); }}
+                className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm font-body font-semibold tracking-widest uppercase text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all rounded"
+              >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>

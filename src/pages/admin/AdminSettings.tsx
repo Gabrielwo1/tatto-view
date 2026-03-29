@@ -1,12 +1,10 @@
 import { useState, useRef } from 'react';
 import { useStore } from '../../store';
-import { THEMES, applyTheme, applyCustomColors, generateShades, getThemeForHostname } from '../../lib/themes';
-import type { ThemeId, LogoColorMode } from '../../lib/themes';
-import { supabase } from '../../lib/supabase';
+import { applyCustomColors, generateShades } from '../../lib/themes';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
+import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
 
-const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
 
 function StyleVisibilitySection() {
   const hiddenStyles    = useStore((s) => s.hiddenStyles);
@@ -143,13 +141,9 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 }
 
 export default function AdminSettings() {
-  const themeId  = useStore((s) => s.themeId);
-  const setTheme = useStore((s) => s.setTheme);
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
-  const logoColorMode   = useStore((s) => s.logoColorMode);
-  const setLogoColorMode = useStore((s) => s.setLogoColorMode);
   const customLogo    = useStore((s) => s.customLogo);
   const setCustomLogo = useStore((s) => s.setCustomLogo);
   const customFavicon    = useStore((s) => s.customFavicon);
@@ -162,24 +156,6 @@ export default function AdminSettings() {
 
   const [draftPrimary,   setDraftPrimary]   = useState(customPrimary   ?? '#ff4500');
   const [draftSecondary, setDraftSecondary] = useState(customSecondary ?? '#3b82f6');
-  const tattoos          = useStore((s) => s.tattoos);
-  const artists          = useStore((s) => s.artists);
-  const merchs           = useStore((s) => s.merchs);
-  const landingContent   = useStore((s) => s.landingContent);
-  const sobreNosContent  = useStore((s) => s.sobreNosContent);
-  const guestContent     = useStore((s) => s.guestContent);
-  const aftercareContent = useStore((s) => s.aftercareContent);
-  const fichaSubmissions = useStore((s) => s.fichaSubmissions);
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [syncProgress, setSyncProgress] = useState<string | null>(null);
-  const [connStatus, setConnStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
-  const [connError, setConnError] = useState<string | null>(null);
-
-  const updateArtist = useStore((s) => s.updateArtist);
-  const updateTattoo = useStore((s) => s.updateTattoo);
-  const updateMerch  = useStore((s) => s.updateMerch);
-  const setSobreNosContent = useStore((s) => s.setSobreNosContent);
 
   async function handleLogoUpload(file: File) {
     setLogoUploading(true);
@@ -215,174 +191,11 @@ export default function AdminSettings() {
     }
   }
 
-  async function handleSyncToSupabase() {
-    if (!supabase) {
-      alert('Supabase não está configurado. Verifique as variáveis de ambiente.');
-      return;
-    }
-    setSyncStatus('syncing');
-    setSyncError(null);
-
-    try {
-      // ── Re-upload base64 images to Supabase Storage ──────────────────────
-      setSyncProgress('Fazendo upload das imagens...');
-
-      const processedArtists = await Promise.all(artists.map(async (a) => {
-        if (!a.photoUrl?.startsWith('data:')) return a;
-        const url = await uploadImage(a.photoUrl);
-        if (url !== a.photoUrl) updateArtist(a.id, { photoUrl: url });
-        return { ...a, photoUrl: url };
-      }));
-
-      const processedTattoos = await Promise.all(tattoos.map(async (t) => {
-        if (!t.imageUrl?.startsWith('data:')) return t;
-        const url = await uploadImage(t.imageUrl);
-        if (url !== t.imageUrl) updateTattoo(t.id, { imageUrl: url });
-        return { ...t, imageUrl: url };
-      }));
-
-      const processedMerchs = await Promise.all(merchs.map(async (m) => {
-        if (!m.imageUrl?.startsWith('data:')) return m;
-        const url = await uploadImage(m.imageUrl);
-        if (url !== m.imageUrl) updateMerch(m.id, { imageUrl: url });
-        return { ...m, imageUrl: url };
-      }));
-
-      // Re-upload collective image in sobreNosContent if base64
-      let finalSobreNos = sobreNosContent;
-      if (sobreNosContent.collective?.image?.startsWith('data:')) {
-        const url = await uploadImage(sobreNosContent.collective.image);
-        if (url !== sobreNosContent.collective.image) {
-          finalSobreNos = { ...sobreNosContent, collective: { ...sobreNosContent.collective, image: url } };
-          setSobreNosContent(finalSobreNos);
-        }
-      }
-
-      setSyncProgress('Sincronizando dados...');
-
-      // ── Build rows ────────────────────────────────────────────────────────
-      const artistRows = processedArtists.map((a) => ({
-        id: a.id, name: a.name, bio: a.bio, photo_url: a.photoUrl,
-        specialties: a.specialties, instagram: a.instagram, whatsapp: a.whatsapp,
-        created_at: a.createdAt,
-      }));
-      const tattooRows = processedTattoos.map((t) => ({
-        id: t.id, title: t.title, description: t.description,
-        image_url: t.imageUrl, style: t.style, price: t.price,
-        artist_id: t.artistId, status: t.status, created_at: t.createdAt,
-      }));
-      const merchRows = processedMerchs.map((m) => ({
-        id: m.id, name: m.name, description: m.description,
-        price: m.price, image_url: m.imageUrl, link: m.link, created_at: m.createdAt,
-      }));
-
-      const configRows = [
-        { key: 'landingContent',   value: landingContent,    updated_at: new Date().toISOString() },
-        { key: 'sobreNosContent',  value: finalSobreNos,     updated_at: new Date().toISOString() },
-        { key: 'guestContent',     value: guestContent,     updated_at: new Date().toISOString() },
-        { key: 'aftercareContent', value: aftercareContent, updated_at: new Date().toISOString() },
-        { key: 'themeId',          value: themeId,          updated_at: new Date().toISOString() },
-      ];
-
-      const results = await Promise.all([
-        artistRows.length ? supabase.from('artists').upsert(artistRows)     : Promise.resolve({ error: null }),
-        tattooRows.length ? supabase.from('tattoos').upsert(tattooRows)     : Promise.resolve({ error: null }),
-        merchRows.length  ? supabase.from('merchs').upsert(merchRows)       : Promise.resolve({ error: null }),
-        supabase.from('site_config').upsert(configRows),
-      ]);
-
-      const err = results.find((r) => r.error)?.error;
-      if (err) throw err;
-
-      setSyncStatus('ok');
-      setSyncError(null);
-      setSyncProgress(null);
-      setTimeout(() => setSyncStatus('idle'), 4000);
-    } catch (err: unknown) {
-      console.error('[sync]', err);
-      setSyncStatus('error');
-      setSyncProgress(null);
-      setSyncError(err instanceof Error ? err.message : JSON.stringify(err));
-      setTimeout(() => { setSyncStatus('idle'); setSyncError(null); }, 8000);
-    }
-  }
-
-  async function handleTestConnection() {
-    if (!supabase) {
-      setConnStatus('error');
-      setConnError('Variáveis VITE_SUPABASE_URL e/ou VITE_SUPABASE_ANON_KEY não configuradas.');
-      return;
-    }
-    setConnStatus('testing');
-    setConnError(null);
-    try {
-      const { error } = await supabase.from('artists').select('count', { count: 'exact', head: true });
-      if (error) throw error;
-      setConnStatus('ok');
-      setTimeout(() => setConnStatus('idle'), 5000);
-    } catch (err: unknown) {
-      setConnStatus('error');
-      setConnError(err instanceof Error ? err.message : JSON.stringify(err));
-    }
-  }
-
-  function handleImportBackup(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
-        Object.entries(data).forEach(([key, value]) => {
-          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-        });
-        alert('Backup restaurado com sucesso! A página será recarregada.');
-        window.location.reload();
-      } catch {
-        alert('Arquivo inválido. Certifique-se de usar um backup gerado por este sistema.');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  }
-
-  function handleExportBackup() {
-    const data: Record<string, unknown> = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)!;
-      try {
-        data[key] = JSON.parse(localStorage.getItem(key)!);
-      } catch {
-        data[key] = localStorage.getItem(key);
-      }
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup-eldude-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  const subdomainDefault = getThemeForHostname(window.location.hostname);
-  const active = themeId ?? subdomainDefault;
-
-  function handleSelect(id: ThemeId) {
-    setTheme(id);
-    applyTheme(id);
-    // Sync draft pickers to preset colors (clear custom)
-    setDraftPrimary(THEMES[id].accent);
-    setDraftSecondary(THEMES[id].accent2);
-    setCustomColors(null, null);
-  }
-
-  function handleReset() {
-    setTheme(null);
-    applyTheme(subdomainDefault);
-    setDraftPrimary(THEMES[subdomainDefault].accent);
-    setDraftSecondary(THEMES[subdomainDefault].accent2);
-    setCustomColors(null, null);
+  function handleInvert() {
+    setDraftPrimary(draftSecondary);
+    setDraftSecondary(draftPrimary);
+    setCustomColors(draftSecondary, draftPrimary);
+    applyCustomColors(draftSecondary, draftPrimary);
   }
 
   function handleApplyColors() {
@@ -398,86 +211,59 @@ export default function AdminSettings() {
         <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Configurações</h1>
       </div>
 
-      {/* ══ GRID 3 COLUNAS ══════════════════════════════════════════════════ */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 items-start">
+      {/* ══ GRID 2 COLUNAS: configurações | analytics ══════════════════════ */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 items-start">
 
-        {/* ╠══ COL 1 — Aparência ══╣ */}
+        {/* ╠══ COL ESQUERDA — Aparência + Imagens + Estilos ══╣ */}
         <div className="space-y-3">
 
-          {/* Presets */}
+          {/* Custom colors — col 1 continuation */}
           <div className="border border-white/10 bg-black/20 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">Tema</p>
-              {(themeId !== null || customPrimary || customSecondary) && (
-                <button type="button" onClick={handleReset}
-                  className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-                  ↩ padrão
-                </button>
-              )}
-            </div>
-            <div className="grid grid-cols-7 gap-1">
-              {THEME_ORDER.map((id) => {
-                const theme = THEMES[id];
-                const isActive = id === active && !customPrimary;
-                return (
-                  <button key={id} type="button" onClick={() => handleSelect(id)}
-                    title={`${theme.label}`}
-                    className="group flex flex-col items-center gap-1.5 py-2 transition-all focus:outline-none">
-                    <span className="relative w-7 h-7 rounded-full block transition-all duration-200"
-                      style={{
-                        backgroundColor: theme.accent,
-                        boxShadow: isActive ? `0 0 0 2px #000, 0 0 0 3px ${theme.accent}` : `0 0 0 1px ${theme.accent}33`,
-                        transform: isActive ? 'scale(1.15)' : undefined,
-                      }}>
-                      {isActive && (
-                        <span className="absolute inset-0 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </span>
-                      )}
-                    </span>
-                    <span className={`font-body text-[8px] font-bold tracking-widest uppercase leading-none ${isActive ? 'text-white' : 'text-gray-700 group-hover:text-gray-500'}`}>
-                      {theme.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Cor da logo */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">Cor da logo</p>
-            <div className="flex flex-wrap gap-1 mb-3">
-              {([
-                { mode: 'original', label: 'Original' },
-                { mode: 'white',    label: 'Branca' },
-                { mode: 'black',    label: 'Preta' },
-                { mode: 'primary',  label: 'Primária' },
-                { mode: 'secondary',label: 'Secundária' },
-                { mode: 'invert',   label: 'Inverter' },
-              ] as { mode: LogoColorMode; label: string }[]).map(({ mode, label }) => (
-                <button key={mode} type="button" onClick={() => setLogoColorMode(mode)}
-                  className={`font-body text-[9px] font-semibold tracking-widest uppercase px-2.5 py-1 border transition-colors ${
-                    logoColorMode === mode ? 'border-white text-white bg-white/10' : 'border-white/10 text-gray-600 hover:border-white/30 hover:text-gray-400'
-                  }`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="px-4 py-3 border border-white/10 bg-black/40 flex items-center justify-center" style={{ minHeight: 56 }}>
-              {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
-                <div className="relative inline-block" style={{ height: 36 }}>
-                  <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="h-full w-auto object-contain" style={{ filter: 'brightness(0)' }} />
-                  <div className="absolute inset-0" style={{ background: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))', mixBlendMode: 'screen' }} />
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Cores personalizadas</p>
+            <div className="space-y-2 mb-3">
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
+                  <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftPrimary}</span>
+                  <ShadeStrip hex={draftPrimary} prefix="--ink" />
                 </div>
-              ) : (
-                <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" style={{ height: 36, filter: logoColorMode === 'white' ? 'brightness(0) invert(1)' : logoColorMode === 'black' ? 'brightness(0)' : logoColorMode === 'invert' ? 'invert(1)' : 'none' }} />
-              )}
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
+                  ))}
+                </div>
+              </div>
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Secundária</label>
+                  <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftSecondary}</span>
+                  <ShadeStrip hex={draftSecondary} prefix="--ink2" />
+                </div>
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleInvert}
+                title="Inverter Cores"
+                className="w-12 shrink-0 flex items-center justify-center bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </button>
+              <button type="button" onClick={handleApplyColors}
+                className="flex-1 font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
+                Aplicar
+              </button>
             </div>
           </div>
-
           {/* Logo upload */}
           <div className="border border-white/10 bg-black/20 p-4">
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Imagens do site</p>
@@ -527,345 +313,156 @@ export default function AdminSettings() {
             </div>
             <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFaviconUpload(f); e.target.value = ''; }} />
           </div>
-        </div>
 
-        {/* ╠══ COL 2 — Cores + Estilos ══╣ */}
-        <div className="space-y-3">
-
-          {/* Custom colors */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Cores personalizadas</p>
-            <div className="space-y-2 mb-3">
-              {/* Primary */}
-              <div className="border border-white/10 bg-black/30 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
-                  <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
-                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
-                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftPrimary}</span>
-                  <ShadeStrip hex={draftPrimary} prefix="--ink" />
-                </div>
-                <div className="flex gap-0.5">
-                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
-                  ))}
-                </div>
-              </div>
-              {/* Secondary */}
-              <div className="border border-white/10 bg-black/30 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Secundária</label>
-                  <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
-                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
-                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftSecondary}</span>
-                  <ShadeStrip hex={draftSecondary} prefix="--ink2" />
-                </div>
-                <div className="flex gap-0.5">
-                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <button type="button" onClick={handleApplyColors}
-              className="w-full font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
-              Aplicar
-            </button>
-          </div>
-
-          {/* Estilos da Vitrine — inline compacto */}
+          {/* Estilos da Vitrine */}
           <div className="border border-white/10 bg-black/20 p-4">
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Estilos da vitrine</p>
             <StyleVisibilitySection />
           </div>
-        </div>
+        </div>{/* fim col esquerda */}
 
-        {/* ╠══ COL 3 — Sistema ══╣ */}
-        <div className="space-y-3">
-
-          {/* Identificação */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Identificação</p>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between px-3 py-2 border border-white/10 bg-black/30">
-                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">Domínio</p>
-                <p className="font-mono text-xs text-white">{window.location.hostname}</p>
-              </div>
-              <div className="flex items-center justify-between px-3 py-2 border border-white/10 bg-black/30">
-                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">Plataforma</p>
-                <p className="font-mono text-xs text-white">vitrink.app</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Sincronização */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Sincronização</p>
-            <div className="px-3 py-2 border border-white/10 bg-black/30 mb-3">
-              <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">Supabase</p>
-              <p className="font-mono text-[10px] text-gray-500 truncate">
-                {import.meta.env.VITE_SUPABASE_URL || <span className="text-red-400">não configurado</span>}
-              </p>
-            </div>
-            <div className="flex gap-2 mb-2">
-              <button type="button" onClick={handleTestConnection} disabled={connStatus === 'testing'}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/10 text-gray-400 font-body text-[9px] font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors disabled:opacity-50">
-                {connStatus === 'testing' ? <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Testando</>
-                  : connStatus === 'ok' ? <span className="text-green-400">✓ Conectado</span>
-                  : connStatus === 'error' ? <span className="text-red-400">✕ Falhou</span>
-                  : 'Testar'}
-              </button>
-              <button type="button" onClick={handleSyncToSupabase} disabled={syncStatus === 'syncing'}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/20 text-white font-body text-[9px] font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50">
-                {syncStatus === 'syncing' ? <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>{syncProgress ?? 'Sync...'}</>
-                  : syncStatus === 'ok' ? <span className="text-green-400">✓ Sincronizado</span>
-                  : syncStatus === 'error' ? <span className="text-red-400">✕ Erro</span>
-                  : '↑ Sincronizar'}
-              </button>
-            </div>
-            {connError && (
-              <div className="mb-2 px-3 py-2 border border-red-500/30 bg-red-500/10">
-                <p className="font-mono text-[10px] text-red-300 break-all">{connError}</p>
-              </div>
-            )}
-            {syncError && (
-              <div className="mb-2 px-3 py-2 border border-red-500/30 bg-red-500/10">
-                <p className="font-mono text-[10px] text-red-300 break-all">{syncError}</p>
-              </div>
-            )}
-            <p className="font-body text-[9px] text-gray-700">
-              {artists.length} artistas · {tattoos.length} tatuagens · {merchs.length} merchs
-            </p>
-          </div>
-
-          {/* Backup */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Backup</p>
-            <div className="flex gap-2">
-              <button type="button" onClick={handleExportBackup}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/20 text-white font-body text-[9px] font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                Baixar
-              </button>
-              <label className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-white/10 text-gray-500 font-body text-[9px] font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors cursor-pointer">
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                Restaurar
-                <input type="file" accept=".json" className="hidden" onChange={handleImportBackup} />
-              </label>
-            </div>
-          </div>
-
-        </div>{/* fim col 3 */}
-      </div>{/* fim grid 3-col */}
-
-      {/* ══ ESTATÍSTICAS — full width ════════════════════════════════════════ */}
-      <div className="mt-4">
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Estatísticas
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Movimentações reais do estúdio.
-          </p>
-        </div>
-
-        {/* ── KPI cards compactos ── */}
+        {/* ╠══ COL DIREITA — Analytics ══╣ */}
+        <div className="border border-white/10 bg-black/20 p-4">
+        <section>
         {(() => {
-          const availTattoos  = tattoos.filter((t) => t.status === 'available').length;
-          const archivedTattoos = tattoos.filter((t) => t.status === 'archived').length;
-          const styleSet = new Set(tattoos.map((t) => t.style).filter(Boolean));
-          const cards = [
-            { section: 'Ficha de Anamnese', label: 'Fichas enviadas',    value: fichaSubmissions.length },
-            { section: 'Vitrine',           label: 'Tatuagens',           value: tattoos.length },
-            { section: 'Vitrine',           label: 'Disponíveis',         value: availTattoos },
-            { section: 'Vitrine',           label: 'Arquivadas',          value: archivedTattoos },
-            { section: 'Vitrine',           label: 'Estilos',             value: styleSet.size },
-            { section: 'Artistas',          label: 'Artistas',            value: artists.length },
-            { section: 'Merchs',            label: 'Loja',                value: merchs.length },
-          ];
-          return (
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 mb-6">
-              {cards.map(({ label, value }) => (
-                <div key={label} className="px-2.5 py-2.5 border border-white/10 bg-black/30 flex flex-col gap-0.5 min-w-0">
-                  <p className="font-display text-xl text-white leading-none">{value.toLocaleString('pt-BR')}</p>
-                  <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 leading-tight truncate">{label}</p>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
+          const analytics = getAnalytics();
+          const today = new Date().toISOString().slice(0, 10);
+          const todayViews = analytics.daily[today] ?? 0;
+          const uniqueSessions = analytics.sessions.length;
 
-        {/* ── Timeline SVG — fluxo de movimentações (últimas 12 semanas) ── */}
-        {(() => {
-          const W = 12; // semanas
-          const weeks = Array.from({ length: W }, (_, i) => {
-            const end = new Date();
-            end.setDate(end.getDate() - (W - 1 - i) * 7);
-            const start = new Date(end);
-            start.setDate(start.getDate() - 6);
-            return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+          // Build daily data for last 60 days
+          const D = 60;
+          const days = Array.from({ length: D }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (D - 1 - i));
+            const key = d.toISOString().slice(0, 10);
+            return {
+              key,
+              label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+              views: analytics.daily[key] ?? 0,
+            };
           });
 
-          const inRange = (date: string, s: string, e: string) => date >= s && date <= e;
+          const maxViews = Math.max(...days.map((d) => d.views), 1);
+          const topPages = getTopPages(5);
 
-          const data = weeks.map(({ start, end }) => ({
-            label: new Date(end + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-            fichas:    fichaSubmissions.filter((f) => inRange(f.submittedAt.slice(0, 10), start, end)).length,
-            tatuagens: tattoos.filter((t) => inRange((t.createdAt ?? '').slice(0, 10), start, end)).length,
-            artistas:  artists.filter((a) => inRange((a.createdAt ?? '').slice(0, 10), start, end)).length,
-          }));
-
-          const maxVal = Math.max(...data.flatMap((d) => [d.fichas, d.tatuagens, d.artistas]), 1);
-
-          const svgH = 80;
-          const svgW = 100; // viewBox units (percentual)
-          const pad = { l: 0, r: 0, t: 6, b: 18 };
+          const svgH = 60;
+          const svgW = 100;
+          const pad = { l: 0, r: 0, t: 6, b: 4 };
           const chartH = svgH - pad.t - pad.b;
           const chartW = svgW - pad.l - pad.r;
-          const step = chartW / (W - 1);
-
-          const toY = (v: number) => pad.t + chartH - (v / maxVal) * chartH;
+          const step = chartW / (D - 1);
+          const toY = (v: number) => pad.t + chartH - (v / maxViews) * chartH;
           const toX = (i: number) => pad.l + i * step;
+          const viewsPoints = days.map((d, i) => `${toX(i).toFixed(1)},${toY(d.views).toFixed(1)}`).join(' ');
 
-          const polyline = (key: 'fichas' | 'tatuagens' | 'artistas') =>
-            data.map((d, i) => `${toX(i).toFixed(1)},${toY(d[key]).toFixed(1)}`).join(' ');
-
-          const series = [
-            { key: 'fichas'    as const, color: 'rgb(var(--ink-500))', label: 'Fichas' },
-            { key: 'tatuagens' as const, color: '#ffffff44',            label: 'Tatuagens' },
-            { key: 'artistas'  as const, color: '#ffffff22',            label: 'Artistas' },
-          ];
+          // x-axis labels: show every 14 days
+          const labelIndices = days.reduce<number[]>((acc, _, i) => {
+            if (i === 0 || i === D - 1 || i % 14 === 0) acc.push(i);
+            return acc;
+          }, []);
 
           return (
-            <div className="mb-6">
-              <div className="flex items-center gap-4 mb-2">
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Fluxo de movimentações — últimas 12 semanas</p>
-                <div className="flex items-center gap-3 ml-auto">
-                  {series.map((s) => (
-                    <span key={s.key} className="flex items-center gap-1">
-                      <span className="inline-block w-3 h-0.5" style={{ backgroundColor: s.color }} />
-                      <span className="font-body text-[9px] text-gray-600">{s.label}</span>
-                    </span>
-                  ))}
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">
+                    Analytics
+                  </h2>
+                  <p className="font-body text-xs text-gray-500">Views do site público — últimos 60 dias.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { if (confirm('Resetar todos os dados de analytics?')) { resetAnalytics(); window.location.reload(); } }}
+                  className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-700 hover:text-red-400 transition-colors"
+                >
+                  ✕ resetar
+                </button>
+              </div>
+
+              {/* KPI cards */}
+              <div className="grid grid-cols-3 gap-px bg-white/10 mb-4">
+                {[
+                  { label: 'Views totais',   value: analytics.totalViews.toLocaleString('pt-BR') },
+                  { label: 'Sessões únicas', value: uniqueSessions.toLocaleString('pt-BR') },
+                  { label: 'Hoje',           value: todayViews.toLocaleString('pt-BR') },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-black/30 px-4 py-3">
+                    <p className="font-display text-3xl text-white leading-none mb-0.5">{value}</p>
+                    <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Views chart */}
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Views por dia</p>
+                  <span className="flex items-center gap-1 ml-auto">
+                    <span className="inline-block w-3 h-0.5" style={{ backgroundColor: 'rgb(var(--ink-500))' }} />
+                    <span className="font-body text-[9px] text-gray-600">Views</span>
+                  </span>
+                </div>
+                <div className="border border-white/10 bg-black/30 px-3 pt-2 pb-1">
+                  <svg viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
+                    {[0, 0.5, 1].map((f) => (
+                      <line key={f} x1={pad.l} y1={toY(maxViews * f).toFixed(1)} x2={svgW} y2={toY(maxViews * f).toFixed(1)} stroke="rgba(255,255,255,0.05)" strokeWidth="0.3" />
+                    ))}
+                    {/* Area fill */}
+                    <polygon
+                      points={`${toX(0).toFixed(1)},${(pad.t + chartH).toFixed(1)} ${viewsPoints} ${toX(D - 1).toFixed(1)},${(pad.t + chartH).toFixed(1)}`}
+                      fill="rgb(var(--ink-500))"
+                      fillOpacity="0.08"
+                    />
+                    <polyline points={viewsPoints} fill="none" stroke="rgb(var(--ink-500))" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />
+                    {/* Dots for days with views */}
+                    {days.map((d, i) => d.views > 0 && (
+                      <circle key={i} cx={toX(i).toFixed(1)} cy={toY(d.views).toFixed(1)} r="0.7" fill="rgb(var(--ink-500))" />
+                    ))}
+                  </svg>
+                  {/* x-axis labels as HTML for readability */}
+                  <div className="relative h-5 mt-1">
+                    {labelIndices.map((i) => (
+                      <span
+                        key={i}
+                        className="absolute font-mono text-[9px] text-white/50 -translate-x-1/2 select-none"
+                        style={{ left: `${(i / (D - 1)) * 100}%` }}
+                      >
+                        {days[i].label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="border border-white/10 bg-black/30 px-3 pt-2 pb-1">
-                <svg viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="none" className="w-full" style={{ height: 90 }}>
-                  {/* grid lines */}
-                  {[0, 0.5, 1].map((f) => (
-                    <line
-                      key={f}
-                      x1={pad.l} y1={toY(maxVal * f).toFixed(1)}
-                      x2={svgW - pad.r} y2={toY(maxVal * f).toFixed(1)}
-                      stroke="rgba(255,255,255,0.05)" strokeWidth="0.3"
-                    />
-                  ))}
-                  {/* series */}
-                  {series.map((s) => (
-                    <polyline
-                      key={s.key}
-                      points={polyline(s.key)}
-                      fill="none"
-                      stroke={s.color}
-                      strokeWidth={s.key === 'fichas' ? '1.2' : '0.6'}
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                  ))}
-                  {/* dots on fichas line */}
-                  {data.map((d, i) => (
-                    <circle
-                      key={i}
-                      cx={toX(i).toFixed(1)} cy={toY(d.fichas).toFixed(1)}
-                      r="0.8" fill="rgb(var(--ink-500))"
-                    />
-                  ))}
-                  {/* x-axis labels */}
-                  {data.map((d, i) => (
-                    (i % 2 === 0 || i === W - 1) && (
-                      <text
-                        key={i}
-                        x={toX(i).toFixed(1)} y={svgH - 2}
-                        textAnchor="middle"
-                        fontSize="4"
-                        fill="rgba(255,255,255,0.2)"
-                        fontFamily="monospace"
-                      >{d.label}</text>
-                    )
-                  ))}
-                </svg>
-              </div>
-            </div>
-          );
-        })()}
 
-        {/* ── Fichas por artista ── */}
-        {fichaSubmissions.length > 0 && (() => {
-          const byArtist: Record<string, number> = {};
-          fichaSubmissions.forEach((f) => {
-            const names: string[] = f.tatuadoresSelecionados?.length
-              ? f.tatuadoresSelecionados
-              : f.outroTatuador
-              ? [f.outroTatuador]
-              : ['Não informado'];
-            names.forEach((n) => { byArtist[n] = (byArtist[n] ?? 0) + 1; });
-          });
-          const sorted = Object.entries(byArtist).sort((a, b) => b[1] - a[1]);
-          const maxVal = sorted[0]?.[1] ?? 1;
-          return (
-            <div className="mb-4">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Fichas por artista</p>
-              <div className="flex flex-col gap-1.5">
-                {sorted.map(([name, count]) => (
-                  <div key={name} className="flex items-center gap-3">
-                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{name}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-500"
-                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }}
-                      />
-                    </div>
-                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
+              {/* Top pages */}
+              {topPages.length > 0 && (
+                <div>
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Páginas mais visitadas</p>
+                  <div className="flex flex-col gap-1">
+                    {topPages.map(({ path, views }) => (
+                      <div key={path} className="flex items-center gap-3">
+                        <span className="font-mono text-xs text-gray-500 truncate flex-1">{path || '/'}</span>
+                        <div className="w-24 h-1 bg-white/5 overflow-hidden shrink-0">
+                          <div className="h-full" style={{ width: `${(views / (topPages[0]?.views ?? 1)) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
+                        </div>
+                        <span className="font-body text-xs text-gray-600 w-8 text-right shrink-0">{views}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+
+              {analytics.totalViews === 0 && (
+                <p className="font-body text-xs text-gray-700 italic">Nenhuma visita registrada ainda. As visitas das páginas públicas são contadas automaticamente.</p>
+              )}
+            </>
           );
         })()}
-
-        {/* ── Tatuagens por estilo ── */}
-        {tattoos.length > 0 && (() => {
-          const byStyle: Record<string, number> = {};
-          tattoos.forEach((t) => { if (t.style) byStyle[t.style] = (byStyle[t.style] ?? 0) + 1; });
-          const sorted = Object.entries(byStyle).sort((a, b) => b[1] - a[1]);
-          const maxVal = sorted[0]?.[1] ?? 1;
-          return (
-            <div className="mb-4">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Tatuagens por estilo</p>
-              <div className="flex flex-col gap-1.5">
-                {sorted.map(([style, count]) => (
-                  <div key={style} className="flex items-center gap-3">
-                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{style}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-500"
-                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgba(255,255,255,0.25)' }}
-                      />
-                    </div>
-                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-        {fichaSubmissions.length === 0 && tattoos.length === 0 && (
-          <p className="font-body text-xs text-gray-700 italic">Nenhuma movimentação registrada ainda.</p>
-        )}
       </section>
-      </div>{/* fim mt-4 estatísticas */}
+        </div>{/* fim col direita */}
+
+      </div>{/* fim grid 2-col */}
     </div>
   );
 }

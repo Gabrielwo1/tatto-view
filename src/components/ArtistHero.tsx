@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
+import { toSlug } from '../utils';
 
 // Smooth multi-stop gradients — avoids banding artifacts
 const GRADIENT_DARK =
@@ -66,7 +67,7 @@ export default function ArtistHero() {
             }
             onMouseEnter={() => !isMobile && setHoveredId(artist.id)}
             onMouseLeave={() => !isMobile && setHoveredId(null)}
-            onClick={() => navigate(`/artistas/${artist.id}`)}
+            onClick={() => navigate(`/artistas/${toSlug(artist.name)}`)}
           >
             {/* Background image — GPU-composited */}
             <img
@@ -142,32 +143,34 @@ export default function ArtistHero() {
               className="absolute left-6 right-6"
               style={{ bottom: isMobile ? '20px' : '40px' }}
             >
-              {/* Specialties */}
-              <div
-                className="flex flex-wrap gap-2 mb-3"
-                style={{
-                  opacity: active ? 1 : 0,
-                  transform: active ? 'translateY(0)' : 'translateY(10px)',
-                  transition: 'opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s',
-                }}
-              >
-                {artist.specialties.map((s) => (
-                  <span
-                    key={s}
-                    className="text-xs font-body font-semibold tracking-widest uppercase px-2 py-1 border select-none"
-                    style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }}
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
+              {/* Specialties — desktop only */}
+              {!isMobile && (
+                <div
+                  className="flex flex-wrap gap-2 mb-3"
+                  style={{
+                    opacity: isHovered ? 1 : 0,
+                    transform: isHovered ? 'translateY(0)' : 'translateY(10px)',
+                    transition: 'opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s',
+                  }}
+                >
+                  {artist.specialties.map((s) => (
+                    <span
+                      key={s}
+                      className="text-xs font-body font-semibold tracking-widest uppercase px-2 py-1 border select-none"
+                      style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.3)' }}
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Artist name */}
               <h2
                 className="font-display uppercase leading-none select-none whitespace-nowrap overflow-hidden text-ellipsis"
                 style={{
                   fontSize: isMobile
-                    ? '2.2rem'
+                    ? '1.5rem'
                     : isHovered
                     ? 'clamp(2.5rem, 4vw, 4.5rem)'
                     : 'clamp(1rem, 2vw, 2rem)',
@@ -189,10 +192,10 @@ export default function ArtistHero() {
                   transition: 'opacity 0.4s ease 0.15s, transform 0.4s ease 0.15s',
                 }}
               >
-                <span className="font-body font-semibold text-xs tracking-widest uppercase text-white select-none">
+                <span className="font-body font-semibold text-xs tracking-widest uppercase text-ink-400 select-none">
                   Ver trabalhos
                 </span>
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="white" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 flex-shrink-0 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </div>

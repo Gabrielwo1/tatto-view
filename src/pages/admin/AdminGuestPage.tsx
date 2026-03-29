@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import type { GuestContent } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
 import { supabase } from '../../lib/supabase';
+import GeneralLightbox from '../../components/GeneralLightbox';
 
 /* ── small reusable field components ─────────────────────────────────────── */
 function Field({
@@ -64,6 +65,7 @@ export default function AdminGuestPage() {
 
   const [draft, setDraft] = useState<GuestContent>(guestContent);
   const [saved, setSaved] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   function patch<K extends keyof GuestContent>(section: K, updates: Partial<GuestContent[K]>) {
     setDraft((prev) => ({
@@ -201,6 +203,12 @@ export default function AdminGuestPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl">
+      {selectedImage && (
+        <GeneralLightbox 
+          imageUrl={selectedImage} 
+          onClose={() => setSelectedImage(null)} 
+        />
+      )}
       {/* Header */}
       <div className="mb-8 flex items-end justify-between">
         <div>
@@ -305,8 +313,13 @@ export default function AdminGuestPage() {
             </label>
             <div className="flex gap-3 items-start">
               {draft.showcase?.heroImage ? (
-                <div className="relative w-28 h-28 shrink-0">
-                  <img src={draft.showcase.heroImage} alt="Hero" className="w-full h-full object-cover" />
+                <div className="relative w-28 h-28 shrink-0 group">
+                  <img 
+                    src={draft.showcase.heroImage} 
+                    alt="Hero" 
+                    className="w-full h-full object-cover cursor-zoom-in" 
+                    onClick={() => setSelectedImage(draft.showcase.heroImage!)}
+                  />
                   <button type="button"
                     onClick={() => setDraft((p) => ({ ...p, showcase: { ...p.showcase, heroImage: '' } }))}
                     className="absolute top-1 right-1 bg-black/70 text-white w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
@@ -356,10 +369,15 @@ export default function AdminGuestPage() {
               {([0,1,2,3] as const).map((idx) => {
                 const img = draft.showcase?.galleryImages?.[idx] ?? '';
                 return (
-                  <div key={idx} className="relative aspect-square">
+                  <div key={idx} className="relative aspect-square group">
                     {img ? (
                       <>
-                        <img src={img} alt={`Galeria ${idx+1}`} className="w-full h-full object-cover" />
+                        <img 
+                          src={img} 
+                          alt={`Galeria ${idx+1}`} 
+                          className="w-full h-full object-cover cursor-zoom-in" 
+                          onClick={() => setSelectedImage(img)}
+                        />
                         <button type="button" onClick={() => clearShowcaseGallery(idx)}
                           className="absolute top-1 right-1 bg-black/70 text-white w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors">✕</button>
                       </>
@@ -614,8 +632,13 @@ export default function AdminGuestPage() {
             </label>
             <div className="flex gap-3 items-start">
               {draft.nextGuest?.guestImage ? (
-                <div className="relative w-28 h-28 shrink-0">
-                  <img src={draft.nextGuest.guestImage} alt="Guest" className="w-full h-full object-cover" />
+                <div className="relative w-28 h-28 shrink-0 group">
+                  <img 
+                    src={draft.nextGuest.guestImage} 
+                    alt="Guest" 
+                    className="w-full h-full object-cover cursor-zoom-in" 
+                    onClick={() => setSelectedImage(draft.nextGuest.guestImage!)}
+                  />
                   <button
                     type="button"
                     onClick={() => setDraft((p) => ({ ...p, nextGuest: { ...p.nextGuest, guestImage: '' } }))}
@@ -673,10 +696,15 @@ export default function AdminGuestPage() {
             </label>
             <div className="grid grid-cols-4 gap-2">
               {(draft.nextGuest?.portfolioImages ?? ['','','','']).map((img, idx) => (
-                <div key={idx} className="relative aspect-square">
+                <div key={idx} className="relative aspect-square group">
                   {img ? (
                     <>
-                      <img src={img} alt={`Trabalho ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img 
+                        src={img} 
+                        alt={`Trabalho ${idx + 1}`} 
+                        className="w-full h-full object-cover cursor-zoom-in" 
+                        onClick={() => setSelectedImage(img)}
+                      />
                       <button
                         type="button"
                         onClick={() => clearPortfolioImage(idx)}

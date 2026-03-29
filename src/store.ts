@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch, TattooSession, TattooRow, ArtistRow, MerchRow } from './types';
+import type { Tattoo, Artist, Merch, TattooSession, ShopContent, TatuadoPost, TattooRow, ArtistRow, MerchRow } from './types';
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
@@ -118,6 +118,17 @@ const defaultEventsContent: EventsContent = {
       ctaUrl: '',
     },
   ],
+};
+
+// ── Tatuados Content ─────────────────────────────────────────────────────────
+export interface TatuadosContent {
+  title: string;
+  subtitle: string;
+}
+
+const defaultTatuadosContent: TatuadosContent = {
+  title: 'THE ARCHIVE',
+  subtitle: 'A curated selection of permanence. Our portfolio represents the intersection of anatomical precision and avant-garde artistry.',
 };
 
 // ── Sobre Nós Content ────────────────────────────────────────────────────────
@@ -552,6 +563,22 @@ const seedTattoos: Tattoo[] = [
   { id: 'tattoo-12', title: 'Bússola Geométrica',       description: 'Bússola com design geométrico e detalhes intrincados.', imageUrl: 'https://picsum.photos/seed/tattoo12/600/400', style: 'Geométrico',     price: 'R$ 650',   artistId: null, status: 'archived',  createdAt: new Date('2023-10-20').toISOString() },
 ];
 
+// ── Shop Content ─────────────────────────────────────────────────────────────
+export const defaultShopContent: ShopContent = {
+  hero: {
+    title: 'INK MANIFESTO.',
+    subtitle: 'HIGH CONTRAST BRUTALISM FOR THE SOUL.',
+  },
+  sessionsTagline: 'TATTOO SESSIONS',
+  sessionsAvailableLabel: 'AVAILABLE NOW',
+  apparelTagline: 'APPAREL',
+  paymentMethods: [
+    { label: 'PIX',    sub: 'INSTANT 5% OFF' },
+    { label: 'CREDIT', sub: 'UP TO 12X' },
+    { label: 'CRYPTO', sub: 'BTC/ETH' },
+  ],
+};
+
 // ── Shop Sessions ────────────────────────────────────────────────────────────
 const defaultSessions: TattooSession[] = [
   {
@@ -589,7 +616,11 @@ interface AppState {
   addSession: (data: Omit<TattooSession, 'id'>) => void;
   updateSession: (id: string, updates: Partial<TattooSession>) => void;
   deleteSession: (id: string) => void;
+  shopContent: ShopContent;
+  setShopContent: (content: ShopContent) => void;
   isAdmin: boolean;
+  /** True once the initial auth check (initAuth) has completed. */
+  authChecked: boolean;
   /** True when the logged-in user is a merch manager (not admin or artist). */
   isMerchManager: boolean;
   /** True once Supabase data has been loaded (or if Supabase is not configured). */
@@ -623,6 +654,14 @@ interface AppState {
   /** Landing page content editable by admin */
   landingContent: LandingContent;
   setLandingContent: (content: LandingContent) => void;
+  /** Tatuados archive page content editable by admin */
+  tatuadosContent: TatuadosContent;
+  setTatuadosContent: (content: TatuadosContent) => void;
+  /** Tatuados posts — independent photo posts linked to artists */
+  tatuadoPosts: TatuadoPost[];
+  addTatuadoPost: (post: TatuadoPost) => void;
+  updateTatuadoPost: (post: TatuadoPost) => void;
+  deleteTatuadoPost: (id: string) => void;
   /** Sobre Nós page content editable by admin */
   sobreNosContent: SobreNosContent;
   setSobreNosContent: (content: SobreNosContent) => void;
@@ -644,6 +683,25 @@ interface AppState {
   isArtist: boolean;
   /** The artist row id linked to the logged-in artist user. null when admin. */
   currentArtistId: string | null;
+  /** Email of the currently logged-in user. null when not logged in. */
+  currentUserEmail: string | null;
+  // ── Public user (customer) auth ───────────────────────────────────────
+  publicUser: { id: string; email: string; name: string } | null;
+  publicLogin: (email: string, password: string) => Promise<'customer' | 'admin' | 'artist' | 'merch_manager' | false>;
+  publicRegister: (email: string, password: string, name: string) => Promise<boolean>;
+  publicLogout: () => Promise<void>;
+  // ── Wishlist ──────────────────────────────────────────────────────────
+  wishlist: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  loadWishlist: () => Promise<void>;
+  addToWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  removeFromWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Cart ──────────────────────────────────────────────────────────────
+  cart: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  loadCart: () => Promise<void>;
+  addToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  moveToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Admin auth ────────────────────────────────────────────────────────
   /** Check existing Supabase session on app load. */
   initAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
@@ -695,10 +753,21 @@ export const useStore = create<AppState>()(
           return { sessions };
         });
       },
+      shopContent: defaultShopContent,
+      setShopContent: (content) => {
+        set({ shopContent: content });
+        supabase?.from('site_config').upsert({ key: 'shopContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setShopContent:', error); });
+      },
+      publicUser: null,
+      wishlist: [],
+      cart: [],
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
       currentArtistId: null,
+      currentUserEmail: null,
+      authChecked: false,
       dataLoaded: false,
       themeId: null,
       setTheme: (id) => {
@@ -754,6 +823,31 @@ export const useStore = create<AppState>()(
         set({ landingContent: content });
         supabase?.from('site_config').upsert({ key: 'landingContent', value: content, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLandingContent:', error); });
+      },
+      tatuadosContent: defaultTatuadosContent,
+      setTatuadosContent: (content) => {
+        set({ tatuadosContent: content });
+        supabase?.from('site_config').upsert({ key: 'tatuadosContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setTatuadosContent:', error); });
+      },
+      tatuadoPosts: [],
+      addTatuadoPost: (post) => {
+        const posts = [...get().tatuadoPosts, post];
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] addTatuadoPost:', error); });
+      },
+      updateTatuadoPost: (post) => {
+        const posts = get().tatuadoPosts.map((p) => (p.id === post.id ? post : p));
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] updateTatuadoPost:', error); });
+      },
+      deleteTatuadoPost: (id) => {
+        const posts = get().tatuadoPosts.filter((p) => p.id !== id);
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] deleteTatuadoPost:', error); });
       },
       sobreNosContent: defaultSobreNosContent,
       setSobreNosContent: (content) => {
@@ -841,6 +935,8 @@ export const useStore = create<AppState>()(
             ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
+            ...(config.tatuadosContent  ? { tatuadosContent:  config.tatuadosContent  as TatuadosContent }               : {}),
+            ...(config.tatuadoPosts     ? { tatuadoPosts:     config.tatuadoPosts     as TatuadoPost[] }                  : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent ? (() => {
               const stored = config.guestContent as GuestContent;
@@ -884,6 +980,7 @@ export const useStore = create<AppState>()(
             ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             ...(config.customStyles !== undefined ? { customStyles: config.customStyles as string[] } : {}),
             ...(config.sessions !== undefined ? { sessions: config.sessions as TattooSession[] } : {}),
+            ...(config.shopContent !== undefined ? { shopContent: { ...defaultShopContent, ...(config.shopContent as ShopContent) } } : {}),
             dataLoaded: true,
           });
         } catch (err) {
@@ -892,23 +989,126 @@ export const useStore = create<AppState>()(
         }
       },
 
-      // ── Auth ─────────────────────────────────────────────────────────────
+      // ── Public user auth ─────────────────────────────────────────────────
+      publicLogin: async (email, password) => {
+        if (!supabase) return false;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) return false;
+        // Check role — artists/admins get redirected to admin panel
+        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id').eq('id', data.user.id).single();
+        if (profile) {
+          if (profile.role === 'admin') {
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'admin';
+          } else if (profile.role === 'artist') {
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'artist';
+          } else if (profile.role === 'merch_manager') {
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'merch_manager';
+          }
+        }
+        // Regular customer
+        const name = data.user.user_metadata?.name ?? email.split('@')[0];
+        set({ publicUser: { id: data.user.id, email: data.user.email!, name } });
+        get().loadWishlist();
+        get().loadCart();
+        return 'customer';
+      },
+
+      publicRegister: async (email, password, name) => {
+        if (!supabase) return false;
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { name } },
+        });
+        if (error || !data.user) return false;
+        // Insert customer profile
+        await supabase.from('user_profiles').upsert({ id: data.user.id, role: 'customer', artist_id: null });
+        return true;
+      },
+
+      publicLogout: async () => {
+        await supabase?.auth.signOut();
+        set({ publicUser: null, wishlist: [], cart: [] });
+      },
+
+      // ── Wishlist ─────────────────────────────────────────────────────────
+      loadWishlist: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('wishlists').select('item_type, item_id').eq('user_id', publicUser.id);
+        if (data) set({ wishlist: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+      },
+
+      addToWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: [...s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)), { itemType, itemId }] }));
+        await supabase.from('wishlists').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+      },
+
+      removeFromWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)) }));
+        await supabase.from('wishlists').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+      },
+
+      // ── Cart ─────────────────────────────────────────────────────────────
+      loadCart: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('cart_items').select('item_type, item_id').eq('user_id', publicUser.id);
+        if (data) set({ cart: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+      },
+
+      addToCart: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { itemType, itemId }] }));
+        await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+      },
+
+      removeFromCart: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)) }));
+        await supabase.from('cart_items').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+      },
+
+      moveToCart: async (itemType, itemId) => {
+        await get().addToCart(itemType, itemId);
+        await get().removeFromWishlist(itemType, itemId);
+      },
+
+      // ── Admin Auth ───────────────────────────────────────────────────────
       initAuth: async () => {
-        if (!supabase) return;
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) return;
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role, artist_id')
-          .eq('id', session.user.id)
-          .single();
-        if (!profile) return;
-        if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
-        } else if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
-        } else if (profile.role === 'merch_manager') {
-          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+        if (!supabase) { set({ authChecked: true }); return; }
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.user) { set({ authChecked: true }); return; }
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('role, artist_id')
+            .eq('id', session.user.id)
+            .single();
+          if (!profile) { set({ authChecked: true }); return; }
+          const email = session.user.email ?? null;
+          if (profile.role === 'admin') {
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: email });
+          } else if (profile.role === 'artist') {
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email });
+          } else if (profile.role === 'merch_manager') {
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email });
+          } else if (profile.role === 'customer') {
+            const name = session.user.user_metadata?.name ?? (email?.split('@')[0] ?? 'Cliente');
+            set({ publicUser: { id: session.user.id, email: email!, name } });
+            get().loadWishlist();
+            get().loadCart();
+          }
+        } finally {
+          set({ authChecked: true });
         }
       },
 
@@ -922,12 +1122,13 @@ export const useStore = create<AppState>()(
           .eq('id', data.user.id)
           .single();
         if (!profile) return false;
+        const userEmail = data.user.email ?? null;
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'merch_manager') {
@@ -939,7 +1140,7 @@ export const useStore = create<AppState>()(
 
       logout: async () => {
         await supabase?.auth.signOut();
-        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null });
+        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: null });
       },
 
       // ── Tattoos ──────────────────────────────────────────────────────────
@@ -1074,6 +1275,7 @@ export const useStore = create<AppState>()(
         artists: state.artists,
         merchs: state.merchs,
         sessions: state.sessions,
+        shopContent: state.shopContent,
         fichaSubmissions: state.fichaSubmissions,
         fichaConfig: state.fichaConfig,
         eventsContent: state.eventsContent,
