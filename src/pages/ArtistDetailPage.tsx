@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
 import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image-more';
 
 export default function ArtistDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,12 +37,11 @@ export default function ArtistDetailPage() {
     if (!printRef.current) return;
     try {
       setIsPrinting(true);
-      const canvas = await html2canvas(printRef.current, {
-        useCORS: true,
-        backgroundColor: '#0a0a0a',
-        scale: 2
+      const dataUrl = await domtoimage.toPng(printRef.current, {
+        bgcolor: '#0a0a0a',
+        scale: 2,
+        style: { margin: '0', padding: '16px' },
       });
-      const dataUrl = canvas.toDataURL('image/png', 0.9);
       setPrintImage(dataUrl);
     } catch (err) {
       console.error('Falha ao gerar o print', err);
