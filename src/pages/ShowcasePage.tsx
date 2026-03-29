@@ -4,33 +4,7 @@ import TattooCard from '../components/TattooCard';
 import ArtistHero from '../components/ArtistHero';
 import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
 import { TATTOO_STYLES } from '../types';
-import type { Tattoo } from '../types';
-
-// Intercala artes de artistas diferentes para que nunca dois do mesmo
-// artista apareçam em sequência.
-function interleaveByArtist(tattoos: Tattoo[]): Tattoo[] {
-  const groupMap = new Map<string, Tattoo[]>();
-  for (const t of tattoos) {
-    const key = t.artistId ?? '__studio__';
-    if (!groupMap.has(key)) groupMap.set(key, []);
-    groupMap.get(key)!.push(t);
-  }
-
-  const groups = Array.from(groupMap.values());
-  const result: Tattoo[] = [];
-  let lastKey: string | null = null;
-
-  while (groups.some((g) => g.length > 0)) {
-    groups.sort((a, b) => b.length - a.length);
-    const nonLast = groups.find((g) => g.length > 0 && (g[0].artistId ?? '__studio__') !== lastKey);
-    const picked = nonLast ?? groups.find((g) => g.length > 0)!;
-    const item = picked.shift()!;
-    result.push(item);
-    lastKey = item.artistId ?? '__studio__';
-  }
-
-  return result;
-}
+import { interleaveByArtist } from '../utils';
 
 /* ── Main page ─────────────────────────────────────────────────────────────── */
 export default function ShowcasePage() {

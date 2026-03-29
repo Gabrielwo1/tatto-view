@@ -1,30 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
-import { TATTOO_STYLES, type Tattoo } from '../types';
-import { toSlug } from '../utils';
+import { TATTOO_STYLES } from '../types';
+import { toSlug, interleaveByArtist } from '../utils';
 
-/* ─── interleave by artist (same algorithm as ShowcasePage) ─── */
-function interleaveByArtist(tattoos: Tattoo[]): Tattoo[] {
-  const groupMap = new Map<string, Tattoo[]>();
-  for (const t of tattoos) {
-    const key = t.artistId ?? '__studio__';
-    if (!groupMap.has(key)) groupMap.set(key, []);
-    groupMap.get(key)!.push(t);
-  }
-  const groups = Array.from(groupMap.values());
-  const result: Tattoo[] = [];
-  let lastKey: string | null = null;
-  while (groups.some((g) => g.length > 0)) {
-    groups.sort((a, b) => b.length - a.length);
-    const nonLast = groups.find((g) => g.length > 0 && (g[0].artistId ?? '__studio__') !== lastKey);
-    const picked = nonLast ?? groups.find((g) => g.length > 0)!;
-    const item = picked.shift()!;
-    result.push(item);
-    lastKey = item.artistId ?? '__studio__';
-  }
-  return result;
-}
 
 /* ─── tiny hook: element is visible ─── */
 function useVisible(threshold = 0.15) {
