@@ -41,6 +41,40 @@ export interface TattooSession {
   bookingLink: string;
 }
 
+// Supabase DB row shapes (snake_case) — used in store converters
+export interface TattooRow {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string;
+  style: string;
+  price: string | null;
+  artist_id: string | null;
+  status: 'available' | 'archived';
+  created_at: string;
+}
+
+export interface ArtistRow {
+  id: string;
+  name: string;
+  bio: string | null;
+  photo_url: string;
+  specialties: string[] | null;
+  instagram: string | null;
+  whatsapp: string | null;
+  created_at: string;
+}
+
+export interface MerchRow {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  image_url: string;
+  link: string | null;
+  created_at: string;
+}
+
 export const TATTOO_STYLES = [
   'Realismo',
   'Blackwork',

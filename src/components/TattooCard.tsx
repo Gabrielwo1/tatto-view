@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
 
@@ -8,7 +9,7 @@ interface TattooCardProps {
   onClick?: () => void;
 }
 
-export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
+function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
   const href = artist ? `/artistas/${artist.id}` : '/artistas';
 
   const inner = (
@@ -57,3 +58,5 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
     </Link>
   );
 }
+
+export default memo(TattooCard);

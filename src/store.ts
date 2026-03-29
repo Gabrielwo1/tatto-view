@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch, TattooSession } from './types';
+import type { Tattoo, Artist, Merch, TattooSession, TattooRow, ArtistRow, MerchRow } from './types';
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
@@ -490,8 +490,7 @@ const defaultFichaConfig: FichaConfig = {
 };
 
 // ── Row → App type converters (snake_case → camelCase) ──────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toTattoo(r: any): Tattoo {
+function toTattoo(r: TattooRow): Tattoo {
   return {
     id: r.id,
     title: r.title,
@@ -504,8 +503,7 @@ function toTattoo(r: any): Tattoo {
     createdAt: r.created_at,
   };
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toArtist(r: any): Artist {
+function toArtist(r: ArtistRow): Artist {
   return {
     id: r.id,
     name: r.name,
@@ -517,8 +515,7 @@ function toArtist(r: any): Artist {
     createdAt: r.created_at,
   };
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toMerch(r: any): Merch {
+function toMerch(r: MerchRow): Merch {
   return {
     id: r.id,
     name: r.name,

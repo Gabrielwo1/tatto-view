@@ -1,8 +1,9 @@
-import { useState, useRef, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage } from '../../lib/uploadImage';
+import { useImageCrop } from '../../hooks/useImageCrop';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -15,8 +16,6 @@ export default function AdminArtistForm() {
   const updateArtist = useStore((s) => s.updateArtist);
 
   const existing = id ? artists.find((a) => a.id === id) : null;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [cropSrc, setCropSrc] = useState('');
   const [uploading, setUploading] = useState(false);
 
   const [form, setForm] = useState({
@@ -28,28 +27,11 @@ export default function AdminArtistForm() {
     whatsapp: existing?.whatsapp ?? '',
   });
 
+  const { cropSrc, fileInputRef, handleFileChange, handleCropConfirm, handleCropCancel, openFilePicker } =
+    useImageCrop((dataUrl) => setForm((f) => ({ ...f, photoUrl: dataUrl })));
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  }
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => { setCropSrc(ev.target?.result as string); };
-    reader.readAsDataURL(file);
-  }
-
-  function onCropConfirm(dataUrl: string) {
-    setForm((f) => ({ ...f, photoUrl: dataUrl }));
-    setCropSrc('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }
-
-  function onCropCancel() {
-    if (!form.photoUrl && cropSrc) setForm((f) => ({ ...f, photoUrl: cropSrc }));
-    setCropSrc('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -120,19 +102,13 @@ export default function AdminArtistForm() {
               <label className={labelCls}>Foto do Artista</label>
 
               {cropSrc ? (
-                <ImageCropper src={cropSrc} onConfirm={onCropConfirm} onCancel={onCropCancel} />
+                <ImageCropper src={cropSrc} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />
               ) : (
                 <>
                   {!form.photoUrl.startsWith('data:') && (
                     <div className="flex gap-2">
                       <input name="photoUrl" value={form.photoUrl} onChange={handleChange} className={inputCls}
                         placeholder="https://..." />
-                      {form.photoUrl && (
-                        <button type="button" onClick={() => setCropSrc(form.photoUrl)}
-                          className="flex-shrink-0 px-3 border border-amber-400/40 hover:border-amber-400 text-amber-400/60 hover:text-amber-400 font-body text-[10px] tracking-widest uppercase transition-colors whitespace-nowrap">
-                          Cortar
-                        </button>
-                      )}
                     </div>
                   )}
 
@@ -144,19 +120,19 @@ export default function AdminArtistForm() {
                         className="w-full aspect-square object-cover border border-white/10"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       <button type="button"
-                        onClick={() => { setForm((f) => ({ ...f, photoUrl: '' })); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                        onClick={() => setForm((f) => ({ ...f, photoUrl: '' }))}
                         className="absolute top-2 right-2 bg-black/80 border border-white/20 text-white/50 hover:text-white p-1 transition-colors">
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
-                      <button type="button" onClick={() => fileInputRef.current?.click()}
+                      <button type="button" onClick={openFilePicker}
                         className="mt-2 w-full py-2 border border-dashed border-white/15 hover:border-white/40 text-gray-600 hover:text-gray-400 font-body text-[10px] tracking-widest uppercase transition-colors">
                         Trocar foto
                       </button>
                     </div>
                   ) : (
-                    <button type="button" onClick={() => fileInputRef.current?.click()}
+                    <button type="button" onClick={openFilePicker}
                       className="w-full border border-dashed border-white/20 hover:border-amber-400/50 py-8 flex flex-col items-center gap-2 text-gray-500 hover:text-amber-400/80 transition-colors">
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
