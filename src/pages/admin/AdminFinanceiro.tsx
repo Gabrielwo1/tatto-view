@@ -256,7 +256,6 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
   const updateExpense = useStore((s) => s.updateExpense);
   const deleteExpense = useStore((s) => s.deleteExpense);
   const currentArtistId = useStore((s) => s.currentArtistId);
-  const currentUserEmail = useStore((s) => s.currentUserEmail);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
 
