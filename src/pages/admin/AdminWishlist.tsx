@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { supabase } from '../../lib/supabase';
-import { toSlug } from '../../utils';
 
 interface WishlistRow {
   item_type: 'tattoo' | 'merch';
@@ -61,7 +60,6 @@ export default function AdminWishlist() {
   );
 
   const totalWishlists = rows.length;
-  const uniqueUsers = new Set(rows.map((r) => r.item_id + r.item_type)).size; // proxy
 
   const maxTattooCount = topTattoos[0]?.count ?? 1;
   const maxMerchCount  = topMerchs[0]?.count  ?? 1;
@@ -164,7 +162,7 @@ export default function AdminWishlist() {
                     <div key={merch.id}
                       className="flex items-center gap-3 bg-zinc-900 border border-white/[0.07] px-3 py-2">
                       <img
-                        src={merch.images?.[0] ?? ''}
+                        src={merch.imageUrl ?? ''}
                         alt={merch.name}
                         className="w-10 h-10 object-cover flex-shrink-0 bg-zinc-800"
                         onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${merch.id}/80/80`; }}
