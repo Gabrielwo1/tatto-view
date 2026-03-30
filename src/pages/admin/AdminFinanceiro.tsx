@@ -723,10 +723,10 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
         </p>
         <div className="flex items-center gap-4 mb-4">
           <span className="flex items-center gap-1.5 font-body text-[10px] text-gray-500">
-            <span className="w-3 h-3 bg-green-500 inline-block" /> Receitas
+            <span className="w-3 h-3 inline-block" style={{ backgroundColor: 'rgb(var(--ink2-500))' }} /> Receitas
           </span>
           <span className="flex items-center gap-1.5 font-body text-[10px] text-gray-500">
-            <span className="w-3 h-3 bg-ink-500/80 inline-block" /> Despesas
+            <span className="w-3 h-3 inline-block" style={{ backgroundColor: 'rgb(var(--ink-500))' }} /> Despesas
           </span>
         </div>
         <div className="flex items-end gap-1 h-40">
@@ -734,17 +734,15 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
             <div key={m.key} className="flex-1 flex flex-col items-center gap-0.5 group relative">
               {(m.totalInc > 0 || m.totalExp > 0) && (
                 <div className="absolute bottom-7 left-1/2 -translate-x-1/2 bg-zinc-800 border border-white/10 px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 text-left">
-                  <p className="font-body text-[10px] text-green-400">+{centsToBRL(m.totalInc)}</p>
-                  <p className="font-body text-[10px] text-ink-400">-{centsToBRL(m.totalExp)}</p>
+                  <p className="font-body text-[10px]" style={{ color: 'rgb(var(--ink2-500))' }}>+{centsToBRL(m.totalInc)}</p>
+                  <p className="font-body text-[10px]" style={{ color: 'rgb(var(--ink-500))' }}>-{centsToBRL(m.totalExp)}</p>
                 </div>
               )}
               <div className="w-full flex gap-0.5 items-end" style={{ height: '128px' }}>
-                {/* Income bar */}
-                <div className="flex-1 bg-green-500/80 hover:bg-green-500 transition-colors"
-                  style={{ height: `${(m.totalInc / maxMonthly) * 100}%`, minHeight: m.totalInc > 0 ? '3px' : '0' }} />
-                {/* Expense bar */}
-                <div className="flex-1 bg-ink-500/80 hover:bg-ink-500 transition-colors"
-                  style={{ height: `${(m.totalExp / maxMonthly) * 100}%`, minHeight: m.totalExp > 0 ? '3px' : '0' }} />
+                <div className="flex-1 transition-opacity hover:opacity-100 opacity-80"
+                  style={{ height: `${(m.totalInc / maxMonthly) * 100}%`, minHeight: m.totalInc > 0 ? '3px' : '0', backgroundColor: 'rgb(var(--ink2-500))' }} />
+                <div className="flex-1 transition-opacity hover:opacity-100 opacity-80"
+                  style={{ height: `${(m.totalExp / maxMonthly) * 100}%`, minHeight: m.totalExp > 0 ? '3px' : '0', backgroundColor: 'rgb(var(--ink-500))' }} />
               </div>
               <span className="font-body text-[9px] text-gray-600 tracking-wide mt-1">{m.label}</span>
             </div>
@@ -768,16 +766,16 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
                     <div className="flex items-center gap-2">
                       <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">Receitas</span>
                       <div className="flex-1 h-2 bg-zinc-800 overflow-hidden">
-                        <div className="h-full bg-green-500 transition-all duration-500" style={{ width: `${(a.income / maxVal) * 100}%` }} />
+                        <div className="h-full transition-all duration-500" style={{ width: `${(a.income / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink2-500))' }} />
                       </div>
-                      <span className="font-body text-xs text-green-400 w-24 text-right shrink-0">{centsToBRL(a.income)}</span>
+                      <span className="font-body text-xs w-24 text-right shrink-0" style={{ color: 'rgb(var(--ink2-500))' }}>{centsToBRL(a.income)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">Despesas</span>
                       <div className="flex-1 h-2 bg-zinc-800 overflow-hidden">
-                        <div className="h-full bg-ink-500/80 transition-all duration-500" style={{ width: `${(a.expense / maxVal) * 100}%` }} />
+                        <div className="h-full transition-all duration-500" style={{ width: `${(a.expense / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
                       </div>
-                      <span className="font-body text-xs text-gray-400 w-24 text-right shrink-0">{centsToBRL(a.expense)}</span>
+                      <span className="font-body text-xs w-24 text-right shrink-0" style={{ color: 'rgb(var(--ink-500))' }}>{centsToBRL(a.expense)}</span>
                     </div>
                   </div>
                 </div>
