@@ -63,11 +63,11 @@ export default function Navbar() {
               <Link to="/artistas" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Artistas
               </Link>
+              <Link to="/loja" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Loja
+              </Link>
               <Link to="/guests" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Guests
-              </Link>
-              <Link to="/events" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
-                Eventos
               </Link>
               <Link to="/" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Vitrine
@@ -120,11 +120,11 @@ export default function Navbar() {
           {/* Right group: Loja + Sobre Nós + Admin */}
           <div className="flex items-center justify-end gap-6">
             <div className="hidden lg:flex items-center gap-6 mr-10">
+              <Link to="/events" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Eventos
+              </Link>
               <Link to="/aftercare" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Pós Tattoo
-              </Link>
-              <Link to="/loja" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
-                Loja
               </Link>
               <Link to="/sobre-nos" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Sobre Nós

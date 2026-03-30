@@ -85,6 +85,11 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
                   </>
                 )}
               </div>
+              {tattoo.description && (
+                <p className="font-body text-xs text-white/50 mt-2 leading-relaxed">
+                  {tattoo.description}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
