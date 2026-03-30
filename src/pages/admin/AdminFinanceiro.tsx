@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useStore } from '../../store';
 import type { Expense, ExpenseCategory } from '../../types';
 import { EXPENSE_CATEGORIES } from '../../types';
 import type { FichaSubmission } from '../../store';
+import { uploadImage } from '../../lib/uploadImage';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function centsToBRL(cents: number): string {
@@ -95,6 +96,7 @@ interface FormState {
   date: string;
   category: ExpenseCategory;
   participants: string[];
+  receiptUrl: string;
 }
 
 function defaultForm(artistIds: string[], currentArtistId?: string | null): FormState {
@@ -105,6 +107,7 @@ function defaultForm(artistIds: string[], currentArtistId?: string | null): Form
     date: todayISO(),
     category: 'Studio',
     participants: [...artistIds],
+    receiptUrl: '',
   };
 }
 
@@ -131,9 +134,12 @@ function ExpenseModal({
           date: initial.date,
           category: initial.category,
           participants: initial.participants,
+          receiptUrl: initial.receiptUrl ?? '',
         }
       : defaultForm(artistIds)
   );
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   function toggleParticipant(id: string) {
     setForm((f) => ({
@@ -142,6 +148,23 @@ function ExpenseModal({
         ? f.participants.filter((p) => p !== id)
         : [...f.participants, id],
     }));
+  }
+
+  async function handleReceiptUpload(file: File) {
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      const dataUrl = await new Promise<string>((res) => {
+        reader.onload = (e) => res(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+      const url = await uploadImage(dataUrl);
+      setForm((f) => ({ ...f, receiptUrl: url }));
+    } catch (err) {
+      console.error('[ExpenseModal] receipt upload failed:', err);
+    } finally {
+      setUploading(false);
+    }
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -155,6 +178,7 @@ function ExpenseModal({
       date: form.date,
       category: form.category,
       participants: form.participants,
+      ...(form.receiptUrl ? { receiptUrl: form.receiptUrl } : {}),
     });
     onClose();
   }
@@ -256,6 +280,29 @@ function ExpenseModal({
           )}
         </div>
 
+        {/* Receipt upload */}
+        <div>
+          <label className={labelCls}>Comprovante (opcional)</label>
+          <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleReceiptUpload(f); e.target.value = ''; }} />
+          {form.receiptUrl ? (
+            <div className="flex items-center gap-3">
+              <a href={form.receiptUrl} target="_blank" rel="noopener noreferrer"
+                className="flex-1 truncate font-body text-xs text-ink-400 hover:underline">
+                Ver comprovante ↗
+              </a>
+              <img src={form.receiptUrl} alt="comprovante" className="w-14 h-14 object-cover border border-white/10 flex-shrink-0" />
+              <button type="button" onClick={() => setForm((f) => ({ ...f, receiptUrl: '' }))}
+                className="text-gray-600 hover:text-red-400 text-xs transition-colors">✕</button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+              className="w-full border border-white/15 border-dashed py-3 font-body text-xs text-gray-600 hover:text-white hover:border-white/40 transition-colors disabled:opacity-40">
+              {uploading ? 'Enviando...' : '↑ Anexar foto / PDF'}
+            </button>
+          )}
+        </div>
+
         <div className="flex gap-2 pt-1">
           <button type="submit"
             className="flex-1 py-2.5 bg-white text-black font-body font-bold text-xs tracking-widest uppercase hover:bg-gray-200 transition-colors">
@@ -353,6 +400,10 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
                         {exp.participants.length > 1 && ` · dividido entre ${exp.participants.length}`}
                       </p>
                     </div>
+                    {exp.receiptUrl && (
+                      <img src={exp.receiptUrl} alt="comprovante"
+                        className="w-9 h-9 object-cover border border-white/10 flex-shrink-0" />
+                    )}
                     <div className="text-right flex-shrink-0">
                       <p className="font-body text-sm font-semibold text-white">{centsToBRL(exp.amount)}</p>
                       <p className="font-body text-[9px] text-gray-700 group-hover:text-gray-500 mt-0.5 transition-colors">Editar</p>

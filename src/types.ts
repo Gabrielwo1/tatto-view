@@ -149,4 +149,5 @@ export interface Expense {
   category: ExpenseCategory;
   participants: string[]; // array of artist ids who share this expense
   createdAt: string;
+  receiptUrl?: string;  // optional receipt image URL
 }
