@@ -71,6 +71,8 @@ export default function LandingPage() {
           src="/logosemo-3.png"
           alt="El Dude"
           className="w-40 md:w-56 mb-10 opacity-90"
+          fetchPriority="high"
+          decoding="async"
         />
 
         {/* Tagline */}
@@ -103,7 +105,7 @@ export default function LandingPage() {
 
         {/* Scroll indicator */}
         <div className="absolute bottom-10 flex flex-col items-center gap-2 opacity-30">
-          <span className="font-body text-[10px] tracking-widest uppercase">Rolar</span>
+          <span className="font-body text-xs tracking-widest uppercase">Rolar</span>
           <div className="w-px h-10 bg-white animate-pulse" />
         </div>
       </section>
@@ -116,7 +118,7 @@ export default function LandingPage() {
           ref={sobre.ref}
           className={`max-w-4xl mx-auto transition-all duration-1000 ${sobre.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
         >
-          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Manifesto</p>
+          <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Manifesto</p>
           <h2 className="font-display text-5xl sm:text-7xl md:text-8xl uppercase leading-none text-white mb-10">
             {lc.manifesto.title1}<br />{lc.manifesto.title2}
           </h2>
@@ -134,7 +136,7 @@ export default function LandingPage() {
             ].map(({ n, label }) => (
               <div key={label} className="bg-zinc-950 p-8 text-center">
                 <p className="font-display text-5xl md:text-6xl text-white leading-none mb-2">{n}</p>
-                <p className="font-body text-[10px] tracking-widest uppercase text-gray-600">{label}</p>
+                <p className="font-body text-xs tracking-widest uppercase text-gray-600">{label}</p>
               </div>
             ))}
           </div>
@@ -150,7 +152,7 @@ export default function LandingPage() {
             ref={estilos.ref}
             className={`mb-14 transition-all duration-1000 ${estilos.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Especialidades</p>
+            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Especialidades</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Seu estilo,<br />nossa arte
             </h2>
@@ -184,7 +186,7 @@ export default function LandingPage() {
             ref={team.ref}
             className={`mb-14 transition-all duration-1000 ${team.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">A equipe</p>
+            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">A equipe</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Conheça os<br />artistas
             </h2>
@@ -202,6 +204,8 @@ export default function LandingPage() {
                   src={artist.photoUrl}
                   alt={artist.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/400/600`; }}
                 />
                 {/* Gradient overlay */}
@@ -209,7 +213,7 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="font-display text-lg uppercase tracking-wide text-white leading-tight">{artist.name}</p>
                   {artist.specialties.length > 0 && (
-                    <p className="font-body text-[10px] tracking-widest uppercase text-gray-400 mt-1">
+                    <p className="font-body text-xs tracking-widest uppercase text-gray-400 mt-1">
                       {artist.specialties.slice(0, 2).join(' · ')}
                     </p>
                   )}
@@ -239,7 +243,7 @@ export default function LandingPage() {
             className={`mb-14 flex items-end justify-between transition-all duration-1000 ${galeria.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <div>
-              <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Portfólio</p>
+              <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Portfólio</p>
               <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
                 Artes<br />recentes
               </h2>
@@ -265,12 +269,14 @@ export default function LandingPage() {
                       src={tattoo.imageUrl}
                       alt={tattoo.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      loading="lazy"
+                      decoding="async"
                       onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/600`; }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
                       <p className="font-display text-base uppercase tracking-wide text-white">{tattoo.title}</p>
-                      <p className="font-body text-[10px] tracking-widest uppercase text-gray-400">{tattoo.style}</p>
+                      <p className="font-body text-xs tracking-widest uppercase text-gray-400">{tattoo.style}</p>
                       {tattoo.price && <p className="font-body text-sm text-white mt-1">{tattoo.price}</p>}
                     </div>
                   </Link>
@@ -299,7 +305,7 @@ export default function LandingPage() {
             ref={processo.ref}
             className={`mb-16 transition-all duration-1000 ${processo.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Processo</p>
+            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Processo</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Do sonho<br />à pele
             </h2>
@@ -332,7 +338,7 @@ export default function LandingPage() {
             ref={precos.ref}
             className={`mb-14 transition-all duration-1000 ${precos.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Investimento</p>
+            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Investimento</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Quanto<br />custa?
             </h2>
@@ -350,14 +356,14 @@ export default function LandingPage() {
               >
                 <div>
                   <p className="font-body text-sm font-semibold text-white group-hover:text-white">{label}</p>
-                  <p className="font-body text-[10px] tracking-widest uppercase text-gray-600 mt-0.5">{detail}</p>
+                  <p className="font-body text-xs tracking-widest uppercase text-gray-600 mt-0.5">{detail}</p>
                 </div>
                 <p className="font-display text-xl uppercase text-ink-500 flex-shrink-0 ml-6">{range}</p>
               </div>
             ))}
           </div>
 
-          <p className="font-body text-[10px] text-gray-700 mt-4 tracking-wide">
+          <p className="font-body text-xs text-gray-700 mt-4 tracking-wide">
             * Valores estimados. O orçamento final é definido pelo artista após análise do projeto.
           </p>
         </div>
@@ -372,7 +378,7 @@ export default function LandingPage() {
             ref={faq.ref}
             className={`mb-14 transition-all duration-1000 ${faq.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
-            <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-4">Dúvidas</p>
+            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Dúvidas</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
               Perguntas<br />frequentes
             </h2>
@@ -408,7 +414,7 @@ export default function LandingPage() {
         </p>
 
         <div className="relative z-10 max-w-2xl mx-auto">
-          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-ink2-500 mb-6">{lc.cta.tagline}</p>
+          <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-6">{lc.cta.tagline}</p>
           <h2 className="font-display text-6xl sm:text-8xl md:text-9xl uppercase leading-none text-white mb-8">
             {lc.cta.title1}<br />{lc.cta.title2}
           </h2>
@@ -527,13 +533,13 @@ export default function LandingPage() {
               { to: '/loja',      label: 'Loja' },
               { to: '/guests',    label: 'Guests' },
             ].map(({ to, label }) => (
-              <Link key={to} to={to} className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
+              <Link key={to} to={to} className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
                 {label}
               </Link>
             ))}
           </nav>
 
-          <p className="font-body text-[10px] text-gray-700 tracking-widest uppercase">
+          <p className="font-body text-xs text-gray-700 tracking-widest uppercase">
             © {new Date().getFullYear()} El Dude
           </p>
         </div>
