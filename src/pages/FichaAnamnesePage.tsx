@@ -42,7 +42,7 @@ export default function FichaAnamnesePage() {
     dataNascimento: '',
     cpf: '',
     endereco: '',
-    cidade: '',
+    cidade: fichaConfig?.cidade ?? '',
     cep: '',
     telefone: '',
     localCorpo: '',
@@ -324,8 +324,18 @@ export default function FichaAnamnesePage() {
               <p className="text-xs text-white/50 mb-4">Problemas de saúde? *</p>
 
               <div className="flex items-center mb-2">
-                <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">S</div>
-                <div className="w-8 text-center text-[9px] font-bold tracking-widest text-white/40 uppercase">N</div>
+                <button type="button"
+                  onClick={() => setConditions(Object.fromEntries(CONDITIONS.map((l) => [l, 'sim'])))}
+                  className="w-8 text-center text-[9px] font-bold tracking-widest uppercase transition-colors hover:text-red-400"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                  title="Marcar todos como Sim"
+                >S</button>
+                <button type="button"
+                  onClick={() => setConditions(Object.fromEntries(CONDITIONS.map((l) => [l, 'nao'])))}
+                  className="w-8 text-center text-[9px] font-bold tracking-widest uppercase transition-colors hover:text-red-400"
+                  style={{ color: 'rgba(255,255,255,0.4)' }}
+                  title="Marcar todos como Não"
+                >N</button>
                 <div className="flex-1" />
               </div>
 
