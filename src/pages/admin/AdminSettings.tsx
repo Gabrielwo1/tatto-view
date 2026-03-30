@@ -1,10 +1,137 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { applyCustomColors, generateShades } from '../../lib/themes';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
 import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
 import { toSlug } from '../../utils';
+import { supabase } from '../../lib/supabase';
+
+interface WishlistRow { item_type: 'tattoo' | 'merch'; item_id: string; }
+
+function WishlistSection() {
+  const tattoos = useStore((s) => s.tattoos);
+  const merchs  = useStore((s) => s.merchs);
+  const artists = useStore((s) => s.artists);
+  const [rows, setRows] = useState<WishlistRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!supabase) { setLoading(false); return; }
+    supabase.from('wishlists').select('item_type, item_id').then(({ data, error }) => {
+      if (error) console.error('[Wishlist]', error);
+      setRows((data as WishlistRow[]) ?? []);
+      setLoading(false);
+    });
+  }, []);
+
+  const tattooCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rows) if (r.item_type === 'tattoo') map.set(r.item_id, (map.get(r.item_id) ?? 0) + 1);
+    return map;
+  }, [rows]);
+
+  const merchCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rows) if (r.item_type === 'merch') map.set(r.item_id, (map.get(r.item_id) ?? 0) + 1);
+    return map;
+  }, [rows]);
+
+  const topTattoos = useMemo(() =>
+    tattoos.map((t) => ({ tattoo: t, count: tattooCounts.get(t.id) ?? 0 }))
+      .filter((x) => x.count > 0).sort((a, b) => b.count - a.count),
+    [tattoos, tattooCounts]);
+
+  const topMerchs = useMemo(() =>
+    merchs.map((m) => ({ merch: m, count: merchCounts.get(m.id) ?? 0 }))
+      .filter((x) => x.count > 0).sort((a, b) => b.count - a.count),
+    [merchs, merchCounts]);
+
+  const maxTattooCount = topTattoos[0]?.count ?? 1;
+  const maxMerchCount  = topMerchs[0]?.count  ?? 1;
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">Lista de Desejos</h2>
+          <p className="font-body text-xs text-gray-500">Itens mais salvos pelos clientes.</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="font-body text-xs text-gray-600">Carregando...</p>
+      ) : rows.length === 0 ? (
+        <p className="font-body text-xs text-gray-700 italic">Nenhum item salvo ainda.</p>
+      ) : (
+        <>
+          {/* KPI cards */}
+          <div className="grid grid-cols-3 gap-px bg-white/10 mb-4">
+            {[
+              { label: 'Total saves',      value: rows.length },
+              { label: 'Tatuagens',        value: topTattoos.reduce((s, x) => s + x.count, 0) },
+              { label: 'Produtos',         value: topMerchs.reduce((s, x) => s + x.count, 0) },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-black/30 px-3 py-3">
+                <p className="font-display text-3xl text-white leading-none mb-0.5">{value}</p>
+                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Top tattoos */}
+          {topTattoos.length > 0 && (
+            <div className="mb-4">
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Tatuagens mais desejadas</p>
+              <div className="space-y-1.5">
+                {topTattoos.map(({ tattoo, count }) => {
+                  const artist = artists.find((a) => a.id === tattoo.artistId);
+                  return (
+                    <div key={tattoo.id} className="flex items-center gap-2 bg-black/30 px-2 py-1.5">
+                      <img src={tattoo.imageUrl} alt={tattoo.title} className="w-8 h-8 object-cover shrink-0 bg-zinc-800"
+                        onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/80/80`; }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-xs text-white truncate">{tattoo.title}</p>
+                        {artist && <p className="font-body text-[9px] text-gray-600 truncate">{artist.name}</p>}
+                        <div className="mt-0.5 h-0.5 bg-white/5">
+                          <div className="h-full" style={{ width: `${(count / maxTattooCount) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
+                        </div>
+                      </div>
+                      <span className="font-display text-base text-white shrink-0">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Top merchs */}
+          {topMerchs.length > 0 && (
+            <div>
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Produtos mais desejados</p>
+              <div className="space-y-1.5">
+                {topMerchs.map(({ merch, count }) => (
+                  <div key={merch.id} className="flex items-center gap-2 bg-black/30 px-2 py-1.5">
+                    <img src={merch.imageUrl ?? ''} alt={merch.name} className="w-8 h-8 object-cover shrink-0 bg-zinc-800"
+                      onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${merch.id}/80/80`; }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-body text-xs text-white truncate">{merch.name}</p>
+                      {merch.price && <p className="font-body text-[9px] text-gray-600">R$ {merch.price}</p>}
+                      <div className="mt-0.5 h-0.5 bg-white/5">
+                        <div className="h-full" style={{ width: `${(count / maxMerchCount) * 100}%`, backgroundColor: 'rgb(var(--ink2-500))' }} />
+                      </div>
+                    </div>
+                    <span className="font-display text-base text-white shrink-0">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
 
 
 function StyleVisibilitySection() {
@@ -213,8 +340,8 @@ export default function AdminSettings() {
         <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Configurações</h1>
       </div>
 
-      {/* ══ GRID 2 COLUNAS: configurações | analytics ══════════════════════ */}
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 items-start">
+      {/* ══ GRID 3 COLUNAS: configurações | analytics | wishlist ══════════════════════ */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)] gap-4 items-start">
 
         {/* ╠══ COL ESQUERDA — Aparência + Imagens + Estilos ══╣ */}
         <div className="space-y-3">
@@ -470,9 +597,14 @@ export default function AdminSettings() {
           );
         })()}
       </section>
-        </div>{/* fim col direita */}
+        </div>{/* fim col analytics */}
 
-      </div>{/* fim grid 2-col */}
+        {/* ╠══ COL 3 — Lista de Desejos ══╣ */}
+        <div className="border border-white/10 bg-black/20 p-4">
+          <WishlistSection />
+        </div>
+
+      </div>{/* fim grid 3-col */}
     </div>
   );
 }

@@ -12,7 +12,6 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminWishlist from './pages/admin/AdminWishlist';
 import AdminTattoos from './pages/admin/AdminTattoos';
 import AdminTattooForm from './pages/admin/AdminTattooForm';
 import AdminArtists from './pages/admin/AdminArtists';
@@ -284,7 +283,6 @@ export default function App() {
 
           {/* ── Admin only ── */}
           <Route path="dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-          <Route path="wishlist" element={<ProtectedAdminRoute><AdminWishlist /></ProtectedAdminRoute>} />
           <Route path="artistas" element={<ProtectedAdminRoute><AdminArtists /></ProtectedAdminRoute>} />
           <Route path="artistas/novo" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
           <Route path="artistas/:id/editar" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
