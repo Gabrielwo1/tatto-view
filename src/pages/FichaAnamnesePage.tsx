@@ -42,7 +42,7 @@ export default function FichaAnamnesePage() {
     dataNascimento: '',
     cpf: '',
     endereco: '',
-    cidade: '',
+    cidade: fichaConfig?.cidade ?? '',
     cep: '',
     telefone: '',
     localCorpo: '',

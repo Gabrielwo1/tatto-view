@@ -445,6 +445,7 @@ const defaultGuestContent: GuestContent = {
 export interface FichaConfig {
   tatuadores: string[];
   conditions: string[];
+  cidade?: string;
 }
 
 // ── Ficha de Anamnese Submission ──────────────────────────────────────────────
