@@ -155,7 +155,6 @@ const adminOnlyItems = [
   '/admin/ficha-anamnese',
   '/admin/fichas',
   '/admin/configuracoes',
-  '/admin/financeiro',
 ];
 
 // Item shown only to artists (not admin)

@@ -295,7 +295,7 @@ export default function App() {
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
-          <Route path="financeiro" element={<ProtectedAdminRoute><AdminFinanceiro /></ProtectedAdminRoute>} />
+          <Route path="financeiro" element={<ProtectedRoute><AdminFinanceiro /></ProtectedRoute>} />
         </Route>
 
         {/* Fallback */}
