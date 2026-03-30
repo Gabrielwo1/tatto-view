@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useStore } from '../store';
-import { supabase } from '../lib/supabase';
 
 const DEFAULT_TATUADORES = [
   'Bruna Lopes',
@@ -84,7 +83,7 @@ export default function FichaAnamnesePage() {
     }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setSubmitError(null);
@@ -108,29 +107,8 @@ export default function FichaAnamnesePage() {
       dataAssinatura: form.dataAssinatura,
     };
 
-    // Se Supabase está configurado, inserir diretamente e aguardar resultado
-    if (supabase) {
-      const id = crypto.randomUUID();
-      const submittedAt = new Date().toISOString();
-      const submission = { ...data, id, submittedAt };
-      const { error } = await supabase.from('ficha_submissions').insert({
-        id,
-        submitted_at: submittedAt,
-        data: submission,
-      });
-      if (error) {
-        console.error('[ficha] Supabase insert error:', error);
-        const errMsg = error.message || error.code || 'Erro desconhecido';
-        setSubmitError(`Erro ao enviar: ${errMsg}`);
-        setSubmitting(false);
-        return;
-      }
-      // Atualizar store local também
-      addFichaSubmission(data);
-    } else {
-      // Sem Supabase — salvar só localmente
-      addFichaSubmission(data);
-    }
+    // Salvar localmente + tentar sincronizar com Supabase (fire-and-forget)
+    addFichaSubmission(data);
 
     setSubmitting(false);
     setSubmitted(true);
