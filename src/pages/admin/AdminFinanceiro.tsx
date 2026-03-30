@@ -327,6 +327,7 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
   const updateExpense = useStore((s) => s.updateExpense);
   const deleteExpense = useStore((s) => s.deleteExpense);
   const currentArtistId = useStore((s) => s.currentArtistId);
+  const isAdmin = useStore((s) => s.isAdmin);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
 
@@ -367,12 +368,14 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
             </p>
             <p className="font-display text-2xl text-white">{centsToBRL(allExpenses)}</p>
           </div>
-          <button onClick={() => setShowModal(true)}
-            className="w-10 h-10 bg-ink-500 hover:bg-ink-400 text-black flex items-center justify-center transition-colors flex-shrink-0">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+          {isAdmin && (
+            <button onClick={() => setShowModal(true)}
+              className="w-10 h-10 bg-ink-500 hover:bg-ink-400 text-black flex items-center justify-center transition-colors flex-shrink-0">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
@@ -390,8 +393,8 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
               </p>
               <div className="space-y-1.5">
                 {items.map((exp) => (
-                  <button key={exp.id} onClick={() => setEditing(exp)}
-                    className="w-full flex items-center gap-3 bg-zinc-900 border border-white/[0.07] hover:border-white/20 px-4 py-3 transition-colors text-left group">
+                  <button key={exp.id} onClick={() => isAdmin && setEditing(exp)}
+                    className={`w-full flex items-center gap-3 bg-zinc-900 border border-white/[0.07] px-4 py-3 transition-colors text-left group ${isAdmin ? 'hover:border-white/20 cursor-pointer' : 'cursor-default'}`}>
                     <span className="text-lg w-7 text-center flex-shrink-0">{catIcon[exp.category] ?? '📦'}</span>
                     <div className="flex-1 min-w-0">
                       <p className="font-body text-sm text-white truncate">{exp.description}</p>
@@ -406,7 +409,7 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
                     )}
                     <div className="text-right flex-shrink-0">
                       <p className="font-body text-sm font-semibold text-white">{centsToBRL(exp.amount)}</p>
-                      <p className="font-body text-[9px] text-gray-700 group-hover:text-gray-500 mt-0.5 transition-colors">Editar</p>
+                      {isAdmin && <p className="font-body text-[9px] text-gray-700 group-hover:text-gray-500 mt-0.5 transition-colors">Editar</p>}
                     </div>
                   </button>
                 ))}
