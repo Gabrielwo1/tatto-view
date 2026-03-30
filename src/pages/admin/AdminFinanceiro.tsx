@@ -86,7 +86,7 @@ function computeBalances(expenses: Expense[], artistIds: string[]) {
 }
 
 // ── Expense Form ─────────────────────────────────────────────────────────────
-const inputCls = 'w-full bg-transparent border border-white/15 px-3 py-2 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
+const inputCls = 'w-full bg-zinc-900 border border-white/15 px-3 py-2 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1.5';
 
 interface FormState {
