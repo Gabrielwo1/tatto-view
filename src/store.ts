@@ -966,8 +966,24 @@ export const useStore = create<AppState>()(
             tattoos:          (t ?? []).map(toTattoo),
             artists:          orderedArtists,
             merchs:           (m ?? []).map(toMerch),
-            // Always sync fichas from Supabase (source of truth for cross-device)
-            ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
+            // Merge fichas: Supabase + any local-only submissions not yet synced
+            ...(!fse ? (() => {
+              const remote = (fs ?? []).map((r) => r.data as FichaSubmission);
+              const localOnly = get().fichaSubmissions.filter(
+                (l) => !remote.some((r) => r.id === l.id)
+              );
+              // Re-sync local-only fichas to Supabase
+              if (localOnly.length > 0 && supabase) {
+                for (const ficha of localOnly) {
+                  supabase.from('ficha_submissions').insert({
+                    id: ficha.id,
+                    submitted_at: ficha.submittedAt,
+                    data: ficha,
+                  }).then(({ error }) => { if (error) console.error('[store] resync ficha:', error); });
+                }
+              }
+              return { fichaSubmissions: [...remote, ...localOnly] };
+            })() : {}),
             expenses: (ex ?? []).map((r) => ({
               id: r.id, description: r.description, amount: r.amount,
               paidBy: r.paid_by, date: r.date, category: r.category as ExpenseCategory,
