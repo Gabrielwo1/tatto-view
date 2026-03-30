@@ -37,7 +37,7 @@ export default function WishlistPage() {
     <div className="min-h-screen bg-zinc-950 text-white">
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">Sua conta</p>
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Sua conta</p>
           <h1 className="font-display text-4xl uppercase tracking-wide text-white">Lista de Desejos</h1>
         </div>
 
@@ -61,14 +61,14 @@ export default function WishlistPage() {
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="p-4">
-                    <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-1">{item.subtitle}</p>
+                    <p className="font-body text-xs text-gray-600 tracking-widest uppercase mb-1">{item.subtitle}</p>
                     <h3 className="font-display text-lg uppercase tracking-wide text-white truncate mb-0.5">{item.name}</h3>
                     <p className="font-body text-sm text-ink-500 mb-4">{item.price}</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => moveToCart(item.itemType, item.itemId)}
                         disabled={inCart}
-                        className="flex-1 font-body text-[10px] font-bold tracking-widest uppercase py-2 bg-white text-black hover:bg-white/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex-1 font-body text-xs font-bold tracking-widest uppercase py-2 bg-white text-black hover:bg-white/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {inCart ? 'No carrinho' : 'Mover p/ carrinho'}
                       </button>

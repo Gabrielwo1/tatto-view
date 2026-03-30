@@ -110,13 +110,13 @@ export default function SiteFooter() {
               { to: '/loja',       label: 'Loja' },
             ].map(({ to, label }) => (
               <Link key={to} to={to}
-                className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/30 hover:text-ink2-400 transition-colors">
+                className="font-body text-xs font-semibold tracking-widest uppercase text-white/30 hover:text-ink2-400 transition-colors">
                 {label}
               </Link>
             ))}
           </nav>
 
-          <p className="font-body text-[10px] tracking-widest uppercase text-white/20">
+          <p className="font-body text-xs tracking-widest uppercase text-white/20">
             © {new Date().getFullYear()} VITRINK.APP
           </p>
         </div>
