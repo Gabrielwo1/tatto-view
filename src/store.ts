@@ -908,6 +908,7 @@ export const useStore = create<AppState>()(
           id: expense.id, description: expense.description, amount: expense.amount,
           paid_by: expense.paidBy, date: expense.date, category: expense.category,
           participants: expense.participants, created_at: expense.createdAt,
+          receipt_url: expense.receiptUrl ?? null,
         }).then(({ error }) => { if (error) console.error('[store] addExpense:', error); });
       },
       updateExpense: (id, updates) => {
@@ -919,6 +920,7 @@ export const useStore = create<AppState>()(
         if (updates.date        !== undefined) row.date        = updates.date;
         if (updates.category    !== undefined) row.category    = updates.category;
         if (updates.participants !== undefined) row.participants = updates.participants;
+        if (updates.receiptUrl  !== undefined) row.receipt_url  = updates.receiptUrl;
         supabase?.from('expenses').update(row).eq('id', id)
           .then(({ error }) => { if (error) console.error('[store] updateExpense:', error); });
       },
@@ -989,6 +991,7 @@ export const useStore = create<AppState>()(
               id: r.id, description: r.description, amount: r.amount,
               paidBy: r.paid_by, date: r.date, category: r.category as ExpenseCategory,
               participants: r.participants as string[], createdAt: r.created_at,
+              ...(r.receipt_url ? { receiptUrl: r.receipt_url } : {}),
             })),
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
