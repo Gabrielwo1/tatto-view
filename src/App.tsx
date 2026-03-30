@@ -81,6 +81,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Allows admin or artist with showFinanceiro=true
+function ProtectedFinanceiroRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = useStore((s) => s.isAdmin);
+  const showFinanceiro = useStore((s) => s.showFinanceiro);
+  const authChecked = useStore((s) => s.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
+  if (!isAdmin && !showFinanceiro) return <Navigate to="/admin/dashboard" replace />;
+  return <>{children}</>;
+}
+
 // Allows admin or merch manager only
 function ProtectedMerchRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -295,7 +305,7 @@ export default function App() {
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
-          <Route path="financeiro" element={<ProtectedRoute><AdminFinanceiro /></ProtectedRoute>} />
+          <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
         </Route>
 
         {/* Fallback */}

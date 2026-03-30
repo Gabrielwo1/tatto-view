@@ -167,6 +167,7 @@ export default function AdminLayout() {
   const isAdmin          = useStore((s) => s.isAdmin);
   const isArtist         = useStore((s) => s.isArtist);
   const isMerchManager   = useStore((s) => s.isMerchManager);
+  const showFinanceiro   = useStore((s) => s.showFinanceiro);
   const currentArtistId  = useStore((s) => s.currentArtistId);
   const currentUserEmail = useStore((s) => s.currentUserEmail);
   const artists          = useStore((s) => s.artists);
@@ -188,10 +189,14 @@ export default function AdminLayout() {
 
   const items = useMemo(() => {
     if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
-    if (isArtist) return navItems.filter((item) => !adminOnlyItems.includes(item.to) && item.to !== merchItem);
+    if (isArtist) return navItems.filter((item) =>
+      !adminOnlyItems.includes(item.to) &&
+      item.to !== merchItem &&
+      (showFinanceiro || item.to !== '/admin/financeiro')
+    );
     if (isMerchManager) return navItems.filter((item) => item.to === merchItem);
     return [];
-  }, [isAdmin, isArtist, isMerchManager]);
+  }, [isAdmin, isArtist, isMerchManager, showFinanceiro]);
 
   const currentLabel = useMemo(
     () => navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin',

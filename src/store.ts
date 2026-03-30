@@ -687,6 +687,8 @@ interface AppState {
   loadData: () => Promise<void>;
   /** True when the logged-in user is an artist (not super admin). */
   isArtist: boolean;
+  /** Whether the current artist user can see the Financeiro page. Always true for admins. */
+  showFinanceiro: boolean;
   /** The artist row id linked to the logged-in artist user. null when admin. */
   currentArtistId: string | null;
   /** Email of the currently logged-in user. null when not logged in. */
@@ -771,6 +773,7 @@ export const useStore = create<AppState>()(
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
+      showFinanceiro: true,
       currentArtistId: null,
       currentUserEmail: null,
       authChecked: false,
@@ -1055,13 +1058,13 @@ export const useStore = create<AppState>()(
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) return false;
         // Check role — artists/admins get redirected to admin panel
-        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id').eq('id', data.user.id).single();
+        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id, show_financeiro').eq('id', data.user.id).single();
         if (profile) {
           if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
             return 'admin';
           } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: data.user.email ?? null, authChecked: true });
             return 'artist';
           } else if (profile.role === 'merch_manager') {
             set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
@@ -1150,15 +1153,15 @@ export const useStore = create<AppState>()(
           if (!session?.user) { set({ authChecked: true }); return; }
           const { data: profile } = await supabase
             .from('user_profiles')
-            .select('role, artist_id')
+            .select('role, artist_id, show_financeiro')
             .eq('id', session.user.id)
             .single();
           if (!profile) { set({ authChecked: true }); return; }
           const email = session.user.email ?? null;
           if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: email });
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: email });
           } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email });
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email });
           } else if (profile.role === 'merch_manager') {
             set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email });
           } else if (profile.role === 'customer') {
@@ -1178,17 +1181,17 @@ export const useStore = create<AppState>()(
         if (error || !data.user) return false;
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('role, artist_id')
+          .select('role, artist_id, show_financeiro')
           .eq('id', data.user.id)
           .single();
         if (!profile) return false;
         const userEmail = data.user.email ?? null;
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: userEmail });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'merch_manager') {
