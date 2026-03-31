@@ -141,7 +141,7 @@ export default function ArtistDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 mb-8 border-b border-white/10 px-4 sm:px-6 lg:px-8 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="flex gap-6 mb-8 border-b border-white/10 pl-8">
         <button
           onClick={() => setTab('available')}
           className={`pb-3 text-xs font-body font-semibold tracking-widest uppercase transition-colors border-b-2 ${
