@@ -94,10 +94,10 @@ export default function ArtistDetailPage() {
         <img
           src={artist.photoUrl}
           alt={artist.name}
-          className="w-56 h-56 object-cover flex-shrink-0"
+          className="w-64 h-64 sm:w-80 sm:h-80 object-cover flex-shrink-0 aspect-square"
         />
         <div className="flex-1">
-          <h1 className="font-display text-4xl text-white uppercase tracking-wide mb-2">{artist.name}</h1>
+          <h1 className="font-display text-6xl sm:text-8xl text-white uppercase tracking-wide leading-none mb-4">{artist.name}</h1>
           <p className="text-gray-500 text-sm font-body mb-4">{artist.bio}</p>
           <div className="flex flex-wrap gap-2 mb-3">
             {artist.specialties.map((s) => (
