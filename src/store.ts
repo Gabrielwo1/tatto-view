@@ -1058,7 +1058,7 @@ export const useStore = create<AppState>()(
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) return false;
         // Check role — artists/admins get redirected to admin panel
-        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id, show_financeiro').eq('id', data.user.id).single();
+        const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
         if (profile) {
           if (profile.role === 'admin') {
             set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
@@ -1153,7 +1153,7 @@ export const useStore = create<AppState>()(
           if (!session?.user) { set({ authChecked: true }); return; }
           const { data: profile } = await supabase
             .from('user_profiles')
-            .select('role, artist_id, show_financeiro')
+            .select('*')
             .eq('id', session.user.id)
             .single();
           if (!profile) { set({ authChecked: true }); return; }
