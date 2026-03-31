@@ -27,3 +27,17 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          mcp_config: |
+            {
+              "mcpServers": {
+                "supabase": {
+                  "command": "npx",
+                  "args": [
+                    "-y",
+                    "@supabase/mcp-server-supabase@latest",
+                    "--access-token",
+                    "${{ secrets.SUPABASE_ACCESS_TOKEN }}"
+                  ]
+                }
+              }
+            }
