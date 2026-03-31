@@ -85,19 +85,19 @@ export default function MerchsPage() {
             <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhum produto ainda</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10">
+          <div className="flex flex-wrap lg:grid lg:grid-cols-6 xl:grid-cols-10 2xl:grid-cols-12 gap-px bg-white/10">
             {merchs.map((m) => (
-              <div key={m.id} className="bg-black group relative flex flex-col">
+              <div key={m.id} className="bg-black group relative flex flex-col border-b border-white/5 md:border-b-0 w-1/2 sm:w-1/3 md:w-1/4 lg:w-auto">
                 {/* Badge */}
                 {m.description?.toLowerCase().includes('new') && (
-                  <div className="absolute top-3 right-3 z-10 bg-white text-black font-body font-bold text-[9px] tracking-widest uppercase px-2 py-0.5">
+                  <div className="absolute top-1.5 right-1.5 z-10 bg-white text-black font-body font-bold text-[6px] tracking-widest uppercase px-1 py-0.5">
                     NEW
                   </div>
                 )}
 
                 {/* Image */}
                 {m.imageUrl ? (
-                  <div className="aspect-square overflow-hidden bg-zinc-900">
+                  <div className="aspect-square overflow-hidden bg-zinc-900 border-b border-white/5">
                     <img
                       src={m.imageUrl}
                       alt={m.name}
@@ -108,35 +108,31 @@ export default function MerchsPage() {
                     />
                   </div>
                 ) : (
-                  <div className="aspect-square bg-zinc-950 flex items-center justify-center">
-                    <svg className="w-12 h-12 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="aspect-square bg-zinc-950 flex items-center justify-center border-b border-white/5">
+                    <svg className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
                 )}
 
                 {/* Info */}
-                <div className="p-5 flex-1 flex flex-col">
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <h3 className="font-display text-lg uppercase tracking-wide leading-tight text-white">
+                <div className="p-2 flex-1 flex flex-col">
+                  <div className="flex flex-col gap-0.5 mb-1.5">
+                    <h3 className="font-display text-[10px] uppercase tracking-tighter leading-tight text-white line-clamp-2 min-h-[1.5rem]">
                       {m.name}
                     </h3>
-                    <span className="font-body font-bold text-sm text-white whitespace-nowrap shrink-0">
+                    <span className="font-body font-bold text-[9px] text-gray-600">
                       {m.price}
                     </span>
                   </div>
 
-                  {m.description && (
-                    <p className="font-body text-xs text-gray-600 mb-3 line-clamp-2">{m.description}</p>
-                  )}
-
-                  {/* Sizes */}
+                  {/* Sizes (Micro tags) */}
                   {m.sizes && m.sizes.length > 0 && (
-                    <div className="flex gap-1.5 mb-4">
+                    <div className="flex flex-wrap gap-1 mb-2">
                       {m.sizes.map((size) => (
                         <span
                           key={size}
-                          className="border border-white/20 text-white/60 font-body font-bold text-[10px] tracking-widest uppercase px-2 py-1"
+                          className="border border-white/5 text-white/20 font-body font-bold text-[6px] tracking-tighter uppercase px-1 py-0.5"
                         >
                           {size}
                         </span>
@@ -150,13 +146,13 @@ export default function MerchsPage() {
                         href={m.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block w-full text-center border border-white/30 hover:border-white text-white/70 hover:text-white font-body font-bold text-[10px] tracking-[0.25em] uppercase py-3 transition-colors"
+                        className="block w-full text-center border border-white/10 hover:border-white text-white/30 hover:text-white font-body font-bold text-[8px] tracking-tight uppercase py-1.5 transition-colors"
                       >
-                        ADD TO CART
+                        ADD
                       </a>
                     ) : (
-                      <div className="w-full text-center border border-white/10 text-white/20 font-body font-bold text-[10px] tracking-[0.25em] uppercase py-3">
-                        ADD TO CART
+                      <div className="w-full text-center border border-white/5 text-white/10 font-body font-bold text-[8px] tracking-tight uppercase py-1.5">
+                        ADD
                       </div>
                     )}
                   </div>
