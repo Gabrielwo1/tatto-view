@@ -207,7 +207,7 @@ export default function Navbar() {
                 end={end}
                 onClick={() => { setMenuOpen(false); window.scrollTo(0, 0); }}
                 className={({ isActive }) =>
-                  `font-display text-4xl uppercase tracking-wide transition-colors leading-tight ${
+                  `font-display text-3xl sm:text-4xl uppercase tracking-wide transition-colors leading-tight ${
                     isActive ? 'text-ink-500' : 'text-white/50 hover:text-ink-400'
                   }`
                 }

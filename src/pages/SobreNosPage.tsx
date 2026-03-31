@@ -118,7 +118,7 @@ export default function SobreNosPage() {
       {/* ── QUOTE ────────────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-20 py-20 lg:py-32 bg-zinc-950 overflow-hidden">
         <div className="max-w-6xl mx-auto text-center">
-          <blockquote className="font-display text-3xl sm:text-5xl lg:text-6xl uppercase leading-tight tracking-wide italic whitespace-nowrap">
+          <blockquote className="font-display text-3xl sm:text-5xl lg:text-6xl uppercase leading-tight tracking-wide italic">
             {quote.replace(/^"|"$/g, '')}
           </blockquote>
         </div>

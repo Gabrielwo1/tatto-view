@@ -76,7 +76,7 @@ export default function LandingPage() {
         />
 
         {/* Tagline */}
-        <h1 className="font-display text-6xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-6">
+        <h1 className="font-display text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-6">
           {lc.hero.tagline.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
@@ -415,7 +415,7 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-2xl mx-auto">
           <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-6">{lc.cta.tagline}</p>
-          <h2 className="font-display text-6xl sm:text-8xl md:text-9xl uppercase leading-none text-white mb-8">
+          <h2 className="font-display text-5xl sm:text-8xl md:text-9xl uppercase leading-none text-white mb-8">
             {lc.cta.title1}<br />{lc.cta.title2}
           </h2>
           <p className="font-body text-base text-gray-500 mb-12 leading-relaxed">
