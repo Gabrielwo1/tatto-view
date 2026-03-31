@@ -38,6 +38,7 @@ import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
 import TatuadosPage from './pages/TatuadosPage';
+import TatuadosArtistPage from './pages/TatuadosArtistPage';
 import LoginPage from './pages/LoginPage';
 import WishlistPage from './pages/WishlistPage';
 import CartPage from './pages/CartPage';
@@ -253,6 +254,11 @@ export default function App() {
             <TatuadosPage />
           </PublicLayout>
         } />
+        <Route path="/tatuados/:slug" element={
+          <PublicLayout>
+            <TatuadosArtistPage />
+          </PublicLayout>
+        } />
 
         {/* Landing page */}
         <Route path="/landingpage" element={
@@ -300,7 +306,7 @@ export default function App() {
           <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
           <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
           <Route path="sobre-nos" element={<ProtectedAdminRoute><AdminSobreNos /></ProtectedAdminRoute>} />
-          <Route path="tatuados" element={<ProtectedAdminRoute><AdminTatuados /></ProtectedAdminRoute>} />
+          <Route path="tatuados" element={<ProtectedRoute><AdminTatuados /></ProtectedRoute>} />
           <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />

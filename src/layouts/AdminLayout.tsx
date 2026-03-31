@@ -150,7 +150,6 @@ const adminOnlyItems = [
   '/admin/events',
   '/admin/aftercare',
   '/admin/landing',
-  '/admin/tatuados',
   '/admin/sobre-nos',
   '/admin/ficha-anamnese',
   '/admin/fichas',
