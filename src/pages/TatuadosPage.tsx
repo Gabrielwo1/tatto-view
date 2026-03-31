@@ -1,29 +1,20 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import type { TatuadoPost } from '../types';
-
-const PAGE_SIZE = 12;
-
-// Maps size → grid span classes
-const sizeClasses: Record<TatuadoPost['size'], string> = {
-  small:  'col-span-1 row-span-1',
-  medium: 'col-span-1 row-span-2',
-  large:  'col-span-2 row-span-2',
-};
+import { toSlug } from '../utils';
 
 export default function TatuadosPage() {
   const { title, subtitle } = useStore((s) => s.tatuadosContent);
   const posts   = useStore((s) => s.tatuadoPosts);
   const artists = useStore((s) => s.artists);
-  const [visible, setVisible] = useState(PAGE_SIZE);
-  const [lightbox, setLightbox] = useState<TatuadoPost | null>(null);
+  const navigate = useNavigate();
 
-  const shown = posts.slice(0, visible);
-  const hasMore = visible < posts.length;
+  // Build list of artists who have at least one post, preserving artist order
+  const artistsWithPosts = artists.filter((a) =>
+    posts.some((p) => p.artistId === a.id)
+  );
 
-  function getArtistName(artistId: string | null) {
-    return artists.find((a) => a.id === artistId)?.name ?? null;
-  }
+  // Posts without an artist
+  const unlinkedPosts = posts.filter((p) => !p.artistId);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -39,96 +30,103 @@ export default function TatuadosPage() {
         </p>
       </div>
 
-      {/* Mosaic grid */}
-      <div className="px-6 md:px-12 py-12">
-        {posts.length === 0 ? (
-          <div className="py-24 text-center">
-            <p className="font-body text-xs tracking-widest uppercase text-white/20">
-              Nenhuma publicação ainda
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[220px] gap-1">
-            {shown.map((post) => (
-              <button
-                key={post.id}
-                onClick={() => setLightbox(post)}
-                className={`relative group overflow-hidden bg-zinc-900 focus:outline-none ${sizeClasses[post.size]}`}
-              >
-                <img
-                  src={post.imageUrl}
-                  alt={post.caption || 'Tatuado'}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-300 flex items-end p-4 opacity-0 group-hover:opacity-100">
-                  <div className="text-left">
-                    {post.caption && (
-                      <p className="font-body text-xs text-white leading-snug line-clamp-2">
-                        {post.caption}
+      {posts.length === 0 ? (
+        <div className="py-24 text-center">
+          <p className="font-body text-xs tracking-widest uppercase text-white/20">
+            Nenhuma publicação ainda
+          </p>
+        </div>
+      ) : (
+        <div className="px-6 md:px-12 py-12 space-y-20">
+
+          {/* Grouped by artist */}
+          {artistsWithPosts.map((artist) => {
+            const artistPosts = posts.filter((p) => p.artistId === artist.id);
+            const preview = artistPosts.slice(0, 6);
+            const slug = toSlug(artist.name);
+
+            return (
+              <section key={artist.id}>
+                {/* Artist header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={artist.photoUrl}
+                      alt={artist.name}
+                      className="w-10 h-10 rounded-full object-cover border border-white/10"
+                    />
+                    <div>
+                      <h2 className="font-display text-2xl md:text-3xl uppercase tracking-wide text-white leading-none">
+                        {artist.name}
+                      </h2>
+                      <p className="font-body text-xs text-white/30 tracking-widest uppercase mt-0.5">
+                        {artistPosts.length} {artistPosts.length === 1 ? 'foto' : 'fotos'}
                       </p>
-                    )}
-                    {getArtistName(post.artistId) && (
-                      <p className="font-display text-[10px] uppercase tracking-widest text-ink-500 mt-1">
-                        {getArtistName(post.artistId)}
-                      </p>
-                    )}
+                    </div>
                   </div>
+                  {artistPosts.length > 6 && (
+                    <button
+                      onClick={() => navigate(`/tatuados/${slug}`)}
+                      className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors border-b border-transparent hover:border-white pb-0.5"
+                    >
+                      Ver todos →
+                    </button>
+                  )}
                 </div>
-              </button>
-            ))}
-          </div>
-        )}
 
-        {/* Expand */}
-        {hasMore && (
-          <div className="flex flex-col items-center mt-20">
-            <button
-              onClick={() => setVisible((v) => v + PAGE_SIZE)}
-              className="font-body text-xs font-semibold tracking-[0.3em] uppercase text-white/40 hover:text-white transition-colors"
-            >
-              Expand Archive
-            </button>
-            <div className="w-px h-16 bg-white/10 mt-4" />
-          </div>
-        )}
-      </div>
+                {/* Grid — 3 cols on mobile, 6 on desktop, all square */}
+                <div
+                  className="grid grid-cols-3 md:grid-cols-6 gap-0.5 cursor-pointer"
+                  onClick={() => navigate(`/tatuados/${slug}`)}
+                >
+                  {preview.map((post) => (
+                    <div key={post.id} className="relative group aspect-square overflow-hidden bg-zinc-900">
+                      <img
+                        src={post.imageUrl}
+                        alt={post.caption || artist.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      {post.caption && (
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-300 flex items-end p-2 opacity-0 group-hover:opacity-100">
+                          <p className="font-body text-[10px] text-white line-clamp-2 leading-snug">
+                            {post.caption}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
-      {/* Lightbox */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setLightbox(null)}
-        >
-          <div
-            className="relative max-w-3xl w-full max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setLightbox(null)}
-              className="absolute top-3 right-3 z-10 p-2 text-white/40 hover:text-white transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <img
-              src={lightbox.imageUrl}
-              alt={lightbox.caption}
-              className="w-full max-h-[75vh] object-contain"
-            />
-            {(lightbox.caption || getArtistName(lightbox.artistId)) && (
-              <div className="bg-zinc-950 border-t border-white/10 px-5 py-4">
-                {lightbox.caption && (
-                  <p className="font-body text-sm text-white/70 leading-relaxed">{lightbox.caption}</p>
-                )}
-                {getArtistName(lightbox.artistId) && (
-                  <p className="font-display text-xs uppercase tracking-widest text-ink-500 mt-1">
-                    {getArtistName(lightbox.artistId)}
-                  </p>
-                )}
+                {/* Divider */}
+                <div className="mt-10 border-b border-white/5" />
+              </section>
+            );
+          })}
+
+          {/* Posts sem artista */}
+          {unlinkedPosts.length > 0 && (
+            <section>
+              <h2 className="font-display text-2xl uppercase tracking-wide text-white/30 mb-6">
+                Outros
+              </h2>
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-0.5">
+                {unlinkedPosts.map((post) => (
+                  <div key={post.id} className="relative group aspect-square overflow-hidden bg-zinc-900">
+                    <img
+                      src={post.imageUrl}
+                      alt={post.caption || 'Tatuado'}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </section>
+          )}
+
         </div>
       )}
     </div>

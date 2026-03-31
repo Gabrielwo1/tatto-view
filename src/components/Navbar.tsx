@@ -66,11 +66,11 @@ export default function Navbar() {
               <Link to="/loja" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Loja
               </Link>
-              <Link to="/guests" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
-                Guests
-              </Link>
               <Link to="/" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Vitrine
+              </Link>
+              <Link to="/guests" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Guests
               </Link>
             </div>
           </div>
@@ -120,6 +120,9 @@ export default function Navbar() {
           {/* Right group: Loja + Sobre Nós + Admin */}
           <div className="flex items-center justify-end gap-6">
             <div className="hidden lg:flex items-center gap-6 mr-10">
+              <Link to="/tatuados" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Tatuados
+              </Link>
               <Link to="/events" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Eventos
               </Link>
@@ -204,7 +207,7 @@ export default function Navbar() {
                 end={end}
                 onClick={() => { setMenuOpen(false); window.scrollTo(0, 0); }}
                 className={({ isActive }) =>
-                  `font-display text-4xl uppercase tracking-wide transition-colors leading-tight ${
+                  `font-display text-3xl sm:text-4xl uppercase tracking-wide transition-colors leading-tight ${
                     isActive ? 'text-ink-500' : 'text-white/50 hover:text-ink-400'
                   }`
                 }

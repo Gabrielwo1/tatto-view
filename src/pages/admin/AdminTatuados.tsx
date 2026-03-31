@@ -28,13 +28,18 @@ export default function AdminTatuados() {
   const updatePost         = useStore((s) => s.updateTatuadoPost);
   const deletePost         = useStore((s) => s.deleteTatuadoPost);
   const artists            = useStore((s) => s.artists);
+  const isAdmin            = useStore((s) => s.isAdmin);
+  const currentArtistId    = useStore((s) => s.currentArtistId);
+  // Artists see only their own posts; auto-set artistId
+  const defaultArtistId = isAdmin ? null : currentArtistId;
+  const visiblePosts = isAdmin ? posts : posts.filter((p) => p.artistId === currentArtistId);
 
   // Page header form
   const [headerForm, setHeaderForm] = useState<TatuadosContent>(tatuadosContent);
   const [headerSaved, setHeaderSaved] = useState(false);
 
   // Post form
-  const [form, setForm] = useState<Omit<TatuadoPost, 'id' | 'createdAt'>>(emptyForm);
+  const [form, setForm] = useState<Omit<TatuadoPost, 'id' | 'createdAt'>>({ ...emptyForm, artistId: defaultArtistId });
   const [editing, setEditing] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [postSaved, setPostSaved] = useState(false);
@@ -67,7 +72,7 @@ export default function AdminTatuados() {
     } else {
       addPost({ ...form, id: generateId(), createdAt: new Date().toISOString() });
     }
-    setForm(emptyForm);
+    setForm({ ...emptyForm, artistId: defaultArtistId });
     setEditing(null);
     setPostSaved(true);
     setTimeout(() => setPostSaved(false), 2000);
@@ -82,7 +87,7 @@ export default function AdminTatuados() {
 
   function handleCancel() {
     setEditing(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, artistId: defaultArtistId });
     if (fileRef.current) fileRef.current.value = '';
   }
 
@@ -157,14 +162,23 @@ export default function AdminTatuados() {
           <textarea rows={2} value={form.caption} onChange={(e) => setForm((f) => ({ ...f, caption: e.target.value }))} className={inputCls + ' resize-none'} placeholder="Descrição da tatuagem..." />
         </div>
 
-        {/* Artist */}
-        <div>
-          <label className={labelCls}>Artista</label>
-          <select value={form.artistId ?? ''} onChange={(e) => setForm((f) => ({ ...f, artistId: e.target.value || null }))} className={inputCls + ' bg-zinc-900'}>
-            <option value="">— Nenhum —</option>
-            {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
-        </div>
+        {/* Artist — admin selects freely, artist sees own name locked */}
+        {isAdmin ? (
+          <div>
+            <label className={labelCls}>Artista</label>
+            <select value={form.artistId ?? ''} onChange={(e) => setForm((f) => ({ ...f, artistId: e.target.value || null }))} className={inputCls + ' bg-zinc-900'}>
+              <option value="">— Nenhum —</option>
+              {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className={labelCls}>Artista</label>
+            <p className="font-body text-sm text-white/60 border border-white/10 px-4 py-2.5">
+              {artists.find((a) => a.id === currentArtistId)?.name ?? '—'}
+            </p>
+          </div>
+        )}
 
         {/* Size */}
         <div>
@@ -200,13 +214,13 @@ export default function AdminTatuados() {
       </div>
 
       {/* ── Posts list ── */}
-      {posts.length > 0 && (
+      {visiblePosts.length > 0 && (
         <div>
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-4">
-            {posts.length} {posts.length === 1 ? 'publicação' : 'publicações'}
+            {visiblePosts.length} {visiblePosts.length === 1 ? 'publicação' : 'publicações'}
           </p>
           <div className="space-y-2">
-            {[...posts].reverse().map((post) => (
+            {[...visiblePosts].reverse().map((post) => (
               <div key={post.id} className="flex items-center gap-4 border border-white/10 p-3">
                 <img src={post.imageUrl} alt="" className="w-14 h-14 object-cover flex-shrink-0 bg-zinc-900" />
                 <div className="flex-1 min-w-0">

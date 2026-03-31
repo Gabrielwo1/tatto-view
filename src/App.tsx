@@ -38,6 +38,7 @@ import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
 import TatuadosPage from './pages/TatuadosPage';
+import TatuadosArtistPage from './pages/TatuadosArtistPage';
 import LoginPage from './pages/LoginPage';
 import WishlistPage from './pages/WishlistPage';
 import CartPage from './pages/CartPage';
@@ -78,6 +79,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const authChecked = useStore((state) => state.authChecked);
   if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
   if (!isAdmin && !isArtist && !isMerchManager) return <Navigate to="/admin/login" replace />;
+  return <>{children}</>;
+}
+
+// Allows admin or artist with showFinanceiro=true
+function ProtectedFinanceiroRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = useStore((s) => s.isAdmin);
+  const showFinanceiro = useStore((s) => s.showFinanceiro);
+  const authChecked = useStore((s) => s.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
+  if (!isAdmin && !showFinanceiro) return <Navigate to="/admin/dashboard" replace />;
   return <>{children}</>;
 }
 
@@ -243,6 +254,11 @@ export default function App() {
             <TatuadosPage />
           </PublicLayout>
         } />
+        <Route path="/tatuados/:slug" element={
+          <PublicLayout>
+            <TatuadosArtistPage />
+          </PublicLayout>
+        } />
 
         {/* Landing page */}
         <Route path="/landingpage" element={
@@ -290,12 +306,12 @@ export default function App() {
           <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
           <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
           <Route path="sobre-nos" element={<ProtectedAdminRoute><AdminSobreNos /></ProtectedAdminRoute>} />
-          <Route path="tatuados" element={<ProtectedAdminRoute><AdminTatuados /></ProtectedAdminRoute>} />
+          <Route path="tatuados" element={<ProtectedRoute><AdminTatuados /></ProtectedRoute>} />
           <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
-          <Route path="financeiro" element={<ProtectedRoute><AdminFinanceiro /></ProtectedRoute>} />
+          <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
         </Route>
 
         {/* Fallback */}
