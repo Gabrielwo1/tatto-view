@@ -37,13 +37,13 @@ export default function TatuadosArtistPage() {
           <img
             src={artist.photoUrl}
             alt={artist.name}
-            className="w-16 h-16 rounded-full object-cover border border-white/10"
+            className="w-48 h-48 rounded-full object-cover border-2 border-white/20 shrink-0"
           />
           <div>
-            <h1 className="font-display text-4xl md:text-6xl uppercase tracking-wide text-white leading-none">
+            <h1 className="font-display text-5xl md:text-8xl uppercase tracking-wide text-white leading-none">
               {artist.name}
             </h1>
-            <p className="font-body text-xs text-white/30 tracking-widest uppercase mt-1">
+            <p className="font-body text-xs text-white/30 tracking-widest uppercase mt-2">
               {artistPosts.length} {artistPosts.length === 1 ? 'foto tatuada' : 'fotos tatuadas'}
             </p>
           </div>
@@ -58,7 +58,7 @@ export default function TatuadosArtistPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-0.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-0.5">
           {artistPosts.map((post) => (
             <button
               key={post.id}
