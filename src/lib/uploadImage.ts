@@ -3,7 +3,8 @@ import { supabase } from './supabase';
 /**
  * Compresses a base64 data URL image using Canvas.
  * - Resizes to max 1440px on the longest side (retina-ready for full lightbox)
- * - Exports as JPEG at 82% quality (industry standard for photo portfolios)
+ * - Exports as WebP at 82% quality (~30% smaller than JPEG at same quality)
+ * - Falls back to JPEG if WebP is not supported by the browser
  * - Skips compression for GIF/SVG
  */
 async function compressImage(src: string): Promise<string> {
@@ -34,7 +35,14 @@ async function compressImage(src: string): Promise<string> {
       if (!ctx) return resolve(src);
 
       ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.82));
+
+      // Try WebP first, fall back to JPEG if not supported
+      const webp = canvas.toDataURL('image/webp', 0.82);
+      if (webp.startsWith('data:image/webp')) {
+        resolve(webp);
+      } else {
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      }
     };
     img.onerror = reject;
     img.src = src;
@@ -55,14 +63,16 @@ export async function uploadImage(src: string): Promise<string> {
   // ── 1. Supabase Storage (preferred) ───────────────────────────────────────
   if (supabase) {
     try {
-      const base64 = compressed.replace(/^data:[^;]+;base64,/, '');
-      const bytes  = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-      const blob   = new Blob([bytes], { type: 'image/jpeg' });
-      const name   = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+      const outMime = compressed.startsWith('data:image/webp') ? 'image/webp' : 'image/jpeg';
+      const outExt  = outMime === 'image/webp' ? 'webp' : 'jpg';
+      const base64  = compressed.replace(/^data:[^;]+;base64,/, '');
+      const bytes   = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const blob    = new Blob([bytes], { type: outMime });
+      const name    = `${Date.now()}-${Math.random().toString(36).slice(2)}.${outExt}`;
 
       const { data, error } = await supabase.storage
         .from('images')
-        .upload(name, blob, { contentType: 'image/jpeg', upsert: false });
+        .upload(name, blob, { contentType: outMime, upsert: false });
 
       if (error) throw error;
 

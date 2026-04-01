@@ -146,7 +146,7 @@ function CompressStorageSection() {
   const [current, setCurrent]     = useState('');
   const abortRef                  = useRef(false);
 
-  async function compressBlob(blob: Blob): Promise<Blob> {
+  async function compressBlob(blob: Blob): Promise<{ blob: Blob; ext: string }> {
     const bmp = await createImageBitmap(blob);
     const MAX = 1440;
     let w = bmp.width, h = bmp.height;
@@ -159,9 +159,13 @@ function CompressStorageSection() {
     const ctx = canvas.getContext('2d')!;
     ctx.drawImage(bmp, 0, 0, w, h);
     bmp.close();
-    return new Promise<Blob>((res, rej) =>
-      canvas.toBlob((b) => b ? res(b) : rej(new Error('toBlob failed')), 'image/jpeg', 0.82)
-    );
+    // Try WebP first, fall back to JPEG
+    return new Promise<{ blob: Blob; ext: string }>((res, rej) => {
+      canvas.toBlob((b) => {
+        if (b) return res({ blob: b, ext: 'webp' });
+        canvas.toBlob((fb) => fb ? res({ blob: fb, ext: 'jpg' }) : rej(new Error('toBlob failed')), 'image/jpeg', 0.82);
+      }, 'image/webp', 0.82);
+    });
   }
 
   async function listAll(): Promise<{ name: string }[]> {
@@ -211,13 +215,16 @@ function CompressStorageSection() {
         const res  = await fetch(publicUrl + '?t=' + Date.now()); // bust cache
         if (!res.ok) throw new Error(`fetch ${res.status}`);
         const original = await res.blob();
-        const compressed = await compressBlob(original);
+        const { blob: compressed, ext } = await compressBlob(original);
+        const outMime = ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        // Use same name for upsert (keeps DB URLs valid)
+        const uploadPath = name;
 
         // Only re-upload if compressed is smaller
         if (compressed.size < original.size) {
           await supabase.storage
             .from('images')
-            .upload(name, compressed, { contentType: 'image/jpeg', upsert: true });
+            .upload(uploadPath, compressed, { contentType: outMime, upsert: true });
           setSavedBytes((s) => s + (original.size - compressed.size));
         } else {
           setSkipped((s) => s + 1);
