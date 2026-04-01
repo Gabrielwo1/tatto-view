@@ -164,9 +164,9 @@ function CompressStorageSection() {
     );
   }
 
-  async function listAll(): Promise<{ name: string; id: string | null; metadata?: { size?: number } }[]> {
+  async function listAll(): Promise<{ name: string }[]> {
     if (!supabase) return [];
-    const files: { name: string; id: string | null; metadata?: { size?: number } }[] = [];
+    const files: { name: string }[] = [];
     let offset = 0;
     const LIMIT = 200;
     while (true) {
@@ -175,7 +175,7 @@ function CompressStorageSection() {
         .list('', { limit: LIMIT, offset, sortBy: { column: 'created_at', order: 'asc' } });
       if (error || !data) break;
       const valid = data.filter((f) => f.id !== null);
-      files.push(...valid);
+      files.push(...valid.map((f) => ({ name: f.name })));
       if (data.length < LIMIT) break;
       offset += LIMIT;
     }
