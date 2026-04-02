@@ -525,6 +525,7 @@ function toArtist(r: ArtistRow): Artist {
     instagram: r.instagram ?? undefined,
     whatsapp: r.whatsapp ?? undefined,
     createdAt: r.created_at,
+    hiddenFromHero: r.hidden_from_hero ?? false,
   };
 }
 function toMerch(r: MerchRow): Merch {
@@ -1284,6 +1285,7 @@ export const useStore = create<AppState>()(
           id: artist.id, name: artist.name, bio: artist.bio, photo_url: artist.photoUrl,
           specialties: artist.specialties, instagram: artist.instagram, whatsapp: artist.whatsapp,
           created_at: artist.createdAt,
+          hidden_from_hero: artist.hiddenFromHero ?? false,
         }).then(({ error }) => { if (error) console.error('[store] addArtist:', error); });
       },
 
@@ -1296,6 +1298,7 @@ export const useStore = create<AppState>()(
         if (updates.specialties  !== undefined) row.specialties = updates.specialties;
         if (updates.instagram    !== undefined) row.instagram   = updates.instagram;
         if (updates.whatsapp     !== undefined) row.whatsapp    = updates.whatsapp;
+        if (updates.hiddenFromHero !== undefined) row.hidden_from_hero = updates.hiddenFromHero;
         supabase?.from('artists').update(row).eq('id', id)
           .then(({ error }) => { if (error) console.error('[store] updateArtist:', error); });
       },
