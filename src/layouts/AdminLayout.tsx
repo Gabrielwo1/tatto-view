@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
@@ -163,23 +163,40 @@ const artistOnlyItem = '/admin/meu-perfil';
 const merchItem = '/admin/merchs';
 
 export default function AdminLayout() {
-  const isAdmin          = useStore((s) => s.isAdmin);
-  const isArtist         = useStore((s) => s.isArtist);
-  const isMerchManager   = useStore((s) => s.isMerchManager);
-  const showFinanceiro   = useStore((s) => s.showFinanceiro);
-  const currentArtistId  = useStore((s) => s.currentArtistId);
-  const currentUserEmail = useStore((s) => s.currentUserEmail);
-  const artists          = useStore((s) => s.artists);
-  const logout           = useStore((s) => s.logout);
-  const logoColorMode    = useStore((s) => s.logoColorMode);
-  const customLogo       = useStore((s) => s.customLogo);
-  const logoSrc          = customLogo ?? '/logosemo-3.png';
+  const isAdmin            = useStore((s) => s.isAdmin);
+  const isArtist           = useStore((s) => s.isArtist);
+  const isMerchManager     = useStore((s) => s.isMerchManager);
+  const showFinanceiro     = useStore((s) => s.showFinanceiro);
+  const currentArtistId    = useStore((s) => s.currentArtistId);
+  const currentUserEmail   = useStore((s) => s.currentUserEmail);
+  const artists            = useStore((s) => s.artists);
+  const logout             = useStore((s) => s.logout);
+  const logoColorMode      = useStore((s) => s.logoColorMode);
+  const customLogo         = useStore((s) => s.customLogo);
+  const logoSrc            = customLogo ?? '/logosemo-3.png';
+  const trialEndsAt        = useStore((s) => s.trialEndsAt);
+  const subscriptionStatus = useStore((s) => s.subscriptionStatus);
 
   const artistName = artists.find((a) => a.id === currentArtistId)?.name ?? null;
   const displayName = artistName ?? (currentUserEmail ? currentUserEmail.split('@')[0] : 'Admin');
   const location  = useLocation();
   const navigate  = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // ── Subscription gate ────────────────────────────────────────────────────
+  const trialExpired = trialEndsAt ? new Date(trialEndsAt) < new Date() : false;
+  const isBlocked    = trialExpired && subscriptionStatus !== 'active';
+  const daysLeft     = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
+    : null;
+  const showTrialBanner = !isBlocked && daysLeft !== null && daysLeft <= 3 && subscriptionStatus !== 'active';
+
+  // Redirect to subscription page when blocked (skip if already there)
+  useEffect(() => {
+    if (isBlocked && !location.pathname.includes('/assinatura')) {
+      navigate('/admin/assinatura', { replace: true });
+    }
+  }, [isBlocked, location.pathname, navigate]);
 
   async function handleLogout() {
     await logout();
@@ -210,8 +227,42 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-zinc-950 flex">
 
       {/* ── Main content ── */}
-      <main className="flex-1 overflow-auto pt-14 md:pt-0">
-        <Outlet />
+      <main className="flex-1 overflow-auto pt-14 md:pt-0 flex flex-col">
+        {/* Trial warning banner */}
+        {showTrialBanner && (
+          <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5 flex items-center justify-between gap-4 flex-shrink-0">
+            <p className="font-body text-xs text-amber-400 font-semibold tracking-wide">
+              {daysLeft === 0
+                ? 'Seu trial gratuito expira hoje.'
+                : `Seu trial gratuito expira em ${daysLeft} dia${daysLeft !== 1 ? 's' : ''}.`}
+            </p>
+            <Link
+              to="/admin/assinatura"
+              className="flex-shrink-0 bg-amber-500 hover:bg-amber-400 text-black font-body font-bold text-[10px] tracking-widest uppercase px-3 py-1.5 transition-colors"
+            >
+              Assinar
+            </Link>
+          </div>
+        )}
+
+        {/* past_due / unpaid warning */}
+        {(subscriptionStatus === 'past_due' || subscriptionStatus === 'unpaid') && (
+          <div className="bg-red-500/10 border-b border-red-500/30 px-4 py-2.5 flex items-center justify-between gap-4 flex-shrink-0">
+            <p className="font-body text-xs text-red-400 font-semibold tracking-wide">
+              Pagamento pendente. Regularize para manter o acesso.
+            </p>
+            <Link
+              to="/admin/assinatura"
+              className="flex-shrink-0 bg-red-500 hover:bg-red-400 text-white font-body font-bold text-[10px] tracking-widest uppercase px-3 py-1.5 transition-colors"
+            >
+              Regularizar
+            </Link>
+          </div>
+        )}
+
+        <div className="flex-1">
+          <Outlet />
+        </div>
       </main>
 
       {/* ── Desktop Sidebar (RIGHT) ── */}
