@@ -38,7 +38,6 @@ export interface Artist {
   instagram?: string;
   whatsapp?: string;
   createdAt: string;
-  hiddenFromHero?: boolean;
 }
 
 export interface Merch {
@@ -103,7 +102,6 @@ export interface ArtistRow {
   instagram: string | null;
   whatsapp: string | null;
   created_at: string;
-  hidden_from_hero: boolean | null;
 }
 
 export interface MerchRow {

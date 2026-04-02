@@ -117,32 +117,16 @@ export default function AdminArtists() {
 
                 {/* Artist info */}
                 <div className="col-span-5 md:col-span-4 flex items-center gap-3">
-                  <div className="relative">
-                    <img
-                      src={artist.photoUrl}
-                      alt={artist.name}
-                      className={`w-9 h-9 object-cover flex-shrink-0 ${artist.hiddenFromHero ? 'opacity-30 grayscale' : ''}`}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/100/100`;
-                      }}
-                    />
-                    {artist.hiddenFromHero && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-display text-sm text-white uppercase tracking-wide truncate">{artist.name}</p>
-                      {artist.hiddenFromHero && (
-                        <span className="flex-shrink-0 text-[8px] font-body font-bold tracking-widest uppercase px-1.5 py-0.5 border border-white/10 text-gray-600 bg-black/40">
-                          Oculto
-                        </span>
-                      )}
-                    </div>
+                  <img
+                    src={artist.photoUrl}
+                    alt={artist.name}
+                    className="w-9 h-9 object-cover flex-shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/100/100`;
+                    }}
+                  />
+                  <div className="min-w-0">
+                    <p className="font-display text-sm text-white uppercase tracking-wide truncate">{artist.name}</p>
                     {artist.instagram && (
                       <p className="font-body text-[10px] text-gray-600 truncate">{artist.instagram}</p>
                     )}

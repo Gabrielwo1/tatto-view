@@ -30,25 +30,16 @@ async function getUserIdFromCustomer(customerId) {
   return data?.id ?? null;
 }
 
-async function getRawBody(readable) {
-  const chunks = [];
-  for await (const chunk of readable) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-  }
-  return Buffer.concat(chunks);
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const sig = req.headers['stripe-signature'];
-  const buf = await getRawBody(req);
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error('[webhook] signature error:', err.message);
     return res.status(400).json({ error: `Webhook error: ${err.message}` });

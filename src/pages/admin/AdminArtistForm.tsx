@@ -29,7 +29,6 @@ export default function AdminArtistForm() {
     specialties: existing?.specialties.join(', ') ?? '',
     instagram: existing?.instagram ?? '',
     whatsapp: existing?.whatsapp ?? '',
-    hiddenFromHero: existing?.hiddenFromHero ?? false,
   });
 
   const { cropSrc, fileInputRef, handleFileChange, handleCropConfirm, handleCropCancel, openFilePicker } =
@@ -73,7 +72,6 @@ export default function AdminArtistForm() {
       specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
       instagram: form.instagram || undefined,
       whatsapp: form.whatsapp || undefined,
-      hiddenFromHero: form.hiddenFromHero,
     };
     if (existing) {
       updateArtist(existing.id, data);
@@ -121,24 +119,6 @@ export default function AdminArtistForm() {
               </label>
               <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls}
                 placeholder="Realismo, Blackwork, Aquarela" />
-            </div>
-
-            <div className="pt-2">
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  name="hiddenFromHero"
-                  checked={form.hiddenFromHero}
-                  onChange={(e) => setForm((f) => ({ ...f, hiddenFromHero: e.target.checked }))}
-                  className="w-4 h-4 rounded border-white/15 bg-transparent checked:bg-white checked:border-white transition-colors"
-                />
-                <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
-                  Ocultar do painel principal (Hero)
-                </span>
-              </label>
-              <p className="mt-2 font-body text-[10px] text-gray-700 italic leading-relaxed">
-                O artista continuará visível em outras seções, mas não aparecerá no carrossel da página inicial.
-              </p>
             </div>
           </div>
 

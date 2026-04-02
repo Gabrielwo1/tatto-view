@@ -15,7 +15,7 @@ const GRADIENT_TOP =
   'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 18%, rgba(0,0,0,0) 40%)';
 
 export default function ArtistHero() {
-  const artists = useStore((s) => s.artists.filter(a => !a.hiddenFromHero));
+  const artists = useStore((s) => s.artists);
   const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
