@@ -300,7 +300,7 @@ export default function AdminTattooForm() {
                 {editForm.imageUrl ? (
                   <div className="space-y-3">
                     <div className="relative w-1/2">
-                      <img src={editForm.imageUrl} alt="Preview" className="w-full aspect-[3/4] object-cover border border-white/10"
+                      <img src={editForm.imageUrl} alt="Preview" className="w-full object-contain border border-white/10 bg-zinc-900"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       <button type="button" onClick={() => { setEditForm((f) => ({ ...f, imageUrl: '' })); if (editFileRef.current) editFileRef.current.value = ''; }}
                         className="absolute top-2 right-2 bg-black/80 hover:bg-black text-white/60 hover:text-white p-1.5 transition-colors">
@@ -361,7 +361,7 @@ export default function AdminTattooForm() {
   }
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="p-4 md:p-8 max-w-5xl">
       {/* Header */}
       <div className="mb-6">
         <Link to="/admin/tatuagens" className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors inline-flex items-center gap-2 mb-4">

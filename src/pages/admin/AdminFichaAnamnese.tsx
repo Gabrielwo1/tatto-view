@@ -7,6 +7,7 @@ export default function AdminFichaAnamnese() {
 
   const [tatuadores, setTatuadores] = useState<string[]>(fichaConfig.tatuadores);
   const [conditions, setConditions] = useState<string[]>(fichaConfig.conditions);
+  const [cidade, setCidade] = useState(fichaConfig.cidade ?? 'São Paulo');
   const [newTatuador, setNewTatuador] = useState('');
   const [newCondition, setNewCondition] = useState('');
   const [editingTatuador, setEditingTatuador] = useState<number | null>(null);
@@ -14,7 +15,7 @@ export default function AdminFichaAnamnese() {
   const [saved, setSaved] = useState(false);
 
   function handleSave() {
-    setFichaConfig({ tatuadores, conditions });
+    setFichaConfig({ tatuadores, conditions, cidade });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -66,7 +67,7 @@ export default function AdminFichaAnamnese() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-2xl">
+    <div className="p-4 md:p-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
         <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
@@ -75,6 +76,21 @@ export default function AdminFichaAnamnese() {
         </h1>
         <p className="text-xs text-gray-500 mt-2">Configure os tatuadores e condições de saúde exibidos na ficha.</p>
       </div>
+
+      {/* Cidade */}
+      <section className="mb-10">
+        <h2 className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400 mb-4 flex items-center gap-2">
+          <span className="text-red-500">00.</span> Cidade padrão da assinatura
+        </h2>
+        <p className="text-xs text-gray-600 mb-3">Aparece no campo "{cidade || 'CIDADE'}, DATA *" no final da ficha.</p>
+        <input
+          type="text"
+          value={cidade}
+          onChange={(e) => setCidade(e.target.value)}
+          placeholder="Ex: São Paulo"
+          className="bg-transparent border border-white/15 px-3 py-2 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors w-64"
+        />
+      </section>
 
       {/* Tatuadores */}
       <section className="mb-10">

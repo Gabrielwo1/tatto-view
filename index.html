@@ -1,16 +1,86 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/dudeicone.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>InkView - Estúdio de Tatuagens</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <meta name="theme-color" content="#000000" />
+
+    <title>El Dude Tattoo Studio Francisco Beltrão PR | Flash Tattoo, Realismo, Blackwork — Agende sua Sessão</title>
+    <meta name="description" content="El Dude Tattoo Studio em Francisco Beltrão, Paraná. Artistas residentes especializados em flash tattoo, realismo, blackwork, old school, tribal e aquarela. Explore a vitrine de tatuagens e agende sua sessão." />
+    <meta name="keywords" content="tatuagem Francisco Beltrão, tattoo studio Paraná, flash tattoo, realismo, blackwork, El Dude, artistas tatuadores PR" />
+    <link rel="canonical" href="https://eldude.vitink.app/" />
+
+    <!-- Preload hero logo for faster LCP -->
+    <link rel="preload" href="/logosemo-3.png" as="image" fetchpriority="high" />
+
+    <!-- Open Graph / WhatsApp / Social preview -->
+    <meta property="og:type"         content="website" />
+    <meta property="og:url"          content="https://eldude.vitink.app/" />
+    <meta property="og:title"        content="El Dude Tattoo Studio | Francisco Beltrão - PR" />
+    <meta property="og:description"  content="Artistas residentes em Francisco Beltrão, flash tattoo, realismo e blackwork. Explore a vitrine e agende sua sessão." />
+    <meta property="og:image"        content="https://eldude.vitink.app/api/og-image" />
+    <meta property="og:image:width"  content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type"   content="image/png" />
+    <meta property="og:locale"       content="pt_BR" />
+    <meta property="og:site_name"    content="El Dude Tattoo Studio" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="El Dude Tattoo Studio | Francisco Beltrão - PR" />
+    <meta name="twitter:description" content="Artistas residentes em Francisco Beltrão, flash tattoo, realismo e blackwork. Explore a vitrine e agende sua sessão." />
+    <meta name="twitter:image"       content="https://eldude.vitink.app/api/og-image" />
+
+    <!-- Local Business structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TattooParlor",
+      "name": "El Dude Tattoo Studio",
+      "url": "https://eldude.vitink.app/",
+      "logo": "https://eldude.vitink.app/api/og-image",
+      "image": "https://eldude.vitink.app/api/og-image",
+      "description": "Estúdio de tatuagem em Francisco Beltrão, Paraná, com artistas residentes especializados em flash, realismo, blackwork e mais estilos.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Francisco Beltrão",
+        "addressRegion": "PR",
+        "addressCountry": "BR"
+      },
+      "priceRange": "$$"
+    }
+    </script>
+
+    <!-- Fonts: non-blocking async load -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" /></noscript>
   </head>
   <body>
+    <!-- Static SEO content for crawlers (hidden when JS loads, replaced by React) -->
+    <div id="seo-fallback" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">
+      <h1>El Dude Tattoo Studio — Tatuagens em Francisco Beltrão, Paraná</h1>
+      <p>Estúdio de tatuagem em Francisco Beltrão, PR, com artistas residentes especializados em flash tattoo, realismo, blackwork, old school, tribal e mais. Explore nossa vitrine, conheça os artistas e agende sua sessão.</p>
+      <p>El Dude Tattoo Studio oferece tatuagens personalizadas em Francisco Beltrão, Paraná. Escolha seu estilo favorito: realismo fotográfico, blackwork, aquarela, geométrico, neo-tradicional ou minimalista.</p>
+      <nav>
+        <a href="/">Vitrine de Tatuagens</a>
+        <a href="/artistas">Artistas Tatuadores</a>
+        <a href="/loja">Loja de Merch</a>
+        <a href="/guests">Guest Artists</a>
+        <a href="/aftercare">Pós-Tattoo</a>
+        <a href="/sobre-nos">Sobre o Estúdio</a>
+        <a href="/landingpage">El Dude Tattoo Studio</a>
+      </nav>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Hide SEO fallback once JS loads -->
+    <script>document.getElementById('seo-fallback').style.display='none';</script>
   </body>
 </html>

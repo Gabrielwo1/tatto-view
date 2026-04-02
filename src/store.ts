@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch } from './types';
+import type { Tattoo, Artist, Merch, TattooSession, ShopContent, TatuadoPost, TattooRow, ArtistRow, MerchRow, Expense, ExpenseCategory } from './types';
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
@@ -118,6 +118,17 @@ const defaultEventsContent: EventsContent = {
       ctaUrl: '',
     },
   ],
+};
+
+// ── Tatuados Content ─────────────────────────────────────────────────────────
+export interface TatuadosContent {
+  title: string;
+  subtitle: string;
+}
+
+const defaultTatuadosContent: TatuadosContent = {
+  title: 'THE ARCHIVE',
+  subtitle: 'A curated selection of permanence. Our portfolio represents the intersection of anatomical precision and avant-garde artistry.',
 };
 
 // ── Sobre Nós Content ────────────────────────────────────────────────────────
@@ -434,6 +445,7 @@ const defaultGuestContent: GuestContent = {
 export interface FichaConfig {
   tatuadores: string[];
   conditions: string[];
+  cidade?: string;
 }
 
 // ── Ficha de Anamnese Submission ──────────────────────────────────────────────
@@ -490,8 +502,7 @@ const defaultFichaConfig: FichaConfig = {
 };
 
 // ── Row → App type converters (snake_case → camelCase) ──────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toTattoo(r: any): Tattoo {
+function toTattoo(r: TattooRow): Tattoo {
   return {
     id: r.id,
     title: r.title,
@@ -504,8 +515,7 @@ function toTattoo(r: any): Tattoo {
     createdAt: r.created_at,
   };
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toArtist(r: any): Artist {
+function toArtist(r: ArtistRow): Artist {
   return {
     id: r.id,
     name: r.name,
@@ -517,8 +527,7 @@ function toArtist(r: any): Artist {
     createdAt: r.created_at,
   };
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toMerch(r: any): Merch {
+function toMerch(r: MerchRow): Merch {
   return {
     id: r.id,
     name: r.name,
@@ -555,14 +564,70 @@ const seedTattoos: Tattoo[] = [
   { id: 'tattoo-12', title: 'Bússola Geométrica',       description: 'Bússola com design geométrico e detalhes intrincados.', imageUrl: 'https://picsum.photos/seed/tattoo12/600/400', style: 'Geométrico',     price: 'R$ 650',   artistId: null, status: 'archived',  createdAt: new Date('2023-10-20').toISOString() },
 ];
 
+// ── Shop Content ─────────────────────────────────────────────────────────────
+export const defaultShopContent: ShopContent = {
+  hero: {
+    title: 'INK MANIFESTO.',
+    subtitle: 'HIGH CONTRAST BRUTALISM FOR THE SOUL.',
+  },
+  sessionsTagline: 'TATTOO SESSIONS',
+  sessionsAvailableLabel: 'AVAILABLE NOW',
+  apparelTagline: 'APPAREL',
+  paymentMethods: [
+    { label: 'PIX',    sub: 'INSTANT 5% OFF' },
+    { label: 'CREDIT', sub: 'UP TO 12X' },
+    { label: 'CRYPTO', sub: 'BTC/ETH' },
+  ],
+};
+
+// ── Shop Sessions ────────────────────────────────────────────────────────────
+const defaultSessions: TattooSession[] = [
+  {
+    id: 'session-1',
+    typeNum: '01',
+    title: 'SMALL SESSION',
+    description: 'Até 5cm. Linework minimalista ou micro-realismo. Perfeito para quem está começando.',
+    price: 'R$ 250',
+    bookingLink: '',
+  },
+  {
+    id: 'session-2',
+    typeNum: '02',
+    title: 'MEDIUM SESSION',
+    description: '5 – 15cm. Projetos médios com detalhes e sombreamento elaborado.',
+    price: 'R$ 500',
+    bookingLink: '',
+  },
+  {
+    id: 'session-3',
+    typeNum: '03',
+    title: 'FULL SESSION',
+    description: 'Projetos grandes ou complexos. Área extensa, múltiplas sessões, alto detalhamento.',
+    price: 'A combinar',
+    bookingLink: '',
+  },
+];
+
 // ── Store interface ──────────────────────────────────────────────────────────
 interface AppState {
   tattoos: Tattoo[];
   artists: Artist[];
   merchs: Merch[];
+  sessions: TattooSession[];
+  addSession: (data: Omit<TattooSession, 'id'>) => void;
+  updateSession: (id: string, updates: Partial<TattooSession>) => void;
+  deleteSession: (id: string) => void;
+  shopContent: ShopContent;
+  setShopContent: (content: ShopContent) => void;
   isAdmin: boolean;
+  /** True once the initial auth check (initAuth) has completed. */
+  authChecked: boolean;
   /** True when the logged-in user is a merch manager (not admin or artist). */
   isMerchManager: boolean;
+  /** ISO date when the free trial expires. null = no trial (active subscription). */
+  trialEndsAt: string | null;
+  /** Stripe subscription status. null = not loaded yet. */
+  subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | null;
   /** True once Supabase data has been loaded (or if Supabase is not configured). */
   dataLoaded: boolean;
   /** Theme chosen by the studio admin. null = use subdomain default. */
@@ -585,12 +650,23 @@ interface AppState {
   /** Custom logo image URL. null = use default /logosemo-3.png */
   customLogo: string | null;
   setCustomLogo: (url: string | null) => void;
+  /** Custom favicon URL. null = use default /dudeicone.png */
+  customFavicon: string | null;
+  setCustomFavicon: (url: string | null) => void;
   /** Events page content editable by admin */
   eventsContent: EventsContent;
   setEventsContent: (content: EventsContent) => void;
   /** Landing page content editable by admin */
   landingContent: LandingContent;
   setLandingContent: (content: LandingContent) => void;
+  /** Tatuados archive page content editable by admin */
+  tatuadosContent: TatuadosContent;
+  setTatuadosContent: (content: TatuadosContent) => void;
+  /** Tatuados posts — independent photo posts linked to artists */
+  tatuadoPosts: TatuadoPost[];
+  addTatuadoPost: (post: TatuadoPost) => void;
+  updateTatuadoPost: (post: TatuadoPost) => void;
+  deleteTatuadoPost: (id: string) => void;
   /** Sobre Nós page content editable by admin */
   sobreNosContent: SobreNosContent;
   setSobreNosContent: (content: SobreNosContent) => void;
@@ -607,11 +683,37 @@ interface AppState {
   fichaSubmissions: FichaSubmission[];
   addFichaSubmission: (submission: Omit<FichaSubmission, 'id' | 'submittedAt'>) => void;
   deleteFichaSubmission: (id: string) => void;
+  // ── Financeiro ──────────────────────────────────────────────────────────────
+  expenses: Expense[];
+  addExpense: (data: Omit<Expense, 'id' | 'createdAt'>) => void;
+  updateExpense: (id: string, updates: Partial<Omit<Expense, 'id' | 'createdAt'>>) => void;
+  deleteExpense: (id: string) => void;
   loadData: () => Promise<void>;
   /** True when the logged-in user is an artist (not super admin). */
   isArtist: boolean;
+  /** Whether the current artist user can see the Financeiro page. Always true for admins. */
+  showFinanceiro: boolean;
   /** The artist row id linked to the logged-in artist user. null when admin. */
   currentArtistId: string | null;
+  /** Email of the currently logged-in user. null when not logged in. */
+  currentUserEmail: string | null;
+  // ── Public user (customer) auth ───────────────────────────────────────
+  publicUser: { id: string; email: string; name: string } | null;
+  publicLogin: (email: string, password: string) => Promise<'customer' | 'admin' | 'artist' | 'merch_manager' | false>;
+  publicRegister: (email: string, password: string, name: string) => Promise<boolean>;
+  publicLogout: () => Promise<void>;
+  // ── Wishlist ──────────────────────────────────────────────────────────
+  wishlist: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  loadWishlist: () => Promise<void>;
+  addToWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  removeFromWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Cart ──────────────────────────────────────────────────────────────
+  cart: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  loadCart: () => Promise<void>;
+  addToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  moveToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Admin auth ────────────────────────────────────────────────────────
   /** Check existing Supabase session on app load. */
   initAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
@@ -637,10 +739,50 @@ export const useStore = create<AppState>()(
       tattoos: seedTattoos,
       artists: seedArtists,
       merchs: [],
+      sessions: defaultSessions,
+      addSession: (data) => {
+        const session: TattooSession = { ...data, id: crypto.randomUUID() };
+        set((s) => {
+          const sessions = [...s.sessions, session];
+          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+            .then(({ error }) => { if (error) console.error('[store] addSession:', error); });
+          return { sessions };
+        });
+      },
+      updateSession: (id, updates) => {
+        set((s) => {
+          const sessions = s.sessions.map((sess) => sess.id === id ? { ...sess, ...updates } : sess);
+          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+            .then(({ error }) => { if (error) console.error('[store] updateSession:', error); });
+          return { sessions };
+        });
+      },
+      deleteSession: (id) => {
+        set((s) => {
+          const sessions = s.sessions.filter((sess) => sess.id !== id);
+          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+            .then(({ error }) => { if (error) console.error('[store] deleteSession:', error); });
+          return { sessions };
+        });
+      },
+      shopContent: defaultShopContent,
+      setShopContent: (content) => {
+        set({ shopContent: content });
+        supabase?.from('site_config').upsert({ key: 'shopContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setShopContent:', error); });
+      },
+      publicUser: null,
+      wishlist: [],
+      cart: [],
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
+      trialEndsAt: null,
+      subscriptionStatus: null,
+      showFinanceiro: true,
       currentArtistId: null,
+      currentUserEmail: null,
+      authChecked: false,
       dataLoaded: false,
       themeId: null,
       setTheme: (id) => {
@@ -679,6 +821,12 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert({ key: 'customLogo', value: url, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setCustomLogo:', error); });
       },
+      customFavicon: null,
+      setCustomFavicon: (url) => {
+        set({ customFavicon: url });
+        supabase?.from('site_config').upsert({ key: 'customFavicon', value: url, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setCustomFavicon:', error); });
+      },
       eventsContent: defaultEventsContent,
       setEventsContent: (content) => {
         set({ eventsContent: content });
@@ -690,6 +838,31 @@ export const useStore = create<AppState>()(
         set({ landingContent: content });
         supabase?.from('site_config').upsert({ key: 'landingContent', value: content, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLandingContent:', error); });
+      },
+      tatuadosContent: defaultTatuadosContent,
+      setTatuadosContent: (content) => {
+        set({ tatuadosContent: content });
+        supabase?.from('site_config').upsert({ key: 'tatuadosContent', value: content, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] setTatuadosContent:', error); });
+      },
+      tatuadoPosts: [],
+      addTatuadoPost: (post) => {
+        const posts = [...get().tatuadoPosts, post];
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] addTatuadoPost:', error); });
+      },
+      updateTatuadoPost: (post) => {
+        const posts = get().tatuadoPosts.map((p) => (p.id === post.id ? post : p));
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] updateTatuadoPost:', error); });
+      },
+      deleteTatuadoPost: (id) => {
+        const posts = get().tatuadoPosts.filter((p) => p.id !== id);
+        set({ tatuadoPosts: posts });
+        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+          .then(({ error }) => { if (error) console.error('[store] deleteTatuadoPost:', error); });
       },
       sobreNosContent: defaultSobreNosContent,
       setSobreNosContent: (content) => {
@@ -735,6 +908,37 @@ export const useStore = create<AppState>()(
           .then(({ error }) => { if (error) console.error('[store] deleteFichaSubmission:', error); });
       },
 
+      // ── Financeiro ────────────────────────────────────────────────────────
+      expenses: [],
+      addExpense: (data) => {
+        const expense: Expense = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+        set((s) => ({ expenses: [expense, ...s.expenses] }));
+        supabase?.from('expenses').insert({
+          id: expense.id, description: expense.description, amount: expense.amount,
+          paid_by: expense.paidBy, date: expense.date, category: expense.category,
+          participants: expense.participants, created_at: expense.createdAt,
+          receipt_url: expense.receiptUrl ?? null,
+        }).then(({ error }) => { if (error) console.error('[store] addExpense:', error); });
+      },
+      updateExpense: (id, updates) => {
+        set((s) => ({ expenses: s.expenses.map((e) => e.id === id ? { ...e, ...updates } : e) }));
+        const row: Record<string, unknown> = {};
+        if (updates.description !== undefined) row.description = updates.description;
+        if (updates.amount      !== undefined) row.amount      = updates.amount;
+        if (updates.paidBy      !== undefined) row.paid_by     = updates.paidBy;
+        if (updates.date        !== undefined) row.date        = updates.date;
+        if (updates.category    !== undefined) row.category    = updates.category;
+        if (updates.participants !== undefined) row.participants = updates.participants;
+        if (updates.receiptUrl  !== undefined) row.receipt_url  = updates.receiptUrl;
+        supabase?.from('expenses').update(row).eq('id', id)
+          .then(({ error }) => { if (error) console.error('[store] updateExpense:', error); });
+      },
+      deleteExpense: (id) => {
+        set((s) => ({ expenses: s.expenses.filter((e) => e.id !== id) }));
+        supabase?.from('expenses').delete().eq('id', id)
+          .then(({ error }) => { if (error) console.error('[store] deleteExpense:', error); });
+      },
+
       // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
         if (!supabase) {
@@ -742,13 +946,14 @@ export const useStore = create<AppState>()(
           return;
         }
         try {
-          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs, error: fse }] =
+          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs, error: fse }, { data: ex }] =
             await Promise.all([
               supabase.from('tattoos').select('*').order('created_at', { ascending: false }),
               supabase.from('artists').select('*').order('created_at', { ascending: true }),
               supabase.from('merchs').select('*').order('created_at', { ascending: false }),
               supabase.from('site_config').select('*'),
               supabase.from('ficha_submissions').select('*').order('submitted_at', { ascending: false }),
+              supabase.from('expenses').select('*').order('date', { ascending: false }),
             ]);
           if (te) throw te;
           if (ae) throw ae;
@@ -773,10 +978,34 @@ export const useStore = create<AppState>()(
             tattoos:          (t ?? []).map(toTattoo),
             artists:          orderedArtists,
             merchs:           (m ?? []).map(toMerch),
-            // Always sync fichas from Supabase (source of truth for cross-device)
-            ...(!fse ? { fichaSubmissions: (fs ?? []).map((r) => r.data as FichaSubmission) } : {}),
+            // Merge fichas: Supabase + any local-only submissions not yet synced
+            ...(!fse ? (() => {
+              const remote = (fs ?? []).map((r) => r.data as FichaSubmission);
+              const localOnly = get().fichaSubmissions.filter(
+                (l) => !remote.some((r) => r.id === l.id)
+              );
+              // Re-sync local-only fichas to Supabase
+              if (localOnly.length > 0 && supabase) {
+                for (const ficha of localOnly) {
+                  supabase.from('ficha_submissions').insert({
+                    id: ficha.id,
+                    submitted_at: ficha.submittedAt,
+                    data: ficha,
+                  }).then(({ error }) => { if (error) console.error('[store] resync ficha:', error); });
+                }
+              }
+              return { fichaSubmissions: [...remote, ...localOnly] };
+            })() : {}),
+            expenses: (ex ?? []).map((r) => ({
+              id: r.id, description: r.description, amount: r.amount,
+              paidBy: r.paid_by, date: r.date, category: r.category as ExpenseCategory,
+              participants: r.participants as string[], createdAt: r.created_at,
+              ...(r.receipt_url ? { receiptUrl: r.receipt_url } : {}),
+            })),
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
+            ...(config.tatuadosContent  ? { tatuadosContent:  config.tatuadosContent  as TatuadosContent }               : {}),
+            ...(config.tatuadoPosts     ? { tatuadoPosts:     config.tatuadoPosts     as TatuadoPost[] }                  : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent ? (() => {
               const stored = config.guestContent as GuestContent;
@@ -816,8 +1045,11 @@ export const useStore = create<AppState>()(
             } : {}),
             ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
             ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
+            ...(config.customFavicon !== undefined ? { customFavicon: config.customFavicon as string | null } : {}),
             ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
             ...(config.customStyles !== undefined ? { customStyles: config.customStyles as string[] } : {}),
+            ...(config.sessions !== undefined ? { sessions: config.sessions as TattooSession[] } : {}),
+            ...(config.shopContent !== undefined ? { shopContent: { ...defaultShopContent, ...(config.shopContent as ShopContent) } } : {}),
             dataLoaded: true,
           });
         } catch (err) {
@@ -826,23 +1058,128 @@ export const useStore = create<AppState>()(
         }
       },
 
-      // ── Auth ─────────────────────────────────────────────────────────────
+      // ── Public user auth ─────────────────────────────────────────────────
+      publicLogin: async (email, password) => {
+        if (!supabase) return false;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) return false;
+        // Check role — artists/admins get redirected to admin panel
+        const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
+        if (profile) {
+          if (profile.role === 'admin') {
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'admin';
+          } else if (profile.role === 'artist') {
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'artist';
+          } else if (profile.role === 'merch_manager') {
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
+            return 'merch_manager';
+          }
+        }
+        // Regular customer
+        const name = data.user.user_metadata?.name ?? email.split('@')[0];
+        set({ publicUser: { id: data.user.id, email: data.user.email!, name } });
+        get().loadWishlist();
+        get().loadCart();
+        return 'customer';
+      },
+
+      publicRegister: async (email, password, name) => {
+        if (!supabase) return false;
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { name } },
+        });
+        if (error || !data.user) return false;
+        // Insert customer profile
+        await supabase.from('user_profiles').upsert({ id: data.user.id, role: 'customer', artist_id: null });
+        return true;
+      },
+
+      publicLogout: async () => {
+        await supabase?.auth.signOut();
+        set({ publicUser: null, wishlist: [], cart: [] });
+      },
+
+      // ── Wishlist ─────────────────────────────────────────────────────────
+      loadWishlist: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('wishlists').select('item_type, item_id').eq('user_id', publicUser.id);
+        if (data) set({ wishlist: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+      },
+
+      addToWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: [...s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)), { itemType, itemId }] }));
+        await supabase.from('wishlists').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+      },
+
+      removeFromWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)) }));
+        await supabase.from('wishlists').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+      },
+
+      // ── Cart ─────────────────────────────────────────────────────────────
+      loadCart: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('cart_items').select('item_type, item_id').eq('user_id', publicUser.id);
+        if (data) set({ cart: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+      },
+
+      addToCart: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { itemType, itemId }] }));
+        await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+      },
+
+      removeFromCart: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)) }));
+        await supabase.from('cart_items').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+      },
+
+      moveToCart: async (itemType, itemId) => {
+        await get().addToCart(itemType, itemId);
+        await get().removeFromWishlist(itemType, itemId);
+      },
+
+      // ── Admin Auth ───────────────────────────────────────────────────────
       initAuth: async () => {
-        if (!supabase) return;
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) return;
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role, artist_id')
-          .eq('id', session.user.id)
-          .single();
-        if (!profile) return;
-        if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
-        } else if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
-        } else if (profile.role === 'merch_manager') {
-          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+        if (!supabase) { set({ authChecked: true }); return; }
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.user) { set({ authChecked: true }); return; }
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          if (!profile) { set({ authChecked: true }); return; }
+          const email = session.user.email ?? null;
+          const trialEndsAt = profile.trial_end_at ?? null;
+          const subscriptionStatus = profile.subscription_status ?? 'trialing';
+          if (profile.role === 'admin') {
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: email, trialEndsAt, subscriptionStatus });
+          } else if (profile.role === 'artist') {
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email, trialEndsAt, subscriptionStatus });
+          } else if (profile.role === 'merch_manager') {
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email, trialEndsAt, subscriptionStatus });
+          } else if (profile.role === 'customer') {
+            const name = session.user.user_metadata?.name ?? (email?.split('@')[0] ?? 'Cliente');
+            set({ publicUser: { id: session.user.id, email: email!, name } });
+            get().loadWishlist();
+            get().loadCart();
+          }
+        } finally {
+          set({ authChecked: true });
         }
       },
 
@@ -852,20 +1189,23 @@ export const useStore = create<AppState>()(
         if (error || !data.user) return false;
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('role, artist_id')
+          .select('role, artist_id, show_financeiro, trial_end_at, subscription_status')
           .eq('id', data.user.id)
           .single();
         if (!profile) return false;
+        const userEmail = data.user.email ?? null;
+        const trialEndsAt = profile.trial_end_at ?? null;
+        const subscriptionStatus = profile.subscription_status ?? 'trialing';
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, currentArtistId: null });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail, trialEndsAt, subscriptionStatus });
           return true;
         }
         if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, currentArtistId: profile.artist_id ?? null });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail, trialEndsAt, subscriptionStatus });
           return true;
         }
         if (profile.role === 'merch_manager') {
-          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, trialEndsAt, subscriptionStatus });
           return true;
         }
         return false;
@@ -873,7 +1213,7 @@ export const useStore = create<AppState>()(
 
       logout: async () => {
         await supabase?.auth.signOut();
-        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null });
+        set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: null });
       },
 
       // ── Tattoos ──────────────────────────────────────────────────────────
@@ -1003,10 +1343,14 @@ export const useStore = create<AppState>()(
         customSecondary: state.customSecondary,
         logoColorMode: state.logoColorMode,
         customLogo: state.customLogo,
+        customFavicon: state.customFavicon,
         tattoos: state.tattoos,
         artists: state.artists,
         merchs: state.merchs,
+        sessions: state.sessions,
+        shopContent: state.shopContent,
         fichaSubmissions: state.fichaSubmissions,
+        expenses: state.expenses,
         fichaConfig: state.fichaConfig,
         eventsContent: state.eventsContent,
         landingContent: state.landingContent,

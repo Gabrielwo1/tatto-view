@@ -1,5 +1,8 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
+import WishlistButton from './WishlistButton';
+import { toSlug } from '../utils';
 
 interface TattooCardProps {
   tattoo: Tattoo;
@@ -8,8 +11,8 @@ interface TattooCardProps {
   onClick?: () => void;
 }
 
-export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
-  const href = artist ? `/artistas/${artist.id}` : '/artistas';
+function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
+  const href = artist ? `/artistas/${toSlug(artist.name)}` : '/artistas';
 
   const inner = (
     <>
@@ -17,6 +20,8 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
         <img
           src={tattoo.imageUrl}
           alt={tattoo.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           onError={(e) => {
             (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/600/600`;
@@ -27,17 +32,23 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
             Arquivada
           </div>
         )}
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <WishlistButton itemType="tattoo" itemId={tattoo.id} className="bg-black/60 rounded-full" />
+        </div>
       </div>
 
-      <div className="pt-2 pb-1 h-14 flex flex-col justify-start overflow-hidden">
-        <h3 className="font-display text-sm uppercase tracking-wide text-white leading-tight mb-0.5 truncate">
+      <div className="pt-2 pb-1 h-[4.25rem] flex flex-col justify-start overflow-hidden">
+        <h3 className="font-display text-base uppercase tracking-wide text-white leading-tight mb-0.5 truncate">
           {tattoo.title}
         </h3>
         {artist && (
-          <p className="font-body text-[10px] text-white/30 truncate">{artist.name}</p>
+          <p className="font-body text-xs text-white/30 truncate">{artist.name}</p>
         )}
         {tattoo.price && (
-          <p className="text-gray-500 text-[10px] font-body mt-0.5">{tattoo.price}</p>
+          <p className="text-xs font-body mt-0.5">
+            <span className="text-ink2-500">a partir de </span>
+            <span className="text-ink-500">{tattoo.price}</span>
+          </p>
         )}
       </div>
     </>
@@ -57,3 +68,5 @@ export default function TattooCard({ tattoo, artist, onClick }: TattooCardProps)
     </Link>
   );
 }
+
+export default memo(TattooCard);

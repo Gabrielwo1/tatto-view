@@ -1,12 +1,313 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
-import { THEMES, applyTheme, applyCustomColors, generateShades, getThemeForHostname } from '../../lib/themes';
-import type { ThemeId, LogoColorMode } from '../../lib/themes';
-import { supabase } from '../../lib/supabase';
+import { applyCustomColors, generateShades } from '../../lib/themes';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
+import { getAnalytics, getTopPages, resetAnalytics } from '../../lib/analytics';
+import { toSlug } from '../../utils';
+import { supabase } from '../../lib/supabase';
 
-const THEME_ORDER: ThemeId[] = ['ember', 'crimson', 'violet', 'rose', 'gold', 'neon', 'cyan'];
+interface WishlistRow { item_type: 'tattoo' | 'merch'; item_id: string; }
+
+function WishlistSection() {
+  const tattoos = useStore((s) => s.tattoos);
+  const merchs  = useStore((s) => s.merchs);
+  const artists = useStore((s) => s.artists);
+  const [rows, setRows] = useState<WishlistRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!supabase) { setLoading(false); return; }
+    supabase.from('wishlists').select('item_type, item_id').then(({ data, error }) => {
+      if (error) console.error('[Wishlist]', error);
+      setRows((data as WishlistRow[]) ?? []);
+      setLoading(false);
+    });
+  }, []);
+
+  const tattooCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rows) if (r.item_type === 'tattoo') map.set(r.item_id, (map.get(r.item_id) ?? 0) + 1);
+    return map;
+  }, [rows]);
+
+  const merchCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of rows) if (r.item_type === 'merch') map.set(r.item_id, (map.get(r.item_id) ?? 0) + 1);
+    return map;
+  }, [rows]);
+
+  const topTattoos = useMemo(() =>
+    tattoos.map((t) => ({ tattoo: t, count: tattooCounts.get(t.id) ?? 0 }))
+      .filter((x) => x.count > 0).sort((a, b) => b.count - a.count),
+    [tattoos, tattooCounts]);
+
+  const topMerchs = useMemo(() =>
+    merchs.map((m) => ({ merch: m, count: merchCounts.get(m.id) ?? 0 }))
+      .filter((x) => x.count > 0).sort((a, b) => b.count - a.count),
+    [merchs, merchCounts]);
+
+  const maxTattooCount = topTattoos[0]?.count ?? 1;
+  const maxMerchCount  = topMerchs[0]?.count  ?? 1;
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">Lista de Desejos</h2>
+          <p className="font-body text-xs text-gray-500">Itens mais salvos pelos clientes.</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="font-body text-xs text-gray-600">Carregando...</p>
+      ) : rows.length === 0 ? (
+        <p className="font-body text-xs text-gray-700 italic">Nenhum item salvo ainda.</p>
+      ) : (
+        <>
+          {/* KPI cards */}
+          <div className="grid grid-cols-3 gap-px bg-white/10 mb-4">
+            {[
+              { label: 'Total saves',      value: rows.length },
+              { label: 'Tatuagens',        value: topTattoos.reduce((s, x) => s + x.count, 0) },
+              { label: 'Produtos',         value: topMerchs.reduce((s, x) => s + x.count, 0) },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-black/30 px-3 py-3">
+                <p className="font-display text-3xl text-white leading-none mb-0.5">{value}</p>
+                <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Top tattoos */}
+          {topTattoos.length > 0 && (
+            <div className="mb-4">
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Tatuagens mais desejadas</p>
+              <div className="space-y-1.5">
+                {topTattoos.map(({ tattoo, count }) => {
+                  const artist = artists.find((a) => a.id === tattoo.artistId);
+                  return (
+                    <div key={tattoo.id} className="flex items-center gap-2 bg-black/30 px-2 py-1.5">
+                      <img src={tattoo.imageUrl} alt={tattoo.title} className="w-8 h-8 object-cover shrink-0 bg-zinc-800"
+                        onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/80/80`; }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-body text-xs text-white truncate">{tattoo.title}</p>
+                        {artist && <p className="font-body text-[9px] text-gray-600 truncate">{artist.name}</p>}
+                        <div className="mt-0.5 h-0.5 bg-white/5">
+                          <div className="h-full" style={{ width: `${(count / maxTattooCount) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
+                        </div>
+                      </div>
+                      <span className="font-display text-base text-white shrink-0">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Top merchs */}
+          {topMerchs.length > 0 && (
+            <div>
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Produtos mais desejados</p>
+              <div className="space-y-1.5">
+                {topMerchs.map(({ merch, count }) => (
+                  <div key={merch.id} className="flex items-center gap-2 bg-black/30 px-2 py-1.5">
+                    <img src={merch.imageUrl ?? ''} alt={merch.name} className="w-8 h-8 object-cover shrink-0 bg-zinc-800"
+                      onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${merch.id}/80/80`; }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-body text-xs text-white truncate">{merch.name}</p>
+                      {merch.price && <p className="font-body text-[9px] text-gray-600">R$ {merch.price}</p>}
+                      <div className="mt-0.5 h-0.5 bg-white/5">
+                        <div className="h-full" style={{ width: `${(count / maxMerchCount) * 100}%`, backgroundColor: 'rgb(var(--ink2-500))' }} />
+                      </div>
+                    </div>
+                    <span className="font-display text-base text-white shrink-0">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+
+/* ── Compress old Storage images ──────────────────────────────────────────── */
+type CompressState = 'idle' | 'scanning' | 'running' | 'done' | 'error';
+
+function CompressStorageSection() {
+  const [state, setState]         = useState<CompressState>('idle');
+  const [total, setTotal]         = useState(0);
+  const [done, setDone]           = useState(0);
+  const [skipped, setSkipped]     = useState(0);
+  const [savedBytes, setSavedBytes] = useState(0);
+  const [current, setCurrent]     = useState('');
+  const abortRef                  = useRef(false);
+
+  async function compressBlob(blob: Blob): Promise<{ blob: Blob; ext: string }> {
+    const bmp = await createImageBitmap(blob);
+    const MAX = 1440;
+    let w = bmp.width, h = bmp.height;
+    if (w > MAX || h > MAX) {
+      if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+      else        { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    const canvas  = document.createElement('canvas');
+    canvas.width  = w; canvas.height = h;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close();
+    // Try WebP first, fall back to JPEG
+    return new Promise<{ blob: Blob; ext: string }>((res, rej) => {
+      canvas.toBlob((b) => {
+        if (b) return res({ blob: b, ext: 'webp' });
+        canvas.toBlob((fb) => fb ? res({ blob: fb, ext: 'jpg' }) : rej(new Error('toBlob failed')), 'image/jpeg', 0.82);
+      }, 'image/webp', 0.82);
+    });
+  }
+
+  async function listAll(): Promise<{ name: string }[]> {
+    if (!supabase) return [];
+    const files: { name: string }[] = [];
+    let offset = 0;
+    const LIMIT = 200;
+    while (true) {
+      const { data, error } = await supabase.storage
+        .from('images')
+        .list('', { limit: LIMIT, offset, sortBy: { column: 'created_at', order: 'asc' } });
+      if (error || !data) break;
+      const valid = data.filter((f) => f.id !== null);
+      files.push(...valid.map((f) => ({ name: f.name })));
+      if (data.length < LIMIT) break;
+      offset += LIMIT;
+    }
+    return files;
+  }
+
+  async function run() {
+    if (!supabase) return;
+    abortRef.current = false;
+    setState('scanning');
+    setDone(0); setSkipped(0); setSavedBytes(0); setCurrent('');
+
+    const files = await listAll();
+    setTotal(files.length);
+    if (files.length === 0) { setState('done'); return; }
+    setState('running');
+
+    for (const file of files) {
+      if (abortRef.current) break;
+      const name = file.name;
+      setCurrent(name);
+
+      // Skip non-images (gif, svg) by extension
+      const ext = name.split('.').pop()?.toLowerCase() ?? '';
+      if (ext === 'gif' || ext === 'svg' || ext === 'png') {
+        setSkipped((s) => s + 1);
+        setDone((d) => d + 1);
+        continue;
+      }
+
+      try {
+        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(name);
+        const res  = await fetch(publicUrl + '?t=' + Date.now()); // bust cache
+        if (!res.ok) throw new Error(`fetch ${res.status}`);
+        const original = await res.blob();
+        const { blob: compressed, ext } = await compressBlob(original);
+        const outMime = ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        // Use same name for upsert (keeps DB URLs valid)
+        const uploadPath = name;
+
+        // Only re-upload if compressed is smaller
+        if (compressed.size < original.size) {
+          await supabase.storage
+            .from('images')
+            .upload(uploadPath, compressed, { contentType: outMime, upsert: true });
+          setSavedBytes((s) => s + (original.size - compressed.size));
+        } else {
+          setSkipped((s) => s + 1);
+        }
+      } catch (e) {
+        console.warn('[compress]', name, e);
+        setSkipped((s) => s + 1);
+      }
+      setDone((d) => d + 1);
+    }
+    setState('done');
+  }
+
+  function stop() { abortRef.current = true; }
+
+  const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+  const saved = savedBytes > 1_048_576
+    ? `${(savedBytes / 1_048_576).toFixed(1)} MB`
+    : `${(savedBytes / 1024).toFixed(0)} KB`;
+
+  return (
+    <section className="border border-white/10 bg-black/20 p-4">
+      <div className="mb-3">
+        <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">
+          Comprimir Fotos Antigas
+        </h2>
+        <p className="font-body text-xs text-gray-500">
+          Recomprime todas as imagens do Storage para máx 1440px / JPEG 82%. Reduz o egress do Supabase.
+        </p>
+      </div>
+
+      {state === 'idle' && (
+        <button type="button" onClick={run}
+          className="font-body text-xs font-bold tracking-widest uppercase px-5 py-2.5 bg-ink-500 text-black hover:bg-ink-400 transition-colors">
+          Iniciar compressão
+        </button>
+      )}
+
+      {(state === 'scanning' || state === 'running') && (
+        <div className="space-y-2">
+          {state === 'scanning' && (
+            <p className="font-body text-xs text-gray-400">Listando arquivos...</p>
+          )}
+          {state === 'running' && (
+            <>
+              <div className="flex justify-between font-body text-xs text-gray-400 mb-1">
+                <span>{done} / {total}</span>
+                <span>{pct}%</span>
+              </div>
+              <div className="h-1 bg-white/5 w-full overflow-hidden">
+                <div className="h-full transition-all" style={{ width: `${pct}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
+              </div>
+              <p className="font-body text-[10px] text-gray-600 truncate">↳ {current}</p>
+              {savedBytes > 0 && (
+                <p className="font-body text-xs text-ink-500">Economizado até agora: {saved}</p>
+              )}
+              <button type="button" onClick={stop}
+                className="font-body text-[10px] tracking-widest uppercase px-3 py-1 border border-white/20 text-gray-500 hover:text-white transition-colors">
+                Parar
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {state === 'done' && (
+        <div className="space-y-1">
+          <p className="font-body text-xs text-green-400">Concluído — {done} arquivos processados.</p>
+          {savedBytes > 0 && (
+            <p className="font-body text-xs text-ink-500">Total economizado: {saved} ({total - skipped} recomprimidas, {skipped} ignoradas)</p>
+          )}
+          {savedBytes === 0 && (
+            <p className="font-body text-xs text-gray-500">Nenhuma imagem precisava de compressão.</p>
+          )}
+          <button type="button" onClick={() => { setState('idle'); setDone(0); setSkipped(0); setSavedBytes(0); }}
+            className="font-body text-[10px] tracking-widest uppercase px-3 py-1 border border-white/20 text-gray-500 hover:text-white transition-colors mt-2">
+            Reiniciar
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function StyleVisibilitySection() {
   const hiddenStyles    = useStore((s) => s.hiddenStyles);
@@ -143,39 +444,22 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 }
 
 export default function AdminSettings() {
-  const themeId  = useStore((s) => s.themeId);
-  const setTheme = useStore((s) => s.setTheme);
+  const artists         = useStore((s) => s.artists);
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
-  const logoColorMode   = useStore((s) => s.logoColorMode);
-  const setLogoColorMode = useStore((s) => s.setLogoColorMode);
   const customLogo    = useStore((s) => s.customLogo);
   const setCustomLogo = useStore((s) => s.setCustomLogo);
+  const customFavicon    = useStore((s) => s.customFavicon);
+  const setCustomFavicon = useStore((s) => s.setCustomFavicon);
 
   const [logoUploading, setLogoUploading] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
+  const [faviconUploading, setFaviconUploading] = useState(false);
+  const faviconFileRef = useRef<HTMLInputElement>(null);
 
   const [draftPrimary,   setDraftPrimary]   = useState(customPrimary   ?? '#ff4500');
   const [draftSecondary, setDraftSecondary] = useState(customSecondary ?? '#3b82f6');
-  const tattoos          = useStore((s) => s.tattoos);
-  const artists          = useStore((s) => s.artists);
-  const merchs           = useStore((s) => s.merchs);
-  const landingContent   = useStore((s) => s.landingContent);
-  const sobreNosContent  = useStore((s) => s.sobreNosContent);
-  const guestContent     = useStore((s) => s.guestContent);
-  const aftercareContent = useStore((s) => s.aftercareContent);
-  const fichaSubmissions = useStore((s) => s.fichaSubmissions);
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle');
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [syncProgress, setSyncProgress] = useState<string | null>(null);
-  const [connStatus, setConnStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
-  const [connError, setConnError] = useState<string | null>(null);
-
-  const updateArtist = useStore((s) => s.updateArtist);
-  const updateTattoo = useStore((s) => s.updateTattoo);
-  const updateMerch  = useStore((s) => s.updateMerch);
-  const setSobreNosContent = useStore((s) => s.setSobreNosContent);
 
   async function handleLogoUpload(file: File) {
     setLogoUploading(true);
@@ -194,174 +478,28 @@ export default function AdminSettings() {
     }
   }
 
-  async function handleSyncToSupabase() {
-    if (!supabase) {
-      alert('Supabase não está configurado. Verifique as variáveis de ambiente.');
-      return;
-    }
-    setSyncStatus('syncing');
-    setSyncError(null);
-
+  async function handleFaviconUpload(file: File) {
+    setFaviconUploading(true);
     try {
-      // ── Re-upload base64 images to Supabase Storage ──────────────────────
-      setSyncProgress('Fazendo upload das imagens...');
-
-      const processedArtists = await Promise.all(artists.map(async (a) => {
-        if (!a.photoUrl?.startsWith('data:')) return a;
-        const url = await uploadImage(a.photoUrl);
-        if (url !== a.photoUrl) updateArtist(a.id, { photoUrl: url });
-        return { ...a, photoUrl: url };
-      }));
-
-      const processedTattoos = await Promise.all(tattoos.map(async (t) => {
-        if (!t.imageUrl?.startsWith('data:')) return t;
-        const url = await uploadImage(t.imageUrl);
-        if (url !== t.imageUrl) updateTattoo(t.id, { imageUrl: url });
-        return { ...t, imageUrl: url };
-      }));
-
-      const processedMerchs = await Promise.all(merchs.map(async (m) => {
-        if (!m.imageUrl?.startsWith('data:')) return m;
-        const url = await uploadImage(m.imageUrl);
-        if (url !== m.imageUrl) updateMerch(m.id, { imageUrl: url });
-        return { ...m, imageUrl: url };
-      }));
-
-      // Re-upload collective image in sobreNosContent if base64
-      let finalSobreNos = sobreNosContent;
-      if (sobreNosContent.collective?.image?.startsWith('data:')) {
-        const url = await uploadImage(sobreNosContent.collective.image);
-        if (url !== sobreNosContent.collective.image) {
-          finalSobreNos = { ...sobreNosContent, collective: { ...sobreNosContent.collective, image: url } };
-          setSobreNosContent(finalSobreNos);
-        }
-      }
-
-      setSyncProgress('Sincronizando dados...');
-
-      // ── Build rows ────────────────────────────────────────────────────────
-      const artistRows = processedArtists.map((a) => ({
-        id: a.id, name: a.name, bio: a.bio, photo_url: a.photoUrl,
-        specialties: a.specialties, instagram: a.instagram, whatsapp: a.whatsapp,
-        created_at: a.createdAt,
-      }));
-      const tattooRows = processedTattoos.map((t) => ({
-        id: t.id, title: t.title, description: t.description,
-        image_url: t.imageUrl, style: t.style, price: t.price,
-        artist_id: t.artistId, status: t.status, created_at: t.createdAt,
-      }));
-      const merchRows = processedMerchs.map((m) => ({
-        id: m.id, name: m.name, description: m.description,
-        price: m.price, image_url: m.imageUrl, link: m.link, created_at: m.createdAt,
-      }));
-
-      const configRows = [
-        { key: 'landingContent',   value: landingContent,    updated_at: new Date().toISOString() },
-        { key: 'sobreNosContent',  value: finalSobreNos,     updated_at: new Date().toISOString() },
-        { key: 'guestContent',     value: guestContent,     updated_at: new Date().toISOString() },
-        { key: 'aftercareContent', value: aftercareContent, updated_at: new Date().toISOString() },
-        { key: 'themeId',          value: themeId,          updated_at: new Date().toISOString() },
-      ];
-
-      const results = await Promise.all([
-        artistRows.length ? supabase.from('artists').upsert(artistRows)     : Promise.resolve({ error: null }),
-        tattooRows.length ? supabase.from('tattoos').upsert(tattooRows)     : Promise.resolve({ error: null }),
-        merchRows.length  ? supabase.from('merchs').upsert(merchRows)       : Promise.resolve({ error: null }),
-        supabase.from('site_config').upsert(configRows),
-      ]);
-
-      const err = results.find((r) => r.error)?.error;
-      if (err) throw err;
-
-      setSyncStatus('ok');
-      setSyncError(null);
-      setSyncProgress(null);
-      setTimeout(() => setSyncStatus('idle'), 4000);
-    } catch (err: unknown) {
-      console.error('[sync]', err);
-      setSyncStatus('error');
-      setSyncProgress(null);
-      setSyncError(err instanceof Error ? err.message : JSON.stringify(err));
-      setTimeout(() => { setSyncStatus('idle'); setSyncError(null); }, 8000);
+      const reader = new FileReader();
+      const dataUrl = await new Promise<string>((res) => {
+        reader.onload = (e) => res(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+      const url = await uploadImage(dataUrl);
+      setCustomFavicon(url);
+    } catch (err) {
+      console.error('[AdminSettings] favicon upload failed:', err);
+    } finally {
+      setFaviconUploading(false);
     }
   }
 
-  async function handleTestConnection() {
-    if (!supabase) {
-      setConnStatus('error');
-      setConnError('Variáveis VITE_SUPABASE_URL e/ou VITE_SUPABASE_ANON_KEY não configuradas.');
-      return;
-    }
-    setConnStatus('testing');
-    setConnError(null);
-    try {
-      const { error } = await supabase.from('artists').select('count', { count: 'exact', head: true });
-      if (error) throw error;
-      setConnStatus('ok');
-      setTimeout(() => setConnStatus('idle'), 5000);
-    } catch (err: unknown) {
-      setConnStatus('error');
-      setConnError(err instanceof Error ? err.message : JSON.stringify(err));
-    }
-  }
-
-  function handleImportBackup(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target?.result as string) as Record<string, unknown>;
-        Object.entries(data).forEach(([key, value]) => {
-          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-        });
-        alert('Backup restaurado com sucesso! A página será recarregada.');
-        window.location.reload();
-      } catch {
-        alert('Arquivo inválido. Certifique-se de usar um backup gerado por este sistema.');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  }
-
-  function handleExportBackup() {
-    const data: Record<string, unknown> = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)!;
-      try {
-        data[key] = JSON.parse(localStorage.getItem(key)!);
-      } catch {
-        data[key] = localStorage.getItem(key);
-      }
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup-eldude-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  const subdomainDefault = getThemeForHostname(window.location.hostname);
-  const active = themeId ?? subdomainDefault;
-
-  function handleSelect(id: ThemeId) {
-    setTheme(id);
-    applyTheme(id);
-    // Sync draft pickers to preset colors (clear custom)
-    setDraftPrimary(THEMES[id].accent);
-    setDraftSecondary(THEMES[id].accent2);
-    setCustomColors(null, null);
-  }
-
-  function handleReset() {
-    setTheme(null);
-    applyTheme(subdomainDefault);
-    setDraftPrimary(THEMES[subdomainDefault].accent);
-    setDraftSecondary(THEMES[subdomainDefault].accent2);
-    setCustomColors(null, null);
+  function handleInvert() {
+    setDraftPrimary(draftSecondary);
+    setDraftSecondary(draftPrimary);
+    setCustomColors(draftSecondary, draftPrimary);
+    applyCustomColors(draftSecondary, draftPrimary);
   }
 
   function handleApplyColors() {
@@ -369,619 +507,284 @@ export default function AdminSettings() {
     applyCustomColors(draftPrimary, draftSecondary);
   }
 
-  const activeTheme = THEMES[active];
-  // Effective hex values (custom overrides preset)
-  const effectivePrimary   = customPrimary   ?? activeTheme.accent;
-  const effectiveSecondary = customSecondary ?? activeTheme.accent2;
-
   return (
-    <div className="p-4 md:p-8 max-w-3xl">
+    <div className="p-4 md:p-6 max-w-7xl">
       {/* Header */}
-      <div className="mb-8 md:mb-10">
-        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Estúdio</p>
-        <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">
-          Configurações
-        </h1>
+      <div className="mb-6">
+        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">Estúdio</p>
+        <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Configurações</h1>
       </div>
 
-      {/* ── Aparência ─────────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-              Aparência
-            </h2>
-            <p className="font-body text-xs text-gray-500">
-              Paleta de cores aplicada em todo o site instantaneamente.
-            </p>
-          </div>
-          {(themeId !== null || customPrimary || customSecondary) && (
-            <button type="button" onClick={handleReset}
-              className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors shrink-0 ml-4">
-              ↩ Restaurar padrão
-            </button>
-          )}
-        </div>
+      {/* ══ GRID 3 COLUNAS: configurações | analytics | wishlist ══════════════════════ */}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,2fr)] gap-4 items-start">
 
-        {/* ── Quick presets ── */}
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
-          Presets rápidos
-        </p>
-        <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-8">
-          {THEME_ORDER.map((id) => {
-            const theme = THEMES[id];
-            const isActive = id === active && !customPrimary;
-            return (
-              <button key={id} type="button" onClick={() => handleSelect(id)}
-                title={`${theme.label} — ${theme.description}`}
-                className="group flex flex-col items-center gap-2 py-3 px-1 transition-all focus:outline-none">
-                <span className="relative w-9 h-9 rounded-full block transition-all duration-200"
-                  style={{
-                    backgroundColor: theme.accent,
-                    boxShadow: isActive
-                      ? `0 0 0 2px #000, 0 0 0 3px ${theme.accent}, 0 0 14px ${theme.accent}66`
-                      : `0 0 0 1px ${theme.accent}33`,
-                    transform: isActive ? 'scale(1.12)' : undefined,
-                  }}>
-                  {isActive && (
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <svg className="w-3.5 h-3.5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </span>
-                  )}
-                </span>
-                {/* Secondary color dot */}
-                <span className="w-3 h-3 rounded-full -mt-1" style={{ backgroundColor: theme.accent2, opacity: 0.7 }} />
-                <span className={`font-body text-[9px] font-bold tracking-widest uppercase transition-colors leading-none ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-400'}`}>
-                  {theme.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        {/* ╠══ COL ESQUERDA — Aparência + Imagens + Estilos ══╣ */}
+        <div className="space-y-3">
 
-        {/* ── Personalizar cores ── */}
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-4">
-          Personalizar cores
-        </p>
-        <div className="space-y-4 mb-5">
-          {/* Primary */}
-          <div className="border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">
-                Primária
-              </label>
-              <div className="relative shrink-0">
-                <input
-                  type="color"
-                  value={draftPrimary}
-                  onChange={(e) => setDraftPrimary(e.target.value)}
-                  className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0"
-                  style={{ appearance: 'none' }}
-                />
-              </div>
-              <span className="font-mono text-xs text-gray-500 uppercase">{draftPrimary}</span>
-              <ShadeStrip hex={draftPrimary} prefix="--ink" />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
-              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectivePrimary }} />
-              <span className="font-mono text-xs text-gray-700 uppercase">{effectivePrimary}</span>
-              <div className="flex gap-0.5 flex-1">
-                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Secondary */}
-          <div className="border border-white/10 bg-black/30 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <label className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 w-20 shrink-0">
-                Secundária
-              </label>
-              <div className="relative shrink-0">
-                <input
-                  type="color"
-                  value={draftSecondary}
-                  onChange={(e) => setDraftSecondary(e.target.value)}
-                  className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent p-0"
-                />
-              </div>
-              <span className="font-mono text-xs text-gray-500 uppercase">{draftSecondary}</span>
-              <ShadeStrip hex={draftSecondary} prefix="--ink2" />
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-body text-[10px] text-gray-700 w-20 shrink-0">Atual</span>
-              <span className="w-8 h-8 shrink-0 rounded" style={{ backgroundColor: effectiveSecondary }} />
-              <span className="font-mono text-xs text-gray-700 uppercase">{effectiveSecondary}</span>
-              <div className="flex gap-0.5 flex-1">
-                {[50,100,200,300,400,500,600,700,800,900].map((s) => (
-                  <div key={s} className="flex-1 h-5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" onClick={handleApplyColors}
-          className="font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black px-5 py-2.5 hover:bg-white/90 transition-colors mb-8">
-          Aplicar cores personalizadas
-        </button>
-
-        {/* ── Logo ── */}
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
-          Cor da logo
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {([
-            { mode: 'original',  label: 'Original' },
-            { mode: 'white',     label: 'Branca' },
-            { mode: 'black',     label: 'Preta' },
-            { mode: 'primary',   label: 'Cor primária' },
-            { mode: 'secondary', label: 'Cor secundária' },
-            { mode: 'invert',    label: 'Inverter' },
-          ] as { mode: LogoColorMode; label: string }[]).map(({ mode, label }) => (
-            <button key={mode} type="button"
-              onClick={() => setLogoColorMode(mode)}
-              className={`font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border transition-colors ${
-                logoColorMode === mode
-                  ? 'border-white text-white bg-white/10'
-                  : 'border-white/10 text-gray-600 hover:border-white/30 hover:text-gray-400'
-              }`}>
-              {label}
-            </button>
-          ))}
-        </div>
-        {/* Logo preview */}
-        <div className="mt-4 px-6 py-4 border border-white/10 bg-black/40 flex items-center justify-center" style={{ minHeight: 80 }}>
-          {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
-            <div className="relative inline-block" style={{ height: 48 }}>
-              <img src={customLogo ?? '/logosemo-3.png'} alt="Logo preview" className="h-full w-auto object-contain" style={{ filter: 'brightness(0)' }} />
-              <div className="absolute inset-0" style={{
-                background: logoColorMode === 'primary' ? 'rgb(var(--ink-500))' : 'rgb(var(--ink2-500))',
-                mixBlendMode: 'screen',
-              }} />
-            </div>
-          ) : (
-            <img src={customLogo ?? '/logosemo-3.png'} alt="Logo preview" style={{
-              height: 48,
-              filter: logoColorMode === 'white' ? 'brightness(0) invert(1)' : logoColorMode === 'black' ? 'brightness(0)' : logoColorMode === 'invert' ? 'invert(1)' : 'none',
-            }} />
-          )}
-        </div>
-
-        {/* ── Logo upload ── */}
-        <div className="mt-6 border border-white/10 bg-black/30 p-4">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">
-            Trocar imagem da logo
-          </p>
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Current logo thumbnail */}
-            <div className="w-24 h-14 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
-              <img
-                src={customLogo ?? '/logosemo-3.png'}
-                alt="Logo atual"
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                disabled={logoUploading}
-                onClick={() => logoFileRef.current?.click()}
-                className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2.5 border border-white/20 text-white/70 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40 flex items-center gap-2"
-              >
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
-                {logoUploading ? 'Enviando...' : 'Fazer upload de nova logo'}
-              </button>
-
-              {customLogo && (
-                <button
-                  type="button"
-                  onClick={() => setCustomLogo(null)}
-                  className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-600 hover:text-red-400 hover:border-red-400/30 transition-colors flex items-center gap-2"
-                >
-                  <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Restaurar logo padrão
-                </button>
-              )}
-            </div>
-          </div>
-
-          <input
-            ref={logoFileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleLogoUpload(f);
-              e.target.value = '';
-            }}
-          />
-
-          <p className="font-body text-[10px] text-gray-700 mt-3">
-            Recomendado: PNG ou SVG com fundo transparente. A logo aparece na barra de navegação do site.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Estilos visíveis na Vitrine ──────────────────────────────────── */}
-      <StyleVisibilitySection />
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Identificação ────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Identificação
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Informações do estúdio na plataforma vitrink.app.
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-4 py-3 border border-white/10 bg-black/30">
-            <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">Domínio</p>
-            <p className="font-body text-sm text-white font-mono">{window.location.hostname}</p>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 border border-white/10 bg-black/30">
-            <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">Plataforma</p>
-            <p className="font-body text-sm text-white font-mono">vitrink.app</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Sincronização ─────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Sincronização
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Envie todos os dados deste dispositivo para a nuvem (Supabase) e acesse em qualquer dispositivo.
-          </p>
-        </div>
-
-        {/* Connection info */}
-        <div className="mb-4 px-4 py-3 border border-white/10 bg-black/30">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">Supabase</p>
-          <p className="font-mono text-xs text-gray-400 truncate">
-            {import.meta.env.VITE_SUPABASE_URL || <span className="text-red-400">não configurado</span>}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-3 mb-3">
-          {/* Test Connection */}
-          <button
-            type="button"
-            onClick={handleTestConnection}
-            disabled={connStatus === 'testing'}
-            className="flex items-center gap-2 px-5 py-3 border border-white/10 text-gray-400 font-body text-xs font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {connStatus === 'testing' ? (
-              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>Testando...</>
-            ) : connStatus === 'ok' ? (
-              <><svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-green-400">Conectado!</span></>
-            ) : connStatus === 'error' ? (
-              <><svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg><span className="text-red-400">Falhou</span></>
-            ) : (
-              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>Testar Conexão</>
-            )}
-          </button>
-
-          {/* Sync button */}
-          <button
-            type="button"
-            onClick={handleSyncToSupabase}
-            disabled={syncStatus === 'syncing'}
-            className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {syncStatus === 'syncing' ? (
-              <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1019 5.636" /></svg>{syncProgress ?? 'Sincronizando...'}</>
-            ) : syncStatus === 'ok' ? (
-              <><svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span className="text-green-400">Sincronizado!</span></>
-            ) : syncStatus === 'error' ? (
-              <><svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg><span className="text-red-400">Erro ao sincronizar</span></>
-            ) : (
-              <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Sincronizar para a Nuvem</>
-            )}
-          </button>
-        </div>
-
-        {/* Error messages */}
-        {connError && (
-          <div className="mb-3 px-4 py-3 border border-red-500/30 bg-red-500/10">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-red-400 mb-1">Erro de Conexão</p>
-            <p className="font-mono text-xs text-red-300 break-all">{connError}</p>
-            {connError.toLowerCase().includes('relation') && (
-              <p className="mt-2 font-body text-xs text-red-300/70">
-                → As tabelas não existem. Execute o <span className="font-mono">supabase/setup.sql</span> no SQL Editor do Supabase.
-              </p>
-            )}
-          </div>
-        )}
-        {syncError && (
-          <div className="mb-3 px-4 py-3 border border-red-500/30 bg-red-500/10">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-red-400 mb-1">Erro de Sincronização</p>
-            <p className="font-mono text-xs text-red-300 break-all">{syncError}</p>
-          </div>
-        )}
-
-        <p className="font-body text-[10px] text-gray-700 tracking-wide">
-          {artists.length} artista(s) · {tattoos.length} tatuagem(ns) · {merchs.length} merch(s) neste dispositivo.
-        </p>
-      </section>
-
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Estatísticas ──────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Estatísticas
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Movimentações reais do estúdio.
-          </p>
-        </div>
-
-        {/* ── KPI cards compactos ── */}
-        {(() => {
-          const availTattoos  = tattoos.filter((t) => t.status === 'available').length;
-          const archivedTattoos = tattoos.filter((t) => t.status === 'archived').length;
-          const styleSet = new Set(tattoos.map((t) => t.style).filter(Boolean));
-          const cards = [
-            { section: 'Ficha de Anamnese', label: 'Fichas enviadas',    value: fichaSubmissions.length },
-            { section: 'Vitrine',           label: 'Tatuagens',           value: tattoos.length },
-            { section: 'Vitrine',           label: 'Disponíveis',         value: availTattoos },
-            { section: 'Vitrine',           label: 'Arquivadas',          value: archivedTattoos },
-            { section: 'Vitrine',           label: 'Estilos',             value: styleSet.size },
-            { section: 'Artistas',          label: 'Artistas',            value: artists.length },
-            { section: 'Merchs',            label: 'Loja',                value: merchs.length },
-          ];
-          return (
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 mb-6">
-              {cards.map(({ label, value }) => (
-                <div key={label} className="px-2.5 py-2.5 border border-white/10 bg-black/30 flex flex-col gap-0.5 min-w-0">
-                  <p className="font-display text-xl text-white leading-none">{value.toLocaleString('pt-BR')}</p>
-                  <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 leading-tight truncate">{label}</p>
+          {/* Custom colors — col 1 continuation */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Cores personalizadas</p>
+            <div className="space-y-2 mb-3">
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
+                  <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftPrimary}</span>
+                  <ShadeStrip hex={draftPrimary} prefix="--ink" />
                 </div>
-              ))}
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink-${s}))` }} />
+                  ))}
+                </div>
+              </div>
+              <div className="border border-white/10 bg-black/30 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Secundária</label>
+                  <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
+                    className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
+                  <span className="font-mono text-[10px] text-gray-500 uppercase">{draftSecondary}</span>
+                  <ShadeStrip hex={draftSecondary} prefix="--ink2" />
+                </div>
+                <div className="flex gap-0.5">
+                  {[50,100,200,300,400,500,600,700,800,900].map((s) => (
+                    <div key={s} className="flex-1 h-1.5 rounded-sm" style={{ backgroundColor: `rgb(var(--ink2-${s}))` }} />
+                  ))}
+                </div>
+              </div>
             </div>
-          );
-        })()}
+            <div className="flex gap-2">
+              <button type="button" onClick={handleInvert}
+                title="Inverter Cores"
+                className="w-12 shrink-0 flex items-center justify-center bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+              </button>
+              <button type="button" onClick={handleApplyColors}
+                className="flex-1 font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
+                Aplicar
+              </button>
+            </div>
+          </div>
+          {/* Logo upload */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Imagens do site</p>
+            {/* Logo row */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-16 h-10 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+                <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="max-h-full max-w-full object-contain" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Logo</p>
+                <div className="flex gap-2">
+                  <button type="button" disabled={logoUploading} onClick={() => logoFileRef.current?.click()}
+                    className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40">
+                    {logoUploading ? 'Enviando...' : '↑ Upload'}
+                  </button>
+                  {customLogo && (
+                    <button type="button" onClick={() => setCustomLogo(null)}
+                      className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
+                      ✕ Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
 
-        {/* ── Timeline SVG — fluxo de movimentações (últimas 12 semanas) ── */}
+            {/* Favicon row */}
+            <div className="flex items-center gap-3 pt-3 border-t border-white/5">
+              <div className="w-10 h-10 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+                <img src={customFavicon ?? '/dudeicone.png'} alt="Favicon" className="max-h-full max-w-full object-contain" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Favicon</p>
+                <div className="flex gap-2">
+                  <button type="button" disabled={faviconUploading} onClick={() => faviconFileRef.current?.click()}
+                    className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40">
+                    {faviconUploading ? 'Enviando...' : '↑ Upload'}
+                  </button>
+                  {customFavicon && (
+                    <button type="button" onClick={() => setCustomFavicon(null)}
+                      className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
+                      ✕ Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFaviconUpload(f); e.target.value = ''; }} />
+          </div>
+
+          {/* Estilos da Vitrine */}
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Estilos da vitrine</p>
+            <StyleVisibilitySection />
+          </div>
+        </div>{/* fim col esquerda */}
+
+        {/* ╠══ COL DIREITA — Analytics ══╣ */}
+        <div className="border border-white/10 bg-black/20 p-4">
+        <section>
         {(() => {
-          const W = 12; // semanas
-          const weeks = Array.from({ length: W }, (_, i) => {
-            const end = new Date();
-            end.setDate(end.getDate() - (W - 1 - i) * 7);
-            const start = new Date(end);
-            start.setDate(start.getDate() - 6);
-            return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+          const analytics = getAnalytics();
+          const today = new Date().toISOString().slice(0, 10);
+          const todayViews = analytics.daily[today] ?? 0;
+          const uniqueSessions = analytics.sessions.length;
+
+          // Build daily data for last 60 days
+          const D = 60;
+          const days = Array.from({ length: D }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (D - 1 - i));
+            const key = d.toISOString().slice(0, 10);
+            return {
+              key,
+              label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+              views: analytics.daily[key] ?? 0,
+            };
           });
 
-          const inRange = (date: string, s: string, e: string) => date >= s && date <= e;
+          const maxViews = Math.max(...days.map((d) => d.views), 1);
+          const topPages = getTopPages(0);
+          function labelForPath(path: string): string {
+            const m = path.match(/^\/artistas\/(.+)$/);
+            if (m) {
+              const artist = artists.find((a) => toSlug(a.name) === m[1]);
+              if (artist) return `Artista: ${artist.name}`;
+            }
+            return path || '/';
+          }
 
-          const data = weeks.map(({ start, end }) => ({
-            label: new Date(end + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-            fichas:    fichaSubmissions.filter((f) => inRange(f.submittedAt.slice(0, 10), start, end)).length,
-            tatuagens: tattoos.filter((t) => inRange((t.createdAt ?? '').slice(0, 10), start, end)).length,
-            artistas:  artists.filter((a) => inRange((a.createdAt ?? '').slice(0, 10), start, end)).length,
-          }));
-
-          const maxVal = Math.max(...data.flatMap((d) => [d.fichas, d.tatuagens, d.artistas]), 1);
-
-          const svgH = 80;
-          const svgW = 100; // viewBox units (percentual)
-          const pad = { l: 0, r: 0, t: 6, b: 18 };
+          const svgH = 60;
+          const svgW = 100;
+          const pad = { l: 0, r: 0, t: 6, b: 4 };
           const chartH = svgH - pad.t - pad.b;
           const chartW = svgW - pad.l - pad.r;
-          const step = chartW / (W - 1);
-
-          const toY = (v: number) => pad.t + chartH - (v / maxVal) * chartH;
+          const step = chartW / (D - 1);
+          const toY = (v: number) => pad.t + chartH - (v / maxViews) * chartH;
           const toX = (i: number) => pad.l + i * step;
+          const viewsPoints = days.map((d, i) => `${toX(i).toFixed(1)},${toY(d.views).toFixed(1)}`).join(' ');
 
-          const polyline = (key: 'fichas' | 'tatuagens' | 'artistas') =>
-            data.map((d, i) => `${toX(i).toFixed(1)},${toY(d[key]).toFixed(1)}`).join(' ');
-
-          const series = [
-            { key: 'fichas'    as const, color: 'rgb(var(--ink-500))', label: 'Fichas' },
-            { key: 'tatuagens' as const, color: '#ffffff44',            label: 'Tatuagens' },
-            { key: 'artistas'  as const, color: '#ffffff22',            label: 'Artistas' },
-          ];
+          // x-axis labels: show every 14 days
+          const labelIndices = days.reduce<number[]>((acc, _, i) => {
+            if (i === 0 || i === D - 1 || i % 14 === 0) acc.push(i);
+            return acc;
+          }, []);
 
           return (
-            <div className="mb-6">
-              <div className="flex items-center gap-4 mb-2">
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Fluxo de movimentações — últimas 12 semanas</p>
-                <div className="flex items-center gap-3 ml-auto">
-                  {series.map((s) => (
-                    <span key={s.key} className="flex items-center gap-1">
-                      <span className="inline-block w-3 h-0.5" style={{ backgroundColor: s.color }} />
-                      <span className="font-body text-[9px] text-gray-600">{s.label}</span>
-                    </span>
-                  ))}
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">
+                    Analytics
+                  </h2>
+                  <p className="font-body text-xs text-gray-500">Views do site público — últimos 60 dias.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { if (confirm('Resetar todos os dados de analytics?')) { resetAnalytics(); window.location.reload(); } }}
+                  className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-700 hover:text-red-400 transition-colors"
+                >
+                  ✕ resetar
+                </button>
+              </div>
+
+              {/* KPI cards */}
+              <div className="grid grid-cols-3 gap-px bg-white/10 mb-4">
+                {[
+                  { label: 'Views totais',   value: analytics.totalViews.toLocaleString('pt-BR') },
+                  { label: 'Sessões únicas', value: uniqueSessions.toLocaleString('pt-BR') },
+                  { label: 'Hoje',           value: todayViews.toLocaleString('pt-BR') },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-black/30 px-4 py-3">
+                    <p className="font-display text-3xl text-white leading-none mb-0.5">{value}</p>
+                    <p className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Views chart */}
+              <div className="mb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Views por dia</p>
+                  <span className="flex items-center gap-1 ml-auto">
+                    <span className="inline-block w-3 h-0.5" style={{ backgroundColor: 'rgb(var(--ink-500))' }} />
+                    <span className="font-body text-[9px] text-gray-600">Views</span>
+                  </span>
+                </div>
+                <div className="border border-white/10 bg-black/30 px-3 pt-2 pb-1">
+                  <svg viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="none" className="w-full" style={{ height: 100 }}>
+                    {[0, 0.5, 1].map((f) => (
+                      <line key={f} x1={pad.l} y1={toY(maxViews * f).toFixed(1)} x2={svgW} y2={toY(maxViews * f).toFixed(1)} stroke="rgba(255,255,255,0.05)" strokeWidth="0.3" />
+                    ))}
+                    {/* Area fill */}
+                    <polygon
+                      points={`${toX(0).toFixed(1)},${(pad.t + chartH).toFixed(1)} ${viewsPoints} ${toX(D - 1).toFixed(1)},${(pad.t + chartH).toFixed(1)}`}
+                      fill="rgb(var(--ink-500))"
+                      fillOpacity="0.08"
+                    />
+                    <polyline points={viewsPoints} fill="none" stroke="rgb(var(--ink-500))" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />
+                    {/* Dots for days with views */}
+                    {days.map((d, i) => d.views > 0 && (
+                      <circle key={i} cx={toX(i).toFixed(1)} cy={toY(d.views).toFixed(1)} r="0.7" fill="rgb(var(--ink-500))" />
+                    ))}
+                  </svg>
+                  {/* x-axis labels as HTML for readability */}
+                  <div className="relative h-5 mt-1">
+                    {labelIndices.map((i) => (
+                      <span
+                        key={i}
+                        className="absolute font-mono text-[9px] text-white/50 -translate-x-1/2 select-none"
+                        style={{ left: `${(i / (D - 1)) * 100}%` }}
+                      >
+                        {days[i].label}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="border border-white/10 bg-black/30 px-3 pt-2 pb-1">
-                <svg viewBox={`0 0 ${svgW} ${svgH}`} preserveAspectRatio="none" className="w-full" style={{ height: 90 }}>
-                  {/* grid lines */}
-                  {[0, 0.5, 1].map((f) => (
-                    <line
-                      key={f}
-                      x1={pad.l} y1={toY(maxVal * f).toFixed(1)}
-                      x2={svgW - pad.r} y2={toY(maxVal * f).toFixed(1)}
-                      stroke="rgba(255,255,255,0.05)" strokeWidth="0.3"
-                    />
-                  ))}
-                  {/* series */}
-                  {series.map((s) => (
-                    <polyline
-                      key={s.key}
-                      points={polyline(s.key)}
-                      fill="none"
-                      stroke={s.color}
-                      strokeWidth={s.key === 'fichas' ? '1.2' : '0.6'}
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                    />
-                  ))}
-                  {/* dots on fichas line */}
-                  {data.map((d, i) => (
-                    <circle
-                      key={i}
-                      cx={toX(i).toFixed(1)} cy={toY(d.fichas).toFixed(1)}
-                      r="0.8" fill="rgb(var(--ink-500))"
-                    />
-                  ))}
-                  {/* x-axis labels */}
-                  {data.map((d, i) => (
-                    (i % 2 === 0 || i === W - 1) && (
-                      <text
-                        key={i}
-                        x={toX(i).toFixed(1)} y={svgH - 2}
-                        textAnchor="middle"
-                        fontSize="4"
-                        fill="rgba(255,255,255,0.2)"
-                        fontFamily="monospace"
-                      >{d.label}</text>
-                    )
-                  ))}
-                </svg>
-              </div>
-            </div>
-          );
-        })()}
 
-        {/* ── Fichas por artista ── */}
-        {fichaSubmissions.length > 0 && (() => {
-          const byArtist: Record<string, number> = {};
-          fichaSubmissions.forEach((f) => {
-            const names: string[] = f.tatuadoresSelecionados?.length
-              ? f.tatuadoresSelecionados
-              : f.outroTatuador
-              ? [f.outroTatuador]
-              : ['Não informado'];
-            names.forEach((n) => { byArtist[n] = (byArtist[n] ?? 0) + 1; });
-          });
-          const sorted = Object.entries(byArtist).sort((a, b) => b[1] - a[1]);
-          const maxVal = sorted[0]?.[1] ?? 1;
-          return (
-            <div className="mb-4">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Fichas por artista</p>
-              <div className="flex flex-col gap-1.5">
-                {sorted.map(([name, count]) => (
-                  <div key={name} className="flex items-center gap-3">
-                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{name}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-500"
-                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }}
-                      />
-                    </div>
-                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
+              {/* Top pages */}
+              {topPages.length > 0 && (
+                <div>
+                  <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-2">Todas as páginas visitadas</p>
+                  <div className="flex flex-col gap-1">
+                    {topPages.map(({ path, views }) => (
+                      <div key={path} className="flex items-center gap-3">
+                        <span className="font-mono text-xs text-gray-500 truncate flex-1">{labelForPath(path)}</span>
+                        <div className="w-24 h-1 bg-white/5 overflow-hidden shrink-0">
+                          <div className="h-full" style={{ width: `${(views / (topPages[0]?.views ?? 1)) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
+                        </div>
+                        <span className="font-body text-xs text-gray-600 w-8 text-right shrink-0">{views}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+
+              {analytics.totalViews === 0 && (
+                <p className="font-body text-xs text-gray-700 italic">Nenhuma visita registrada ainda. As visitas das páginas públicas são contadas automaticamente.</p>
+              )}
+            </>
           );
         })()}
-
-        {/* ── Tatuagens por estilo ── */}
-        {tattoos.length > 0 && (() => {
-          const byStyle: Record<string, number> = {};
-          tattoos.forEach((t) => { if (t.style) byStyle[t.style] = (byStyle[t.style] ?? 0) + 1; });
-          const sorted = Object.entries(byStyle).sort((a, b) => b[1] - a[1]);
-          const maxVal = sorted[0]?.[1] ?? 1;
-          return (
-            <div className="mb-4">
-              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-3">Tatuagens por estilo</p>
-              <div className="flex flex-col gap-1.5">
-                {sorted.map(([style, count]) => (
-                  <div key={style} className="flex items-center gap-3">
-                    <span className="font-body text-xs text-gray-400 w-36 truncate shrink-0">{style}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full transition-all duration-500"
-                        style={{ width: `${(count / maxVal) * 100}%`, backgroundColor: 'rgba(255,255,255,0.25)' }}
-                      />
-                    </div>
-                    <span className="font-body text-xs text-gray-500 w-6 text-right shrink-0">{count}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })()}
-
-        {fichaSubmissions.length === 0 && tattoos.length === 0 && (
-          <p className="font-body text-xs text-gray-700 italic">Nenhuma movimentação registrada ainda.</p>
-        )}
       </section>
+        </div>{/* fim col analytics */}
 
-      {/* ── Divider ── */}
-      <div className="my-10 border-t border-white/10" />
-
-      {/* ── Backup ───────────────────────────────────────────────────────── */}
-      <section>
-        <div className="mb-5">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-            Backup
-          </h2>
-          <p className="font-body text-xs text-gray-500">
-            Exporte todos os dados (artistas, tatuagens, configurações) ou restaure a partir de um backup anterior.
-          </p>
+        {/* ╠══ COL 3 — Lista de Desejos ══╣ */}
+        <div className="border border-white/10 bg-black/20 p-4">
+          <WishlistSection />
         </div>
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={handleExportBackup}
-            className="flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Baixar Backup
-          </button>
 
-          <label className="flex items-center gap-2 px-5 py-3 border border-white/10 text-gray-500 font-body text-xs font-semibold tracking-widest uppercase hover:border-white/30 hover:text-white transition-colors cursor-pointer">
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            Restaurar Backup
-            <input
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={handleImportBackup}
-            />
-          </label>
-        </div>
-        <p className="mt-3 font-body text-[10px] text-gray-700 tracking-wide">
-          Para migrar dados: baixe o backup aqui → acesse o site publicado → restaure o backup lá.
-        </p>
-      </section>
+      </div>{/* fim grid 3-col */}
+
+      {/* ── Compress old images ── */}
+      <div className="mt-6">
+        <CompressStorageSection />
+      </div>
     </div>
   );
 }

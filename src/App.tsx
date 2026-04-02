@@ -27,24 +27,47 @@ import LandingPage from './pages/LandingPage';
 import AftercareePage from './pages/AftercareePage';
 import SobreNosPage from './pages/SobreNosPage';
 import AdminSobreNos from './pages/admin/AdminSobreNos';
+import AdminTatuados from './pages/admin/AdminTatuados';
 import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
 import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
 import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
 import AdminMyProfile from './pages/admin/AdminMyProfile';
+import AdminFinanceiro from './pages/admin/AdminFinanceiro';
+import AdminSubscription from './pages/admin/AdminSubscription';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
+import TatuadosPage from './pages/TatuadosPage';
+import TatuadosArtistPage from './pages/TatuadosArtistPage';
+import LoginPage from './pages/LoginPage';
+import WishlistPage from './pages/WishlistPage';
+import CartPage from './pages/CartPage';
+import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
   const h = window.location.hostname.toLowerCase().replace(/^www\./, '');
-  return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */;
+  return h === 'vitink.app' || h === 'localhost.vitink' /* dev convenience */;
+}
+
+// Detects Supabase password recovery tokens in the URL and redirects to the reset page.
+function RecoveryRedirect() {
+  const hash = window.location.hash;
+  const search = window.location.search;
+  const isRecovery = hash.includes('type=recovery') || new URLSearchParams(search).has('code');
+  if (isRecovery) {
+    window.location.replace('/admin/reset-password' + search + hash);
+    return null;
+  }
+  return null;
 }
 
 // Requires super admin
 function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
+  const authChecked = useStore((state) => state.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
   if (!isAdmin) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
@@ -54,7 +77,19 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isArtist = useStore((state) => state.isArtist);
   const isMerchManager = useStore((state) => state.isMerchManager);
+  const authChecked = useStore((state) => state.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
   if (!isAdmin && !isArtist && !isMerchManager) return <Navigate to="/admin/login" replace />;
+  return <>{children}</>;
+}
+
+// Allows admin or artist with showFinanceiro=true
+function ProtectedFinanceiroRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = useStore((s) => s.isAdmin);
+  const showFinanceiro = useStore((s) => s.showFinanceiro);
+  const authChecked = useStore((s) => s.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
+  if (!isAdmin && !showFinanceiro) return <Navigate to="/admin/dashboard" replace />;
   return <>{children}</>;
 }
 
@@ -62,6 +97,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function ProtectedMerchRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isMerchManager = useStore((state) => state.isMerchManager);
+  const authChecked = useStore((state) => state.authChecked);
+  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
   if (!isAdmin && !isMerchManager) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
@@ -100,6 +137,8 @@ export default function App() {
   const themeId        = useStore((s) => s.themeId);
   const customPrimary  = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
+  const customFavicon  = useStore((s) => s.customFavicon);
+  const customLogo     = useStore((s) => s.customLogo);
 
   // Apply theme + custom overrides on mount and whenever they change
   useEffect(() => {
@@ -107,6 +146,21 @@ export default function App() {
     applyTheme(id);
     applyCustomColors(customPrimary, customSecondary);
   }, [themeId, customPrimary, customSecondary]);
+
+  // Apply custom favicon and social images dynamically
+  useEffect(() => {
+    const iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (iconLink) iconLink.href = customFavicon ?? '/dudeicone.png';
+
+    // Also update social preview tags for consistency (mostly for PWA/SPA behavior)
+    const ogImage = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
+    const twitterImage = document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]');
+    const displayImage = customFavicon ?? customLogo ?? '/dudeicone.png';
+    
+    if (ogImage) ogImage.content = displayImage;
+    if (twitterImage) twitterImage.content = displayImage;
+  }, [customFavicon, customLogo]);
+
 
   useEffect(() => {
     initAuth();
@@ -120,6 +174,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <RecoveryRedirect />
       <PageTracker />
       <Routes>
         {/* Public routes */}
@@ -148,7 +203,7 @@ export default function App() {
           }
         />
         <Route
-          path="/artistas/:id"
+          path="/artistas/:slug"
           element={
             <PublicLayout>
               <ArtistDetailPage />
@@ -196,6 +251,26 @@ export default function App() {
           }
         />
 
+        {/* Public user auth */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* Wishlist & Cart */}
+        <Route path="/lista-de-desejos" element={<PublicLayout><WishlistPage /></PublicLayout>} />
+        <Route path="/carrinho" element={<PublicLayout><CartPage /></PublicLayout>} />
+        <Route path="/checkout/sucesso" element={<CheckoutSuccessPage />} />
+
+        {/* Tatuados archive page */}
+        <Route path="/tatuados" element={
+          <PublicLayout>
+            <TatuadosPage />
+          </PublicLayout>
+        } />
+        <Route path="/tatuados/:slug" element={
+          <PublicLayout>
+            <TatuadosArtistPage />
+          </PublicLayout>
+        } />
+
         {/* Landing page */}
         <Route path="/landingpage" element={
           <PublicLayout>
@@ -203,7 +278,7 @@ export default function App() {
           </PublicLayout>
         } />
 
-        {/* Ficha de Anamnese */}
+{/* Ficha de Anamnese */}
         <Route path="/ficha-anamnese" element={
           <PublicLayout>
             <FichaAnamnesePage />
@@ -242,10 +317,13 @@ export default function App() {
           <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
           <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
           <Route path="sobre-nos" element={<ProtectedAdminRoute><AdminSobreNos /></ProtectedAdminRoute>} />
+          <Route path="tatuados" element={<ProtectedRoute><AdminTatuados /></ProtectedRoute>} />
           <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
+          <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
+          <Route path="assinatura" element={<AdminSubscription />} />
         </Route>
 
         {/* Fallback */}

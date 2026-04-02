@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
+import GeneralLightbox from '../components/GeneralLightbox';
 
 export default function SobreNosPage() {
   const c = useStore((s) => s.sobreNosContent);
@@ -8,8 +10,16 @@ export default function SobreNosPage() {
   const mapAddress = encodeURIComponent([studio.street, studio.city, studio.cep].filter(Boolean).join(', '));
   const mapSrc = `https://maps.google.com/maps?q=${mapAddress}&z=${studio.mapZoom || 15}&output=embed`;
 
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   return (
     <div className="bg-zinc-900 text-white">
+      {selectedImage && (
+        <GeneralLightbox 
+          imageUrl={selectedImage} 
+          onClose={() => setSelectedImage(null)} 
+        />
+      )}
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="relative min-h-[70vh] flex flex-col items-center justify-center overflow-hidden">
@@ -63,7 +73,7 @@ export default function SobreNosPage() {
               <div className="mt-auto pt-10 grid grid-cols-3 gap-1.5">
                 {collective.galleryImages.map((img, i) =>
                   img ? (
-                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden">
+                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden cursor-zoom-in" onClick={() => setSelectedImage(img)}>
                       <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                     </div>
                   ) : null
@@ -84,7 +94,8 @@ export default function SobreNosPage() {
                 <img
                   src={collective.image}
                   alt={collective.imageCaption || 'Estúdio'}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-zoom-in"
+                  onClick={() => setSelectedImage(collective.image!)}
                 />
               ) : (
                 <span className="font-body text-[10px] tracking-widest uppercase text-white/20">
@@ -107,7 +118,7 @@ export default function SobreNosPage() {
       {/* ── QUOTE ────────────────────────────────────────────────────────── */}
       <section className="px-6 lg:px-20 py-20 lg:py-32 bg-zinc-950 overflow-hidden">
         <div className="max-w-6xl mx-auto text-center">
-          <blockquote className="font-display text-3xl sm:text-5xl lg:text-6xl uppercase leading-tight tracking-wide italic whitespace-nowrap">
+          <blockquote className="font-display text-3xl sm:text-5xl lg:text-6xl uppercase leading-tight tracking-wide italic">
             {quote.replace(/^"|"$/g, '')}
           </blockquote>
         </div>
