@@ -47,7 +47,7 @@ import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
   const h = window.location.hostname.toLowerCase().replace(/^www\./, '');
-  return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */;
+  return h === 'vitink.app' || h === 'localhost.vitink' /* dev convenience */;
 }
 
 // Detects Supabase password recovery tokens in the URL and redirects to the reset page.
@@ -145,11 +145,20 @@ export default function App() {
     applyCustomColors(customPrimary, customSecondary);
   }, [themeId, customPrimary, customSecondary]);
 
-  // Apply custom favicon dynamically
+  // Apply custom favicon and social images dynamically
   useEffect(() => {
-    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (link) link.href = customFavicon ?? '/dudeicone.png';
-  }, [customFavicon]);
+    const iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (iconLink) iconLink.href = customFavicon ?? '/dudeicone.png';
+
+    // Also update social preview tags for consistency (mostly for PWA/SPA behavior)
+    const ogImage = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
+    const twitterImage = document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]');
+    const displayImage = customFavicon ?? customLogo ?? '/dudeicone.png';
+    
+    if (ogImage) ogImage.content = displayImage;
+    if (twitterImage) twitterImage.content = displayImage;
+  }, [customFavicon, customLogo]);
+
 
   useEffect(() => {
     initAuth();
