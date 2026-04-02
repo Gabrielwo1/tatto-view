@@ -146,10 +146,17 @@ export default function App() {
     applyCustomColors(customPrimary, customSecondary);
   }, [themeId, customPrimary, customSecondary]);
 
-  // Apply custom favicon dynamically
+  // Apply custom favicon + og:image dynamically
   useEffect(() => {
+    const faviconUrl = customFavicon ?? '/dudeicone.png';
     const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (link) link.href = customFavicon ?? '/dudeicone.png';
+    if (link) link.href = faviconUrl;
+
+    // Update og:image so WhatsApp/social previews show the favicon
+    const ogImage = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
+    if (ogImage) ogImage.content = faviconUrl;
+    const twitterImage = document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]');
+    if (twitterImage) twitterImage.content = faviconUrl;
   }, [customFavicon]);
 
   useEffect(() => {
