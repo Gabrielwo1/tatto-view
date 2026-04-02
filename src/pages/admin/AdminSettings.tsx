@@ -134,6 +134,181 @@ function WishlistSection() {
 }
 
 
+/* ── Compress old Storage images ──────────────────────────────────────────── */
+type CompressState = 'idle' | 'scanning' | 'running' | 'done' | 'error';
+
+function CompressStorageSection() {
+  const [state, setState]         = useState<CompressState>('idle');
+  const [total, setTotal]         = useState(0);
+  const [done, setDone]           = useState(0);
+  const [skipped, setSkipped]     = useState(0);
+  const [savedBytes, setSavedBytes] = useState(0);
+  const [current, setCurrent]     = useState('');
+  const abortRef                  = useRef(false);
+
+  async function compressBlob(blob: Blob): Promise<{ blob: Blob; ext: string }> {
+    const bmp = await createImageBitmap(blob);
+    const MAX = 1440;
+    let w = bmp.width, h = bmp.height;
+    if (w > MAX || h > MAX) {
+      if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+      else        { w = Math.round(w * MAX / h); h = MAX; }
+    }
+    const canvas  = document.createElement('canvas');
+    canvas.width  = w; canvas.height = h;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close();
+    // Try WebP first, fall back to JPEG
+    return new Promise<{ blob: Blob; ext: string }>((res, rej) => {
+      canvas.toBlob((b) => {
+        if (b) return res({ blob: b, ext: 'webp' });
+        canvas.toBlob((fb) => fb ? res({ blob: fb, ext: 'jpg' }) : rej(new Error('toBlob failed')), 'image/jpeg', 0.82);
+      }, 'image/webp', 0.82);
+    });
+  }
+
+  async function listAll(): Promise<{ name: string }[]> {
+    if (!supabase) return [];
+    const files: { name: string }[] = [];
+    let offset = 0;
+    const LIMIT = 200;
+    while (true) {
+      const { data, error } = await supabase.storage
+        .from('images')
+        .list('', { limit: LIMIT, offset, sortBy: { column: 'created_at', order: 'asc' } });
+      if (error || !data) break;
+      const valid = data.filter((f) => f.id !== null);
+      files.push(...valid.map((f) => ({ name: f.name })));
+      if (data.length < LIMIT) break;
+      offset += LIMIT;
+    }
+    return files;
+  }
+
+  async function run() {
+    if (!supabase) return;
+    abortRef.current = false;
+    setState('scanning');
+    setDone(0); setSkipped(0); setSavedBytes(0); setCurrent('');
+
+    const files = await listAll();
+    setTotal(files.length);
+    if (files.length === 0) { setState('done'); return; }
+    setState('running');
+
+    for (const file of files) {
+      if (abortRef.current) break;
+      const name = file.name;
+      setCurrent(name);
+
+      // Skip non-images (gif, svg) by extension
+      const ext = name.split('.').pop()?.toLowerCase() ?? '';
+      if (ext === 'gif' || ext === 'svg' || ext === 'png') {
+        setSkipped((s) => s + 1);
+        setDone((d) => d + 1);
+        continue;
+      }
+
+      try {
+        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(name);
+        const res  = await fetch(publicUrl + '?t=' + Date.now()); // bust cache
+        if (!res.ok) throw new Error(`fetch ${res.status}`);
+        const original = await res.blob();
+        const { blob: compressed, ext } = await compressBlob(original);
+        const outMime = ext === 'webp' ? 'image/webp' : 'image/jpeg';
+        // Use same name for upsert (keeps DB URLs valid)
+        const uploadPath = name;
+
+        // Only re-upload if compressed is smaller
+        if (compressed.size < original.size) {
+          await supabase.storage
+            .from('images')
+            .upload(uploadPath, compressed, { contentType: outMime, upsert: true });
+          setSavedBytes((s) => s + (original.size - compressed.size));
+        } else {
+          setSkipped((s) => s + 1);
+        }
+      } catch (e) {
+        console.warn('[compress]', name, e);
+        setSkipped((s) => s + 1);
+      }
+      setDone((d) => d + 1);
+    }
+    setState('done');
+  }
+
+  function stop() { abortRef.current = true; }
+
+  const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+  const saved = savedBytes > 1_048_576
+    ? `${(savedBytes / 1_048_576).toFixed(1)} MB`
+    : `${(savedBytes / 1024).toFixed(0)} KB`;
+
+  return (
+    <section className="border border-white/10 bg-black/20 p-4">
+      <div className="mb-3">
+        <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">
+          Comprimir Fotos Antigas
+        </h2>
+        <p className="font-body text-xs text-gray-500">
+          Recomprime todas as imagens do Storage para máx 1440px / JPEG 82%. Reduz o egress do Supabase.
+        </p>
+      </div>
+
+      {state === 'idle' && (
+        <button type="button" onClick={run}
+          className="font-body text-xs font-bold tracking-widest uppercase px-5 py-2.5 bg-ink-500 text-black hover:bg-ink-400 transition-colors">
+          Iniciar compressão
+        </button>
+      )}
+
+      {(state === 'scanning' || state === 'running') && (
+        <div className="space-y-2">
+          {state === 'scanning' && (
+            <p className="font-body text-xs text-gray-400">Listando arquivos...</p>
+          )}
+          {state === 'running' && (
+            <>
+              <div className="flex justify-between font-body text-xs text-gray-400 mb-1">
+                <span>{done} / {total}</span>
+                <span>{pct}%</span>
+              </div>
+              <div className="h-1 bg-white/5 w-full overflow-hidden">
+                <div className="h-full transition-all" style={{ width: `${pct}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
+              </div>
+              <p className="font-body text-[10px] text-gray-600 truncate">↳ {current}</p>
+              {savedBytes > 0 && (
+                <p className="font-body text-xs text-ink-500">Economizado até agora: {saved}</p>
+              )}
+              <button type="button" onClick={stop}
+                className="font-body text-[10px] tracking-widest uppercase px-3 py-1 border border-white/20 text-gray-500 hover:text-white transition-colors">
+                Parar
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {state === 'done' && (
+        <div className="space-y-1">
+          <p className="font-body text-xs text-green-400">Concluído — {done} arquivos processados.</p>
+          {savedBytes > 0 && (
+            <p className="font-body text-xs text-ink-500">Total economizado: {saved} ({total - skipped} recomprimidas, {skipped} ignoradas)</p>
+          )}
+          {savedBytes === 0 && (
+            <p className="font-body text-xs text-gray-500">Nenhuma imagem precisava de compressão.</p>
+          )}
+          <button type="button" onClick={() => { setState('idle'); setDone(0); setSkipped(0); setSavedBytes(0); }}
+            className="font-body text-[10px] tracking-widest uppercase px-3 py-1 border border-white/20 text-gray-500 hover:text-white transition-colors mt-2">
+            Reiniciar
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function StyleVisibilitySection() {
   const hiddenStyles    = useStore((s) => s.hiddenStyles);
   const setHiddenStyles = useStore((s) => s.setHiddenStyles);
@@ -605,6 +780,11 @@ export default function AdminSettings() {
         </div>
 
       </div>{/* fim grid 3-col */}
+
+      {/* ── Compress old images ── */}
+      <div className="mt-6">
+        <CompressStorageSection />
+      </div>
     </div>
   );
 }

@@ -34,6 +34,7 @@ import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
 import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
 import AdminMyProfile from './pages/admin/AdminMyProfile';
 import AdminFinanceiro from './pages/admin/AdminFinanceiro';
+import AdminSubscription from './pages/admin/AdminSubscription';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
@@ -137,6 +138,7 @@ export default function App() {
   const customPrimary  = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const customFavicon  = useStore((s) => s.customFavicon);
+  const customLogo     = useStore((s) => s.customLogo);
 
   // Apply theme + custom overrides on mount and whenever they change
   useEffect(() => {
@@ -321,6 +323,7 @@ export default function App() {
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
           <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
+          <Route path="assinatura" element={<AdminSubscription />} />
         </Route>
 
         {/* Fallback */}
