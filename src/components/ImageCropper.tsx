@@ -33,6 +33,7 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
   const [ratio, setRatio] = useState<Ratio>('3:4');
   const [recommended, setRecommended] = useState<Ratio>('3:4');
   const [loaded, setLoaded] = useState(false);
+  const [processedSrc, setProcessedSrc] = useState<string>(src);
 
   const boxRef = useRef({ x: 0, y: 0, size: 0 });
   const displayRef = useRef({ w: 0, h: 0 });
@@ -50,10 +51,37 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
     setBox(b);
   }
 
+  // Pre-process image to avoid CORS issues with Canvas
+  useEffect(() => {
+    if (!src || src.startsWith('data:') || src.startsWith('blob:')) {
+      setProcessedSrc(src);
+      return;
+    }
+
+    // If it's a remote URL, fetch it as a blob first to ensure Canvas access
+    let active = true;
+    fetch(src, { mode: 'cors' })
+      .then(r => r.blob())
+      .then(blob => {
+        if (!active) return;
+        const url = URL.createObjectURL(blob);
+        setProcessedSrc(url);
+      })
+      .catch(err => {
+        console.error('[ImageCropper] Failed to fetch image for cropping:', err);
+        if (active) setProcessedSrc(src); // Fallback to original
+      });
+
+    return () => { active = false; };
+  }, [src]);
+
   function onImgLoad() {
-    const img = imgRef.current!;
+    const img = imgRef.current;
+    if (!img) return;
     const nw = img.naturalWidth;
     const nh = img.naturalHeight;
+    if (nw === 0 || nh === 0) return;
+
     setNatural({ w: nw, h: nh });
 
     const rec: Ratio = nh > nw * 1.15 ? '3:4' : '1:1';
@@ -315,7 +343,7 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
           >
             <img
               ref={imgRef}
-              src={src}
+              src={processedSrc}
               onLoad={onImgLoad}
               draggable={false}
               crossOrigin="anonymous"
