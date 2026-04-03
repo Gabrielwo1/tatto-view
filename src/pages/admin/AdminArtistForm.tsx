@@ -29,6 +29,7 @@ export default function AdminArtistForm() {
     specialties: existing?.specialties.join(', ') ?? '',
     instagram: existing?.instagram ?? '',
     whatsapp: existing?.whatsapp ?? '',
+    hiddenFromHero: existing?.hiddenFromHero ?? false,
   });
 
   const { cropSrc, fileInputRef, handleFileChange, handleCropConfirm, handleCropCancel, openFilePicker } =
@@ -57,7 +58,8 @@ export default function AdminArtistForm() {
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    setForm((f) => ({ ...f, [e.target.name]: value }));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -72,6 +74,7 @@ export default function AdminArtistForm() {
       specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
       instagram: form.instagram || undefined,
       whatsapp: form.whatsapp || undefined,
+      hiddenFromHero: form.hiddenFromHero,
     };
     if (existing) {
       updateArtist(existing.id, data);
@@ -119,6 +122,24 @@ export default function AdminArtistForm() {
               </label>
               <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls}
                 placeholder="Realismo, Blackwork, Aquarela" />
+            </div>
+
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer group mt-4">
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    name="hiddenFromHero"
+                    checked={form.hiddenFromHero}
+                    onChange={handleChange}
+                    className="peer sr-only"
+                  />
+                  <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
+                </div>
+                <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
+                  Ocultar este artista da página inicial (Hero Slider)
+                </span>
+              </label>
             </div>
           </div>
 

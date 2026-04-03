@@ -15,7 +15,8 @@ const GRADIENT_TOP =
   'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 18%, rgba(0,0,0,0) 40%)';
 
 export default function ArtistHero() {
-  const artists = useStore((s) => s.artists.filter(a => !a.hiddenFromHero));
+  const artists = useStore((s) => s.artists);
+  const visibleArtists = artists.filter(a => !a.hiddenFromHero);
   const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -35,12 +36,12 @@ export default function ArtistHero() {
 
   // Reset hovered state if the hovered artist was hidden
   useEffect(() => {
-    if (hoveredId && !artists.find(a => a.id === hoveredId)) {
+    if (hoveredId && !visibleArtists.find(a => a.id === hoveredId)) {
       setHoveredId(null);
     }
-  }, [artists, hoveredId]);
+  }, [visibleArtists, hoveredId]);
 
-  if (artists.length === 0) return null;
+  if (visibleArtists.length === 0) return null;
 
   const navbarHeight = scrolled ? 64 : 192;
 
@@ -52,7 +53,7 @@ export default function ArtistHero() {
         height: isMobile ? 'auto' : `calc(100vh - ${navbarHeight}px)`,
       }}
     >
-      {artists.map((artist, idx) => {
+      {visibleArtists.map((artist, idx) => {
         const isHovered = hoveredId === artist.id;
         const anyHovered = hoveredId !== null;
         const active = isMobile || isHovered;
@@ -121,7 +122,7 @@ export default function ArtistHero() {
             />
 
             {/* Separator */}
-            {idx < artists.length - 1 && (
+            {idx < visibleArtists.length - 1 && (
               <div
                 className="absolute z-10 bg-white/10"
                 style={
