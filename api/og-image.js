@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
   const origin = `${req.headers['x-forwarded-proto'] ?? 'https'}://${req.headers['x-forwarded-host'] ?? req.headers.host}`;
-  const fallback = `${origin}/dudeicone.png`;
+  const fallback = `${origin}/WhatsApp%20Image%202026-0sss3-31%20at%2010.12.46.jpeg`;
 
   let imageUrl = fallback;
 
