@@ -564,6 +564,8 @@ const seedTattoos: Tattoo[] = [
   { id: 'tattoo-10', title: 'Rosa Aquarela',            description: 'Rosa em aquarela com degradê de cores quentes.', imageUrl: 'https://picsum.photos/seed/tattoo10/600/400', style: 'Aquarela',       price: 'R$ 700',   artistId: null, status: 'archived',  createdAt: new Date('2023-12-01').toISOString() },
   { id: 'tattoo-11', title: 'Dragão Oriental',          description: 'Dragão oriental em blackwork cobrindo o braço inteiro.', imageUrl: 'https://picsum.photos/seed/tattoo11/600/400', style: 'Blackwork',      price: 'R$ 2.500', artistId: null, status: 'available', createdAt: new Date('2024-04-10').toISOString() },
   { id: 'tattoo-12', title: 'Bússola Geométrica',       description: 'Bússola com design geométrico e detalhes intrincados.', imageUrl: 'https://picsum.photos/seed/tattoo12/600/400', style: 'Geométrico',     price: 'R$ 650',   artistId: null, status: 'archived',  createdAt: new Date('2023-10-20').toISOString() },
+  { id: 'tattoo-13', title: 'Coruja Blackwork',          description: 'Coruja detalhada em blackwork com plumagem intrincada.', imageUrl: 'https://picsum.photos/seed/tattoo13/600/400', style: 'Blackwork',      price: 'R$ 850',   artistId: null, status: 'available', createdAt: new Date('2024-04-20').toISOString() },
+  { id: 'tattoo-14', title: 'Koi Tradicional',           description: 'Carpa koi colorida no estilo tradicional japonês.', imageUrl: 'https://picsum.photos/seed/tattoo14/600/400', style: 'Neo-Tradicional', price: 'R$ 1.350', artistId: null, status: 'available', createdAt: new Date('2024-04-25').toISOString() },
 ];
 
 // ── Shop Content ─────────────────────────────────────────────────────────────
