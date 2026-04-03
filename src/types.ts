@@ -37,6 +37,7 @@ export interface Artist {
   specialties: string[];
   instagram?: string;
   whatsapp?: string;
+  preferredContactMethod?: 'whatsapp' | 'instagram';
   createdAt: string;
   hiddenFromHero?: boolean;
 }
@@ -102,6 +103,7 @@ export interface ArtistRow {
   specialties: string[] | null;
   instagram: string | null;
   whatsapp: string | null;
+  preferred_contact_method?: 'whatsapp' | 'instagram' | null;
   created_at: string;
   hidden_from_hero: boolean | null;
 }

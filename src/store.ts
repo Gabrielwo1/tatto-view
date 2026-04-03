@@ -524,6 +524,7 @@ function toArtist(r: ArtistRow): Artist {
     specialties: r.specialties ?? [],
     instagram: r.instagram ?? undefined,
     whatsapp: r.whatsapp ?? undefined,
+    preferredContactMethod: r.preferred_contact_method || undefined,
     createdAt: r.created_at,
     hiddenFromHero: r.hidden_from_hero ?? false,
   };
@@ -544,9 +545,9 @@ function toMerch(r: MerchRow): Merch {
 const seedArtists: Artist[] = [
   { id: 'artist-1', name: 'Braian Otovicz',     bio: '', photoUrl: '/braiansite.jpeg',  specialties: [], createdAt: new Date('2025-01-01').toISOString() },
   { id: 'artist-2', name: 'Luiz Balestro',      bio: '', photoUrl: '/luiisite.jpeg',    specialties: [], createdAt: new Date('2025-01-02').toISOString() },
-  { id: 'artist-3', name: 'Matheus de Oliveira',bio: '', photoUrl: '/douglastatt.jpeg', specialties: [], createdAt: new Date('2025-01-03').toISOString() },
+  { id: 'artist-3', name: 'Matheus de Oliveira',bio: '', photoUrl: '/douglastatt.jpeg', specialties: [], preferredContactMethod: 'instagram', createdAt: new Date('2025-01-03').toISOString() },
   { id: 'artist-4', name: 'Ana Biasi',           bio: '', photoUrl: 'https://picsum.photos/seed/ana-biasi/400/400', specialties: [], createdAt: new Date('2025-01-04').toISOString() },
-  { id: 'artist-5', name: 'João Vitor',          bio: '', photoUrl: 'https://raw.githubusercontent.com/Gabrielwo1/tatto-view/claude/tattoo-shop-app-AunfI/public/jaummmm.jpeg', specialties: [], createdAt: new Date('2025-01-05').toISOString() },
+  { id: 'artist-5', name: 'João Vitor',          bio: '', photoUrl: 'https://raw.githubusercontent.com/Gabrielwo1/tatto-view/claude/tattoo-shop-app-AunfI/public/jaummmm.jpeg', specialties: [], preferredContactMethod: 'instagram', createdAt: new Date('2025-01-05').toISOString() },
   { id: 'artist-6', name: 'Marlon Torture',      bio: '', photoUrl: 'https://picsum.photos/seed/marlon-torture/400/400', specialties: [], createdAt: new Date('2025-01-06').toISOString() },
 ];
 
@@ -1274,6 +1275,7 @@ export const useStore = create<AppState>()(
         supabase?.from('artists').insert({
           id: artist.id, name: artist.name, bio: artist.bio, photo_url: artist.photoUrl,
           specialties: artist.specialties, instagram: artist.instagram, whatsapp: artist.whatsapp,
+          preferred_contact_method: artist.preferredContactMethod,
           created_at: artist.createdAt,
           hidden_from_hero: artist.hiddenFromHero ?? false,
         }).then(({ error }) => { if (error) console.error('[store] addArtist:', error); });
@@ -1288,6 +1290,7 @@ export const useStore = create<AppState>()(
         if (updates.specialties  !== undefined) row.specialties = updates.specialties;
         if (updates.instagram    !== undefined) row.instagram   = updates.instagram;
         if (updates.whatsapp     !== undefined) row.whatsapp    = updates.whatsapp;
+        if (updates.preferredContactMethod !== undefined) row.preferred_contact_method = updates.preferredContactMethod;
         if (updates.hiddenFromHero !== undefined) row.hidden_from_hero = updates.hiddenFromHero;
         supabase?.from('artists').update(row).eq('id', id)
           .then(({ error }) => { if (error) console.error('[store] updateArtist:', error); });

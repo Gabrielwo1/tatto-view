@@ -29,6 +29,7 @@ export default function AdminArtistForm() {
     specialties: existing?.specialties.join(', ') ?? '',
     instagram: existing?.instagram ?? '',
     whatsapp: existing?.whatsapp ?? '',
+    preferredContactMethod: existing?.preferredContactMethod ?? 'whatsapp',
     hiddenFromHero: existing?.hiddenFromHero ?? false,
   });
 
@@ -74,6 +75,7 @@ export default function AdminArtistForm() {
       specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
       instagram: form.instagram || undefined,
       whatsapp: form.whatsapp || undefined,
+      preferredContactMethod: form.preferredContactMethod as 'whatsapp' | 'instagram',
       hiddenFromHero: form.hiddenFromHero,
     };
     if (existing) {
@@ -189,6 +191,34 @@ export default function AdminArtistForm() {
                   )}
                 </>
               )}
+            </div>
+
+            <div className="border border-white/10 p-6 space-y-4">
+              <label className={labelCls}>Contato Preferencial</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="preferredContactMethod"
+                    value="whatsapp"
+                    checked={form.preferredContactMethod === 'whatsapp'}
+                    onChange={(e) => setForm(f => ({ ...f, preferredContactMethod: e.target.value as any }))}
+                    className="accent-ink-500"
+                  />
+                  <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400">WhatsApp</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="preferredContactMethod"
+                    value="instagram"
+                    checked={form.preferredContactMethod === 'instagram'}
+                    onChange={(e) => setForm(f => ({ ...f, preferredContactMethod: e.target.value as any }))}
+                    className="accent-ink-500"
+                  />
+                  <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400">Instagram</span>
+                </label>
+              </div>
             </div>
 
             <div className="border border-white/10 p-6 space-y-4">

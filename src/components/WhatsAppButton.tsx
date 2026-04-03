@@ -6,6 +6,7 @@ const DEFAULT_MSG = 'Olá! Vi o site e gostaria de mais informações. 🖤';
 
 export default function WhatsAppButton() {
   const artists = useStore((s) => s.artists);
+  const customFavicon = useStore((s) => s.customFavicon);
   const [isOpen, setIsOpen] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -110,8 +111,8 @@ export default function WhatsAppButton() {
                 transition: 'all 0.2s',
               }}
             >
-              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src="/dudeicone.png" alt="Studio" style={{ width: '24px', opacity: 0.8 }} />
+              <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#333', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <img src={customFavicon || "/dudeicone.png"} alt="Studio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div>
                 <span style={{ display: 'block', color: '#fff', fontSize: '14px', fontWeight: 600 }}>El Dude (Geral)</span>
@@ -122,11 +123,7 @@ export default function WhatsAppButton() {
             <div style={{ fontSize: '10px', color: '#444', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0 8px 4px' }}>Artistas</div>
 
             {artists.map((artist) => {
-              const hasWhatsApp = artist.whatsapp && artist.whatsapp.replace(/\D/g, '').length >= 10;
-              
-              // Handle specific artists that prefer Instagram as mentioned by the user
-              const nameLower = artist.name.toLowerCase();
-              const prefersInstagram = nameLower.includes('matheus') || nameLower.includes('joao victor') || !hasWhatsApp;
+              const prefersInstagram = artist.preferredContactMethod === 'instagram';
 
               return (
                 <button
