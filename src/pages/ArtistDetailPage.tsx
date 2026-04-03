@@ -5,16 +5,19 @@ import TattooCard from '../components/TattooCard';
 import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
 import domtoimage from 'dom-to-image-more';
 import { toSlug } from '../utils';
+import type { TatuadoPost } from '../types';
 
 export default function ArtistDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
+  const tatuadoPosts = useStore((s) => s.tatuadoPosts);
   const isArtist = useStore((s) => s.isArtist);
   const isAdmin = useStore((s) => s.isAdmin);
-  const [tab, setTab] = useState<'available' | 'archived'>('available');
+  const [tab, setTab] = useState<'available' | 'archived' | 'tatuados'>('available');
   const [isPrinting, setIsPrinting] = useState(false);
   const [printImage, setPrintImage] = useState<string | null>(null);
+  const [tatuadoLightbox, setTatuadoLightbox] = useState<TatuadoPost | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
@@ -32,7 +35,8 @@ export default function ArtistDetailPage() {
   }
 
   const artistTattoos = tattoos.filter((t) => t.artistId === artist.id);
-  const filtered = artistTattoos.filter((t) => t.status === tab);
+  const filtered = artistTattoos.filter((t) => t.status === (tab === 'tatuados' ? 'available' : tab));
+  const artistPosts = tatuadoPosts.filter((p) => p.artistId === artist.id);
 
   const handlePrint = async () => {
     if (!printRef.current) return;
@@ -142,47 +146,105 @@ export default function ArtistDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-6 mb-8 border-b border-white/10 pl-8">
-        <button
-          onClick={() => setTab('available')}
-          className={`pb-3 text-xs font-body font-semibold tracking-widest uppercase transition-colors border-b-2 ${
-            tab === 'available'
-              ? 'border-ink-500 text-ink-400'
-              : 'border-transparent text-gray-500 hover:text-ink2-400'
-          }`}
-        >
-          Disponíveis ({artistTattoos.filter((t) => t.status === 'available').length})
-        </button>
-        <button
-          onClick={() => setTab('archived')}
-          className={`pb-3 text-xs font-body font-semibold tracking-widest uppercase transition-colors border-b-2 ${
-            tab === 'archived'
-              ? 'border-ink-500 text-ink-400'
-              : 'border-transparent text-gray-500 hover:text-ink2-400'
-          }`}
-        >
-          Arquivadas ({artistTattoos.filter((t) => t.status === 'archived').length})
-        </button>
+        {(
+          [
+            { key: 'available', label: `Disponíveis (${artistTattoos.filter((t) => t.status === 'available').length})` },
+            { key: 'archived',  label: `Arquivadas (${artistTattoos.filter((t) => t.status === 'archived').length})` },
+            { key: 'tatuados',  label: `Tatuados (${artistPosts.length})` },
+          ] as const
+        ).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`pb-3 text-xs font-body font-semibold tracking-widest uppercase transition-colors border-b-2 ${
+              tab === key
+                ? 'border-ink-500 text-ink-400'
+                : 'border-transparent text-gray-500 hover:text-ink2-400'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Tattoos Grid */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-16 text-gray-600">
-          <p className="font-display text-2xl tracking-widest uppercase">
-            {tab === 'available'
-              ? 'Nenhuma disponível'
-              : 'Nenhuma arquivada'}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-5">
-          {filtered.map((tattoo) => (
-            <TattooCard
-              key={tattoo.id}
-              tattoo={tattoo}
-              artist={artist}
-              onClick={() => openLightbox(tattoo, artist)}
+      {/* Tattoos Grid (Disponíveis / Arquivadas) */}
+      {tab !== 'tatuados' && (
+        filtered.length === 0 ? (
+          <div className="text-center py-16 text-gray-600">
+            <p className="font-display text-2xl tracking-widest uppercase">
+              {tab === 'available' ? 'Nenhuma disponível' : 'Nenhuma arquivada'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-5">
+            {filtered.map((tattoo) => (
+              <TattooCard
+                key={tattoo.id}
+                tattoo={tattoo}
+                artist={artist}
+                onClick={() => openLightbox(tattoo, artist)}
+              />
+            ))}
+          </div>
+        )
+      )}
+
+      {/* Tatuados Grid — Instagram style */}
+      {tab === 'tatuados' && (
+        artistPosts.length === 0 ? (
+          <div className="text-center py-16 text-gray-600">
+            <p className="font-display text-2xl tracking-widest uppercase">Nenhuma foto ainda</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-0.5">
+            {artistPosts.map((post) => (
+              <button
+                key={post.id}
+                onClick={() => setTatuadoLightbox(post)}
+                className="aspect-square overflow-hidden bg-zinc-900 relative group"
+              >
+                <img
+                  src={post.imageUrl}
+                  alt={post.caption ?? ''}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
+                />
+                {post.caption && (
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                    <p className="font-body text-xs text-white line-clamp-2">{post.caption}</p>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        )
+      )}
+
+      {/* Tatuados lightbox */}
+      {tatuadoLightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+          onClick={() => setTatuadoLightbox(null)}
+        >
+          <div className="relative max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={tatuadoLightbox.imageUrl}
+              alt={tatuadoLightbox.caption ?? ''}
+              className="w-full max-h-[80vh] object-contain"
             />
-          ))}
+            {tatuadoLightbox.caption && (
+              <p className="mt-3 font-body text-sm text-white/70 text-center">{tatuadoLightbox.caption}</p>
+            )}
+            <button
+              onClick={() => setTatuadoLightbox(null)}
+              className="absolute top-2 right-2 p-2 text-white/60 hover:text-white bg-black/40 hover:bg-black/70 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
       )}
 
