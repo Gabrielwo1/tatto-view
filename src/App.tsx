@@ -35,6 +35,7 @@ import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
 import AdminMyProfile from './pages/admin/AdminMyProfile';
 import AdminFinanceiro from './pages/admin/AdminFinanceiro';
 import SiteFooter from './components/SiteFooter';
+import WhatsAppButton from './components/WhatsAppButton';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
 import TatuadosPage from './pages/TatuadosPage';
@@ -126,6 +127,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <Navbar />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <WhatsAppButton />
     </div>
   );
 }
