@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { TATTOO_STYLES, type Tattoo } from '../../types';
+import ImageCropper from '../../components/ImageCropper';
+import { uploadImage } from '../../lib/uploadImage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-3 py-2 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white/60 transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1.5';
@@ -15,23 +17,42 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
   const [form, setForm] = useState({
     title: tattoo.title,
     description: tattoo.description,
+    imageUrl: tattoo.imageUrl,
     style: tattoo.style,
     price: tattoo.price ?? '',
     artistId: tattoo.artistId ?? '',
     status: tattoo.status,
   });
 
+  const [cropSrc, setCropSrc] = useState('');
+  const [uploading, setUploading] = useState(false);
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSave() {
-    updateTattoo(tattoo.id, {
-      ...form,
-      artistId: form.artistId || null,
-      status: form.status as 'available' | 'archived',
-    });
-    onClose();
+  async function handleSave() {
+    setUploading(true);
+    try {
+      const finalImageUrl = await uploadImage(form.imageUrl);
+      updateTattoo(tattoo.id, {
+        ...form,
+        imageUrl: finalImageUrl,
+        artistId: form.artistId || null,
+        status: form.status as 'available' | 'archived',
+      });
+      onClose();
+    } catch (err) {
+      console.error('Failed to save tattoo:', err);
+      alert('Erro ao salvar imagem. Tente novamente.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function onCropConfirm(dataUrl: string) {
+    setForm((f) => ({ ...f, imageUrl: dataUrl }));
+    setCropSrc('');
   }
 
   return (
@@ -41,13 +62,31 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
         onClick={(e) => e.stopPropagation()}
       >
         {/* Left: image — fills full modal height */}
-        <div className="w-full sm:w-80 flex-shrink-0 relative bg-zinc-900 self-stretch flex items-center justify-center">
-          <img
-            src={tattoo.imageUrl}
-            alt={tattoo.title}
-            className="w-full h-full object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
-          />
+        <div className="w-full sm:w-80 flex-shrink-0 relative bg-zinc-900 self-stretch flex items-center justify-center border-r border-white/10">
+          {cropSrc ? (
+            <div className="absolute inset-0 z-10 overflow-y-auto bg-zinc-950">
+              <ImageCropper src={cropSrc} onConfirm={onCropConfirm} onCancel={() => setCropSrc('')} />
+            </div>
+          ) : (
+            <>
+              <img
+                src={form.imageUrl}
+                alt={form.title}
+                className="w-full h-full object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${tattoo.id}/400/400`; }}
+              />
+              <button
+                type="button"
+                onClick={() => setCropSrc(form.imageUrl)}
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-amber-400 hover:bg-amber-300 text-black px-4 py-2 font-body text-[10px] font-bold tracking-widest uppercase shadow-xl transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                Recortar
+              </button>
+            </>
+          )}
           <div className={`absolute top-2 right-2 px-2 py-0.5 text-[9px] font-body font-bold tracking-widest uppercase ${
             form.status === 'available' ? 'bg-white text-black' : 'bg-white/20 text-white/60'
           }`}>
@@ -117,9 +156,10 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
           <div className="flex gap-2 pt-1">
             <button
               onClick={handleSave}
-              className="flex-1 py-2.5 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
+              disabled={uploading}
+              className="flex-1 py-2.5 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
             >
-              Salvar
+              {uploading ? 'Enviando…' : 'Salvar'}
             </button>
             <button
               onClick={onClose}
