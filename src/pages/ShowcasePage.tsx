@@ -28,7 +28,7 @@ export default function ShowcasePage() {
       selectedStyle === 'Todos'
         ? available
         : available.filter((t) => t.style === selectedStyle);
-    return interleaveByArtist(pool).slice(0, 62);
+    return interleaveByArtist(pool).slice(0, 64);
   }, [available, selectedStyle]);
 
   // If the currently selected style was hidden, reset to "Todos"
