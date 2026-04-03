@@ -34,7 +34,6 @@ import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
 import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
 import AdminMyProfile from './pages/admin/AdminMyProfile';
 import AdminFinanceiro from './pages/admin/AdminFinanceiro';
-import AdminSubscription from './pages/admin/AdminSubscription';
 import SiteFooter from './components/SiteFooter';
 import VitrinLandingPage from './pages/VitrinLandingPage';
 import FichaAnamnesePage from './pages/FichaAnamnesePage';
@@ -48,7 +47,7 @@ import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
   const h = window.location.hostname.toLowerCase().replace(/^www\./, '');
-  return h === 'vitink.app' || h === 'localhost.vitink' /* dev convenience */;
+  return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */;
 }
 
 // Detects Supabase password recovery tokens in the URL and redirects to the reset page.
@@ -138,7 +137,6 @@ export default function App() {
   const customPrimary  = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const customFavicon  = useStore((s) => s.customFavicon);
-  const customLogo     = useStore((s) => s.customLogo);
 
   // Apply theme + custom overrides on mount and whenever they change
   useEffect(() => {
@@ -147,20 +145,14 @@ export default function App() {
     applyCustomColors(customPrimary, customSecondary);
   }, [themeId, customPrimary, customSecondary]);
 
-  // Apply custom favicon and social images dynamically
+  // Apply custom favicon + og:image dynamically
   useEffect(() => {
-    const iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (iconLink) iconLink.href = customFavicon ?? '/dudeicone.png';
+    const faviconUrl = customFavicon ?? '/dudeicone.png';
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (link) link.href = faviconUrl;
 
-    // Also update social preview tags for consistency (mostly for PWA/SPA behavior)
-    const ogImage = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
-    const twitterImage = document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]');
-    const displayImage = customFavicon ?? customLogo ?? '/dudeicone.png';
-    
-    if (ogImage) ogImage.content = displayImage;
-    if (twitterImage) twitterImage.content = displayImage;
-  }, [customFavicon, customLogo]);
-
+    // og:image is served by /api/og-image (server-side, always up-to-date)
+  }, [customFavicon]);
 
   useEffect(() => {
     initAuth();
@@ -323,7 +315,6 @@ export default function App() {
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
           <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
-          <Route path="assinatura" element={<AdminSubscription />} />
         </Route>
 
         {/* Fallback */}

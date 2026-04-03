@@ -624,10 +624,6 @@ interface AppState {
   authChecked: boolean;
   /** True when the logged-in user is a merch manager (not admin or artist). */
   isMerchManager: boolean;
-  /** ISO date when the free trial expires. null = no trial (active subscription). */
-  trialEndsAt: string | null;
-  /** Stripe subscription status. null = not loaded yet. */
-  subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | null;
   /** True once Supabase data has been loaded (or if Supabase is not configured). */
   dataLoaded: boolean;
   /** Theme chosen by the studio admin. null = use subdomain default. */
@@ -777,8 +773,6 @@ export const useStore = create<AppState>()(
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
-      trialEndsAt: null,
-      subscriptionStatus: null,
       showFinanceiro: true,
       currentArtistId: null,
       currentUserEmail: null,
@@ -1164,14 +1158,12 @@ export const useStore = create<AppState>()(
             .single();
           if (!profile) { set({ authChecked: true }); return; }
           const email = session.user.email ?? null;
-          const trialEndsAt = profile.trial_end_at ?? null;
-          const subscriptionStatus = profile.subscription_status ?? 'trialing';
           if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: email, trialEndsAt, subscriptionStatus });
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: email });
           } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email, trialEndsAt, subscriptionStatus });
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email });
           } else if (profile.role === 'merch_manager') {
-            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email, trialEndsAt, subscriptionStatus });
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email });
           } else if (profile.role === 'customer') {
             const name = session.user.user_metadata?.name ?? (email?.split('@')[0] ?? 'Cliente');
             set({ publicUser: { id: session.user.id, email: email!, name } });
@@ -1189,23 +1181,21 @@ export const useStore = create<AppState>()(
         if (error || !data.user) return false;
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('role, artist_id, show_financeiro, trial_end_at, subscription_status')
+          .select('role, artist_id, show_financeiro')
           .eq('id', data.user.id)
           .single();
         if (!profile) return false;
         const userEmail = data.user.email ?? null;
-        const trialEndsAt = profile.trial_end_at ?? null;
-        const subscriptionStatus = profile.subscription_status ?? 'trialing';
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail, trialEndsAt, subscriptionStatus });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail, trialEndsAt, subscriptionStatus });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail });
           return true;
         }
         if (profile.role === 'merch_manager') {
-          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, trialEndsAt, subscriptionStatus });
+          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
           return true;
         }
         return false;
