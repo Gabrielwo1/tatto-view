@@ -33,6 +33,13 @@ export default function ArtistHero() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Reset hovered state if the hovered artist was hidden
+  useEffect(() => {
+    if (hoveredId && !artists.find(a => a.id === hoveredId)) {
+      setHoveredId(null);
+    }
+  }, [artists, hoveredId]);
+
   if (artists.length === 0) return null;
 
   const navbarHeight = scrolled ? 64 : 192;
