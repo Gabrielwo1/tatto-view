@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../store';
 
 const STUDIO_PHONE = '554699704747';
-const STUDIO_NAME = 'El Dude Studio';
 const DEFAULT_MSG = 'Olá! Vi o site e gostaria de mais informações. 🖤';
 
 export default function WhatsAppButton() {
@@ -122,39 +121,63 @@ export default function WhatsAppButton() {
 
             <div style={{ fontSize: '10px', color: '#444', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0 8px 4px' }}>Artistas</div>
 
-            {artists.map((artist) => (
-              <button
-                key={artist.id}
-                onClick={() => openWhatsApp(artist.whatsapp || STUDIO_PHONE, artist.name)}
-                className="wa-item"
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  padding: '10px',
-                  background: 'transparent',
-                  border: 'none',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <img
-                  src={artist.photoUrl || '/placeholder-artist.png'}
-                  alt={artist.name}
-                  style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <span style={{ display: 'block', color: '#eee', fontSize: '13px', fontWeight: 500 }}>{artist.name}</span>
-                  <span style={{ fontSize: '11px', color: '#555' }}>
-                    {artist.specialties?.slice(0, 2).join(' • ') || 'Tatuador'}
-                  </span>
-                </div>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#25D366', opacity: 0.6 }} />
-              </button>
-            ))}
+            {artists.map((artist) => {
+              const hasWhatsApp = artist.whatsapp && artist.whatsapp.replace(/\D/g, '').length >= 10;
+              
+              // Handle specific artists that prefer Instagram as mentioned by the user
+              const nameLower = artist.name.toLowerCase();
+              const prefersInstagram = nameLower.includes('matheus') || nameLower.includes('joao victor') || !hasWhatsApp;
+
+              return (
+                <button
+                  key={artist.id}
+                  onClick={() => {
+                    if (prefersInstagram && artist.instagram) {
+                      const instaUser = artist.instagram.replace(/.*instagram\.com\//, '').replace(/\//g, '');
+                      window.open(`https://instagram.com/${instaUser}`, '_blank');
+                    } else {
+                      openWhatsApp(artist.whatsapp || STUDIO_PHONE, artist.name);
+                    }
+                  }}
+                  className="wa-item"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '10px',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <img
+                    src={artist.photoUrl || '/placeholder-artist.png'}
+                    alt={artist.name}
+                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <span style={{ display: 'block', color: '#eee', fontSize: '13px', fontWeight: 500 }}>{artist.name}</span>
+                    <span style={{ fontSize: '11px', color: '#555' }}>
+                      {prefersInstagram ? 'Falar pelo Instagram 📸' : 'Falar pelo WhatsApp 💬'}
+                    </span>
+                  </div>
+                  <div 
+                    style={{ 
+                      width: '8px', 
+                      height: '8px', 
+                      borderRadius: '50%', 
+                      background: prefersInstagram ? '#E1306C' : '#25D366', 
+                      opacity: 0.6 
+                    }} 
+                  />
+                </button>
+              );
+            })}
+
           </div>
         </div>
       )}
