@@ -8,8 +8,7 @@ export interface PreviewResult {
 }
 
 export async function generateFluxPreview(
-  prompt: string,
-  _token?: string
+  prompt: string
 ): Promise<{ url: string }> {
   const encoded = encodeURIComponent(prompt.slice(0, 200));
   const res = await fetch(`/api/tattoo-preview?prompt=${encoded}`);

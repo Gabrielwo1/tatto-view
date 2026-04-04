@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS artists (
   specialties TEXT[] DEFAULT '{}',
   instagram   TEXT,
   whatsapp    TEXT,
+  preferred_contact_method TEXT DEFAULT 'whatsapp',
+  hidden_from_hero BOOLEAN DEFAULT false,
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 

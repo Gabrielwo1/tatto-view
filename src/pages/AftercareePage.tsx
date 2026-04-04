@@ -107,6 +107,10 @@ const IconNoTight = () => (
 export default function AftercareePage() {
   const c = useStore((s) => s.aftercareContent);
 
+  if (!c || !c.hero || !c.preSession || !c.daySession || !c.postSession || !c.cta) {
+    return <div className="min-h-screen bg-zinc-900 flex items-center justify-center text-white/20 font-display uppercase tracking-widest text-sm">Carregando...</div>;
+  }
+
   return (
     <div className="bg-zinc-900 min-h-screen text-white">
       <div className="max-w-5xl mx-auto px-6 lg:px-10">

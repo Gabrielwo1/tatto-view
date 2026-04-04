@@ -27,6 +27,9 @@ export default function AdminMyProfile() {
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved]       = useState(false);
 
+  const { cropSrc, fileInputRef, handleFileChange, handleCropConfirm, handleCropCancel } =
+    useImageCrop((dataUrl) => { setForm((f) => ({ ...f, photoUrl: dataUrl })); setSaved(false); });
+
   if (isAdmin) {
     return (
       <div className="p-8 text-gray-500 font-body text-sm">
@@ -42,9 +45,6 @@ export default function AdminMyProfile() {
       </div>
     );
   }
-
-  const { cropSrc, fileInputRef, handleFileChange, handleCropConfirm, handleCropCancel } =
-    useImageCrop((dataUrl) => { setForm((f) => ({ ...f, photoUrl: dataUrl })); setSaved(false); });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));

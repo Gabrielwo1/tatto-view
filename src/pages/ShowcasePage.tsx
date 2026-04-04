@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
 import ArtistHero from '../components/ArtistHero';
-import { TattooLightbox, useLightbox } from '../components/TattooLightbox';
+import { TattooLightbox } from '../components/TattooLightbox';
+import { useLightbox } from '../hooks/useLightbox';
 import { TATTOO_STYLES } from '../types';
 import { interleaveByArtist } from '../utils';
 
@@ -32,9 +33,9 @@ export default function ShowcasePage() {
   }, [available, selectedStyle]);
 
   // If the currently selected style was hidden, reset to "Todos"
-  useMemo(() => {
+  useEffect(() => {
     if (selectedStyle !== 'Todos' && hiddenStyles.includes(selectedStyle)) {
-      setSelectedStyle('Todos');
+      setTimeout(() => setSelectedStyle('Todos'), 0);
     }
   }, [hiddenStyles, selectedStyle]);
 

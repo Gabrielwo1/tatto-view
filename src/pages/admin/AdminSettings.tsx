@@ -17,12 +17,17 @@ function WishlistSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!supabase) { setLoading(false); return; }
-    supabase.from('wishlists').select('item_type, item_id').then(({ data, error }) => {
+    async function load() {
+      if (!supabase) {
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await supabase.from('wishlists').select('item_type, item_id');
       if (error) console.error('[Wishlist]', error);
       setRows((data as WishlistRow[]) ?? []);
       setLoading(false);
-    });
+    }
+    load();
   }, []);
 
   const tattooCounts = useMemo(() => {

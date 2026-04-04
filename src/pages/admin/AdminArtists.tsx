@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { toSlug } from '../../utils';
@@ -16,13 +16,9 @@ export default function AdminArtists() {
   const [dragOver, setDragOver] = useState<string | null>(null);
   const dragId = useRef<string | null>(null);
 
-  // Keep order in sync when artists change (add/delete)
-  const artistIds = artists.map((a) => a.id).join(',');
-  const prevIds = useRef(artistIds);
-  if (prevIds.current !== artistIds) {
-    prevIds.current = artistIds;
-    setOrder(artists.map((a) => a.id));
-  }
+  useEffect(() => {
+    setTimeout(() => setOrder(artists.map((a) => a.id)), 0);
+  }, [artists]); // Simplified trigger
 
   const artistMap = new Map(artists.map((a) => [a.id, a]));
   const sorted = order.map((id) => artistMap.get(id)).filter(Boolean) as typeof artists;

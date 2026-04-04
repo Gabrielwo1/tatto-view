@@ -202,7 +202,7 @@ export default function AdminArtistForm() {
                     name="preferredContactMethod"
                     value="whatsapp"
                     checked={form.preferredContactMethod === 'whatsapp'}
-                    onChange={(e) => setForm(f => ({ ...f, preferredContactMethod: e.target.value as any }))}
+                    onChange={(e) => setForm(f => ({ ...f, preferredContactMethod: e.target.value as 'whatsapp' | 'instagram' }))}
                     className="accent-ink-500"
                   />
                   <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400">WhatsApp</span>
@@ -213,7 +213,7 @@ export default function AdminArtistForm() {
                     name="preferredContactMethod"
                     value="instagram"
                     checked={form.preferredContactMethod === 'instagram'}
-                    onChange={(e) => setForm(f => ({ ...f, preferredContactMethod: e.target.value as any }))}
+                    onChange={(e) => setForm(f => ({ ...f, preferredContactMethod: e.target.value as 'whatsapp' | 'instagram' }))}
                     className="accent-ink-500"
                   />
                   <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400">Instagram</span>
