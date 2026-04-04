@@ -71,15 +71,6 @@ export default function LandingPage() {
         {/* Faint horizontal rule lines */}
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 80px)' }} />
 
-        {/* Logo */}
-        <img
-          src="/logosemo-3.png"
-          alt="El Dude"
-          className="w-40 md:w-56 mb-10 opacity-90"
-          fetchPriority="high"
-          decoding="async"
-        />
-
         {/* Tagline */}
         <h1 className="font-display text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-6">
           {lc.hero.tagline.split('\n').map((line, i, arr) => (

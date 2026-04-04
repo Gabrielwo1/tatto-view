@@ -16,7 +16,7 @@ export interface LandingContent {
 
 const defaultLandingContent: LandingContent = {
   hero: {
-    tagline: 'Sua história\nna pele',
+    tagline: 'Sua pele.\nNossa arte,\nnossa tattoo.',
     description: 'Estúdio de tatuagens com artistas especializados em diferentes estilos.\nDo traço à pele — com arte, técnica e respeito pela sua história.',
   },
   manifesto: {
