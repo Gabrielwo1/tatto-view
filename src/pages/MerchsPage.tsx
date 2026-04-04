@@ -4,13 +4,12 @@ import type { Merch } from '../types';
 
 /* ─── helpers ─── */
 function categorizeMerchs(merchs: Merch[]) {
-  const vestuario = merchs.filter((m) => m.sizes && m.sizes.length > 0);
-  const sem_tamanho = merchs.filter((m) => !m.sizes || m.sizes.length === 0);
-  // Heuristic: description containing "acess" / name containing keywords → acessório
-  const acessKeywords = /bálsamo|balm|pin|adesiv|sticker|chaveiro|caneca|cartão|gift|cuidado|aftercare/i;
-  const acessorios = sem_tamanho.filter((m) => acessKeywords.test(m.name) || acessKeywords.test(m.description ?? ''));
-  const prints = sem_tamanho.filter((m) => !acessKeywords.test(m.name) && !acessKeywords.test(m.description ?? ''));
-  return { prints, vestuario, acessorios };
+  const prints     = merchs.filter((m) => m.category === 'prints');
+  const vestuario  = merchs.filter((m) => m.category === 'vestuario');
+  const acessorios = merchs.filter((m) => m.category === 'acessorios');
+  // Products without a category set go into a fallback bucket
+  const uncategorized = merchs.filter((m) => !m.category);
+  return { prints, vestuario, acessorios, uncategorized };
 }
 
 /* ─── Cart icon ─── */
@@ -177,7 +176,7 @@ export default function MerchsPage() {
   const shop = useStore((s) => s.shopContent);
   const [email, setEmail] = useState('');
 
-  const { prints, vestuario, acessorios } = categorizeMerchs(merchs);
+  const { prints, vestuario, acessorios, uncategorized } = categorizeMerchs(merchs);
   const allEmpty = merchs.length === 0;
 
   return (
@@ -241,13 +240,13 @@ export default function MerchsPage() {
         </section>
       )}
 
-      {/* Fallback: all in 2-col if no categories matched */}
-      {!allEmpty && prints.length === 0 && vestuario.length === 0 && acessorios.length === 0 && (
+      {/* Uncategorized products — shown last in 2-col grid */}
+      {uncategorized.length > 0 && (
         <section className="border-b border-zinc-800">
-          <CategoryHeader index={1} title="Produtos" />
+          <CategoryHeader index={prints.length + vestuario.length + acessorios.length > 0 ? 4 : 1} title="Produtos" />
           <div className="px-4 pb-8">
             <div className="grid grid-cols-2 gap-x-3 gap-y-6">
-              {merchs.map((m) => (
+              {uncategorized.map((m) => (
                 <PrintCard key={m.id} m={m} />
               ))}
             </div>

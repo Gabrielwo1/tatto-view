@@ -548,6 +548,7 @@ function toMerch(r: MerchRow): Merch {
     price: r.price,
     imageUrl: r.image_url,
     link: r.link ?? undefined,
+    category: (r.category as Merch['category']) ?? undefined,
     createdAt: r.created_at,
   };
 }
@@ -1322,6 +1323,7 @@ export const useStore = create<AppState>()(
         supabase?.from('merchs').insert({
           id: merch.id, name: merch.name, description: merch.description,
           price: merch.price, image_url: merch.imageUrl, link: merch.link,
+          category: merch.category ?? null,
           created_at: merch.createdAt,
         }).then(({ error }) => { if (error) console.error('[store] addMerch:', error); });
       },
@@ -1334,6 +1336,7 @@ export const useStore = create<AppState>()(
         if (updates.price       !== undefined) row.price       = updates.price;
         if (updates.imageUrl    !== undefined) row.image_url   = updates.imageUrl;
         if (updates.link        !== undefined) row.link        = updates.link;
+        if (updates.category    !== undefined) row.category    = updates.category ?? null;
         supabase?.from('merchs').update(row).eq('id', id)
           .then(({ error }) => { if (error) console.error('[store] updateMerch:', error); });
       },
