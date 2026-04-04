@@ -319,6 +319,47 @@ export default function AdminLandingPage() {
 
         <div className="border-t border-white/8" />
 
+        {/* ── ESTILOS ── */}
+        <section>
+          <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
+            Estilos (Ícone e Descrição)
+          </h2>
+          <div className="space-y-3">
+            {Object.entries(form.estilos ?? {}).map(([style, info]) => (
+              <div key={style} className="border border-white/10 p-4">
+                <p className="font-display text-sm text-white/50 uppercase mb-3">{style}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Ícone (caractere único)</label>
+                    <input
+                      className={inputCls}
+                      value={info.icon}
+                      maxLength={2}
+                      onChange={(e) => setForm((f) => ({
+                        ...f,
+                        estilos: { ...f.estilos, [style]: { ...info, icon: e.target.value } },
+                      }))}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Descrição curta</label>
+                    <input
+                      className={inputCls}
+                      value={info.desc}
+                      onChange={(e) => setForm((f) => ({
+                        ...f,
+                        estilos: { ...f.estilos, [style]: { ...info, desc: e.target.value } },
+                      }))}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="border-t border-white/8" />
+
         {/* ── CTA FINAL ── */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
