@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 
 interface Props {
   src: string;
@@ -54,7 +54,7 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
   // Pre-process image to avoid CORS issues with Canvas
   useEffect(() => {
     if (!src || src.startsWith('data:') || src.startsWith('blob:')) {
-      setProcessedSrc(src);
+      setTimeout(() => setProcessedSrc(src), 0);
       return;
     }
 
@@ -132,7 +132,7 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
     actionRef.current = { type: 'resize', corner, startMx: mx, startMy: my, startBox: { ...boxRef.current } };
   }
 
-  const onMove = useCallback((mx: number, my: number) => {
+  const onMove = (mx: number, my: number) => {
     const act = actionRef.current;
     if (!act) return;
     const dx = mx - act.startMx;
@@ -177,19 +177,24 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
       case 'br': break;
     }
     syncBox({ x: Math.max(0, nx), y: Math.max(0, ny), size: nsize });
-  }, []);
+  };
+
+  const onMoveRef = useRef(onMove);
+  useLayoutEffect(() => {
+    onMoveRef.current = onMove;
+  });
 
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
       const r = containerRef.current?.getBoundingClientRect();
       if (!r) return;
-      onMove(e.clientX - r.left, e.clientY - r.top);
+      onMoveRef.current(e.clientX - r.left, e.clientY - r.top);
     }
     function onTouchMove(e: TouchEvent) {
       const t = e.touches[0];
       const r = containerRef.current?.getBoundingClientRect();
       if (!r || !t) return;
-      onMove(t.clientX - r.left, t.clientY - r.top);
+      onMoveRef.current(t.clientX - r.left, t.clientY - r.top);
     }
     function onUp() { actionRef.current = null; }
 
@@ -203,10 +208,10 @@ export default function ImageCropper({ src, onConfirm, onCancel }: Props) {
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onUp);
     };
-  }, [onMove]);
+  }, []);
 
   const bh = loaded ? getBoxH(box.size, ratio) : 0;
-  const maxSize = loaded ? getMaxSize(displayRef.current.w, displayRef.current.h, ratio) : MAX_DISPLAY;
+  const maxSize = loaded ? getMaxSize(display.w, display.h, ratio) : MAX_DISPLAY;
   const sliderPct = loaded ? Math.round((box.size / maxSize) * 100) : 100;
 
   function onSliderChange(pct: number) {

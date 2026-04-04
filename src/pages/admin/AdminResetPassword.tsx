@@ -15,24 +15,27 @@ export default function AdminResetPassword() {
   useEffect(() => {
     if (!supabase) return;
 
-    // ── Strategy 1: PKCE flow — URL contains ?code=XXX ───────────────────
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+    const checkFlow = async () => {
+      if (!supabase) return;
+      // ── Strategy 1: PKCE flow — URL contains ?code=XXX ───────────────────
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) setReady(true);
-      });
-    }
+      }
 
-    // ── Strategy 2: Implicit flow — URL hash contains #type=recovery ─────
-    if (window.location.hash.includes('type=recovery')) {
-      setReady(true);
-    }
+      // ── Strategy 2: Implicit flow — URL hash contains #type=recovery ─────
+      if (window.location.hash.includes('type=recovery')) {
+        setReady(true);
+      }
 
-    // ── Strategy 3: Session already established (event fired before mount) ─
-    supabase.auth.getSession().then(({ data: { session } }) => {
+      // ── Strategy 3: Session already established ───────────────────────
+      const { data: { session } } = await supabase.auth.getSession();
       if (session) setReady(true);
-    });
+    };
+
+    checkFlow();
 
     // ── Strategy 4: Listen for the event if it fires after mount ──────────
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {

@@ -16,13 +16,17 @@ export default function AdminWishlist() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!supabase) { setLoading(false); return; }
-    supabase.from('wishlists').select('item_type, item_id')
-      .then(({ data, error }) => {
-        if (error) console.error('[AdminWishlist]', error);
-        setRows((data as WishlistRow[]) ?? []);
+    const fetchRows = async () => {
+      if (!supabase) {
         setLoading(false);
-      });
+        return;
+      }
+      const { data, error } = await supabase.from('wishlists').select('item_type, item_id');
+      if (error) console.error('[AdminWishlist]', error);
+      setRows((data as WishlistRow[]) ?? []);
+      setLoading(false);
+    };
+    fetchRows();
   }, []);
 
   // Count per tattoo
