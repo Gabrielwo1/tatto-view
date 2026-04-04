@@ -1,10 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import type { Tattoo, Artist } from '../types';
 import { toSlug } from '../utils';
-
-
-export interface LightboxEntry { tattoo: Tattoo; artist?: Artist | null }
+import type { LightboxEntry } from '../hooks/useLightbox';
 
 export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: LightboxEntry; onClose: () => void; hideArtistLink?: boolean }) {
   const [visible, setVisible] = useState(false);
@@ -111,20 +108,3 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
   );
 }
 
-/** Hook that manages lightbox open/close state with exit animation */
-export function useLightbox() {
-  const [entry, setEntry] = useState<LightboxEntry | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  const open = useCallback((tattoo: Tattoo, artist?: Artist | null) => {
-    setEntry({ tattoo, artist });
-    setMounted(true);
-  }, []);
-
-  const close = useCallback(() => {
-    setMounted(false);
-    setTimeout(() => setEntry(null), 320);
-  }, []);
-
-  return { entry, mounted, open, close };
-}

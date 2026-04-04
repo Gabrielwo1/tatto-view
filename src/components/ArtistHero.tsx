@@ -37,7 +37,7 @@ export default function ArtistHero() {
   // Reset hovered state if the hovered artist was hidden
   useEffect(() => {
     if (hoveredId && !visibleArtists.find(a => a.id === hoveredId)) {
-      setHoveredId(null);
+      setTimeout(() => setHoveredId(null), 0);
     }
   }, [visibleArtists, hoveredId]);
 
