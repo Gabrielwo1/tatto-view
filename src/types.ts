@@ -50,6 +50,7 @@ export interface Merch {
   imageUrl: string;
   link?: string;
   sizes?: string[];
+  category?: 'prints' | 'vestuario' | 'acessorios';
   createdAt: string;
 }
 
@@ -115,6 +116,7 @@ export interface MerchRow {
   price: string;
   image_url: string;
   link: string | null;
+  category: string | null;
   created_at: string;
 }
 
