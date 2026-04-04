@@ -180,16 +180,18 @@ export default function MerchsPage() {
   const allEmpty = merchs.length === 0;
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
+    <div className="min-h-screen bg-black text-white pb-20 md:pb-0">
 
       {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section className="px-4 pt-10 pb-6 border-b border-zinc-800">
-        <h1 className="font-display text-5xl md:text-6xl uppercase leading-none tracking-tight text-white">
-          {shop.hero.title}
-        </h1>
-        <p className="font-body text-[10px] font-bold tracking-widest uppercase text-zinc-500 mt-2">
-          — {shop.hero.subtitle}
-        </p>
+      <section className="px-4 lg:px-12 pt-10 pb-6 border-b border-zinc-800">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="font-display text-5xl md:text-6xl lg:text-8xl uppercase leading-none tracking-tight text-white">
+            {shop.hero.title}
+          </h1>
+          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-zinc-500 mt-2">
+            — {shop.hero.subtitle}
+          </p>
+        </div>
       </section>
 
       {allEmpty && (
@@ -201,12 +203,14 @@ export default function MerchsPage() {
       {/* ── PRINTS ───────────────────────────────────────────────────── */}
       {prints.length > 0 && (
         <section className="border-b border-zinc-800">
-          <CategoryHeader index={1} title="Prints" />
-          <div className="px-4 pb-8">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-6">
-              {prints.map((m) => (
-                <PrintCard key={m.id} m={m} />
-              ))}
+          <div className="max-w-7xl mx-auto">
+            <CategoryHeader index={1} title="Prints" />
+            <div className="px-4 lg:px-12 pb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8">
+                {prints.map((m) => (
+                  <PrintCard key={m.id} m={m} />
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -215,12 +219,14 @@ export default function MerchsPage() {
       {/* ── VESTUÁRIO ────────────────────────────────────────────────── */}
       {vestuario.length > 0 && (
         <section className="border-b border-zinc-800">
-          <CategoryHeader index={2} title="Vestuário" />
-          <div className="px-4 pb-8">
-            <div className="grid grid-cols-2 gap-3">
-              {vestuario.map((m) => (
-                <VestuarioCard key={m.id} m={m} />
-              ))}
+          <div className="max-w-7xl mx-auto">
+            <CategoryHeader index={2} title="Vestuário" />
+            <div className="px-4 lg:px-12 pb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {vestuario.map((m) => (
+                  <VestuarioCard key={m.id} m={m} />
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -229,12 +235,14 @@ export default function MerchsPage() {
       {/* ── ACESSÓRIOS ───────────────────────────────────────────────── */}
       {acessorios.length > 0 && (
         <section className="border-b border-zinc-800">
-          <CategoryHeader index={3} title="Acessórios" />
-          <div className="px-4 pb-8">
-            <div className="grid grid-cols-3 gap-x-3 gap-y-5">
-              {acessorios.map((m) => (
-                <AcessorioCard key={m.id} m={m} />
-              ))}
+          <div className="max-w-7xl mx-auto">
+            <CategoryHeader index={3} title="Acessórios" />
+            <div className="px-4 lg:px-12 pb-8">
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-6">
+                {acessorios.map((m) => (
+                  <AcessorioCard key={m.id} m={m} />
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -243,43 +251,49 @@ export default function MerchsPage() {
       {/* Uncategorized products — shown last in 2-col grid */}
       {uncategorized.length > 0 && (
         <section className="border-b border-zinc-800">
-          <CategoryHeader index={prints.length + vestuario.length + acessorios.length > 0 ? 4 : 1} title="Produtos" />
-          <div className="px-4 pb-8">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-6">
-              {uncategorized.map((m) => (
-                <PrintCard key={m.id} m={m} />
-              ))}
+          <div className="max-w-7xl mx-auto">
+            <CategoryHeader index={prints.length + vestuario.length + acessorios.length > 0 ? 4 : 1} title="Produtos" />
+            <div className="px-4 lg:px-12 pb-8">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8">
+                {uncategorized.map((m) => (
+                  <PrintCard key={m.id} m={m} />
+                ))}
+              </div>
             </div>
           </div>
         </section>
       )}
 
       {/* ── NEWSLETTER ───────────────────────────────────────────────── */}
-      <section className="px-4 py-12">
-        <h2 className="font-display text-3xl md:text-4xl uppercase leading-none text-white mb-3">
-          Mantenha-se<br />tatuado.
-        </h2>
-        <p className="font-body text-xs text-zinc-500 mb-6 leading-relaxed max-w-xs">
-          Assine para acesso antecipado a lançamentos exclusivos e ofertas sazonais do estúdio.
-        </p>
-        <form
-          onSubmit={(e) => { e.preventDefault(); setEmail(''); }}
-          className="flex gap-2 max-w-sm"
-        >
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="email@dominio.com"
-            className="flex-1 bg-transparent border border-zinc-700 px-3 py-2.5 font-body text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-white transition-colors"
-          />
-          <button
-            type="submit"
-            className="px-5 py-2.5 bg-white text-black font-body text-[10px] font-bold tracking-widest uppercase hover:bg-zinc-200 transition-colors shrink-0"
+      <section className="px-4 lg:px-12 py-12 lg:py-20">
+        <div className="max-w-7xl mx-auto lg:flex lg:items-end lg:justify-between lg:gap-16">
+          <div>
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl uppercase leading-none text-white mb-3">
+              Mantenha-se<br />tatuado.
+            </h2>
+            <p className="font-body text-xs text-zinc-500 mb-6 leading-relaxed max-w-xs">
+              Assine para acesso antecipado a lançamentos exclusivos e ofertas sazonais do estúdio.
+            </p>
+          </div>
+          <form
+            onSubmit={(e) => { e.preventDefault(); setEmail(''); }}
+            className="flex gap-2 max-w-sm w-full lg:max-w-md lg:mb-1"
           >
-            Enviar
-          </button>
-        </form>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@dominio.com"
+              className="flex-1 bg-transparent border border-zinc-700 px-3 py-2.5 font-body text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-white transition-colors"
+            />
+            <button
+              type="submit"
+              className="px-5 py-2.5 bg-white text-black font-body text-[10px] font-bold tracking-widest uppercase hover:bg-zinc-200 transition-colors shrink-0"
+            >
+              Enviar
+            </button>
+          </form>
+        </div>
       </section>
 
       {/* ── BOTTOM TAB BAR (mobile) ───────────────────────────────────── */}
