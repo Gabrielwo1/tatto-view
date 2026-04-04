@@ -3,6 +3,8 @@ import { useStore } from '../store';
 
 export default function SiteFooter() {
   const { studio, contact } = useStore((s) => s.sobreNosContent);
+  const customLogo = useStore((s) => s.customLogo);
+  const logoSrc = customLogo ?? '/logosemo-3.png';
 
   return (
     <footer className="bg-zinc-950 border-t border-ink2-500/20">
@@ -97,7 +99,7 @@ export default function SiteFooter() {
       <div className="border-t border-ink2-500/10">
         <div className="max-w-6xl mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link to="/landingpage">
-            <img src="/logosemo-3.png" alt="El Dude" className="h-7 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity" />
+            <img src={logoSrc} alt="El Dude" className="h-7 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity" />
           </Link>
 
           <nav className="flex flex-wrap gap-x-6 gap-y-2 justify-center">

@@ -12,6 +12,7 @@ export interface LandingContent {
   precos: Array<{ label: string; range: string; detail: string }>;
   faq: Array<{ q: string; a: string }>;
   cta: { tagline: string; title1: string; title2: string; description: string };
+  estilos?: Record<string, { icon: string; desc: string }>;
 }
 
 const defaultLandingContent: LandingContent = {
@@ -50,6 +51,16 @@ const defaultLandingContent: LandingContent = {
     title1: 'Pronto para',
     title2: 'sua arte?',
     description: 'Escolha seu artista, fale sobre sua ideia e dê o próximo passo. A consulta é gratuita e sem compromisso.',
+  },
+  estilos: {
+    Realismo:          { icon: '◉', desc: 'Detalhes fotográficos e sombreamento profundo' },
+    Blackwork:         { icon: '◼', desc: 'Linhas fortes, preenchimento sólido em preto' },
+    Aquarela:          { icon: '◈', desc: 'Cores vibrantes e fluxo livre de pigmento' },
+    Geométrico:        { icon: '◇', desc: 'Precisão matemática e simetria perfeita' },
+    'Old School':      { icon: '★', desc: 'Linhas marcantes e paleta clássica americana' },
+    Tribal:            { icon: '◆', desc: 'Padrões ancestrais com significado cultural' },
+    'Neo-Tradicional': { icon: '✦', desc: 'Traços tradicionais com cores contemporâneas' },
+    Minimalista:       { icon: '—', desc: 'Essência pura, menos é mais' },
   },
 };
 
