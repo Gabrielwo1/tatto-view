@@ -61,6 +61,27 @@ export default function AdminLandingPage() {
     });
   }
 
+  function setEspecialidade(index: number, field: keyof LandingContent['especialidades'][0], value: string) {
+    setForm((f) => {
+      const especialidades = f.especialidades.map((item, i) => i === index ? { ...item, [field]: value } : item);
+      return { ...f, especialidades };
+    });
+  }
+
+  function addEspecialidade() {
+    setForm((f) => ({
+      ...f,
+      especialidades: [...f.especialidades, { style: '', icon: '◎', desc: '' }],
+    }));
+  }
+
+  function removeEspecialidade(index: number) {
+    setForm((f) => ({
+      ...f,
+      especialidades: f.especialidades.filter((_, i) => i !== index),
+    }));
+  }
+
   function addFaq() {
     setForm((f) => ({ ...f, faq: [...f.faq, { q: '', a: '' }] }));
   }
@@ -174,9 +195,68 @@ export default function AdminLandingPage() {
           </div>
         </section>
 
-        <div className="border-t border-white/8" />
+        <section className="bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden">
+          <div className="px-8 py-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-display uppercase tracking-widest text-white">Especialidades</h2>
+              <p className="text-xs text-white/40 mt-1 font-body">Estilos de tatuagem exibidos na landing page</p>
+            </div>
+            <button
+              onClick={addEspecialidade}
+              className="px-4 py-2 bg-ink-500 hover:bg-ink-600 text-black text-[10px] font-display uppercase tracking-widest rounded-lg transition-colors"
+            >
+              Adicionar Estilo
+            </button>
+          </div>
+          <div className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {(form.especialidades || []).map((item, idx) => (
+                <div key={idx} className="p-6 bg-black/40 border border-white/5 rounded-xl space-y-4 relative group">
+                  <button
+                    onClick={() => removeEspecialidade(idx)}
+                    className="absolute top-4 right-4 text-white/20 hover:text-red-500 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                  
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="col-span-1">
+                      <label className="block text-[10px] uppercase tracking-widest text-white/30 mb-2 font-display">Ícone</label>
+                      <input
+                        type="text"
+                        value={item.icon}
+                        onChange={(e) => setEspecialidade(idx, 'icon', e.target.value)}
+                        className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white font-body text-sm focus:border-ink-500/50 outline-none transition-colors text-center"
+                      />
+                    </div>
+                    <div className="col-span-3">
+                      <label className="block text-[10px] uppercase tracking-widest text-white/30 mb-2 font-display">Nome do Estilo</label>
+                      <input
+                        type="text"
+                        value={item.style}
+                        onChange={(e) => setEspecialidade(idx, 'style', e.target.value)}
+                        className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white font-body text-sm focus:border-ink-500/50 outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-widest text-white/30 mb-2 font-display">Descrição Curta</label>
+                    <input
+                      type="text"
+                      value={item.desc}
+                      onChange={(e) => setEspecialidade(idx, 'desc', e.target.value)}
+                      className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white font-body text-sm focus:border-ink-500/50 outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        {/* ── PROCESSO ── */}
+        {/* ══════════════════════════════════════════════════
+            PROCESSO (COMO FUNCIONA)
+        ══════════════════════════════════════════════════ */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
             Como Funciona (Processo)

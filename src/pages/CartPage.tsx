@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
+import type { Tattoo, Merch, CartItem } from '../types';
 
 export default function CartPage() {
   const publicUser = useStore((s) => s.publicUser);
@@ -23,14 +24,14 @@ export default function CartPage() {
     );
   }
 
-  const items = cart.map((c) => {
+  const items = cart.map((c: CartItem) => {
     if (c.itemType === 'tattoo') {
-      const t = tattoos.find((x) => x.id === c.itemId);
+      const t = tattoos.find((x: Tattoo) => x.id === c.itemId);
       if (!t) return null;
       const cents = t.depositAmount ?? 15000;
       return { ...c, name: t.title, image: t.imageUrl, priceCents: cents, priceLabel: `Sinal: R$${(cents / 100).toFixed(2).replace('.', ',')}`, subtitle: 'Reserva de design' };
     } else {
-      const m = merchs.find((x) => x.id === c.itemId);
+      const m = merchs.find((x: Merch) => x.id === c.itemId);
       if (!m) return null;
       const cents = Math.round(parseFloat(m.price.replace(/[^0-9.,]/g, '').replace(',', '.')) * 100) || 0;
       return { ...c, name: m.name, image: m.imageUrl, priceCents: cents, priceLabel: m.price, subtitle: 'Produto' };

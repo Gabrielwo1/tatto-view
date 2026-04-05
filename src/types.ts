@@ -15,6 +15,7 @@ export interface PublicUser {
   id: string;
   email: string;
   name: string;
+  role?: string;
 }
 
 export interface WishlistItem {
@@ -90,6 +91,7 @@ export interface TattooRow {
   image_url: string;
   style: string;
   price: string | null;
+  deposit_amount: number | null;
   artist_id: string | null;
   status: 'available' | 'archived';
   created_at: string;
@@ -115,6 +117,7 @@ export interface MerchRow {
   price: string;
   image_url: string;
   link: string | null;
+  sizes: string[] | null;
   created_at: string;
 }
 
