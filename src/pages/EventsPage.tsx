@@ -136,7 +136,7 @@ function EventCard({ event }: { event: EventItem }) {
 export default function EventsPage() {
   const ec = useStore((s) => s.eventsContent);
 
-  const activeEvents = ec.events.filter((e) => e.title);
+  const activeEvents = ec.events.filter((e) => e.title && !e.hidden);
 
   return (
     <div className="bg-zinc-900 min-h-screen">
