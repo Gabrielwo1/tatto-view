@@ -2,24 +2,16 @@ import { useState, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
-<<<<<<< HEAD
-import ContactModal from '../components/ContactModal';
-=======
 import { TattooLightbox } from '../components/TattooLightbox';
 import { useLightbox } from '../hooks/useLightbox';
 import domtoimage from 'dom-to-image-more';
 import { toSlug } from '../utils';
 import type { TatuadoPost } from '../types';
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
 
 export default function ArtistDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
-<<<<<<< HEAD
-  const [tab, setTab] = useState<'available' | 'archived'>('available');
-  const [contactOpen, setContactOpen] = useState(false);
-=======
   const tatuadoPosts = useStore((s) => s.tatuadoPosts);
   const isArtist = useStore((s) => s.isArtist);
   const isAdmin = useStore((s) => s.isAdmin);
@@ -28,7 +20,6 @@ export default function ArtistDetailPage() {
   const [printImage, setPrintImage] = useState<string | null>(null);
   const [tatuadoLightbox, setTatuadoLightbox] = useState<TatuadoPost | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
 
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
@@ -123,14 +114,6 @@ export default function ArtistDetailPage() {
               </span>
             ))}
           </div>
-<<<<<<< HEAD
-          <button
-            onClick={() => setContactOpen(true)}
-            className="mt-4 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase px-6 py-2.5 transition-colors"
-          >
-            Agendar Tatuagem
-          </button>
-=======
           <div className="flex flex-wrap gap-3 mt-2">
             {artist.instagram && (
               <a
@@ -159,7 +142,6 @@ export default function ArtistDetailPage() {
               </a>
             )}
           </div>
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
         </div>
       </div>
 
@@ -265,17 +247,6 @@ export default function ArtistDetailPage() {
             </button>
           </div>
         </div>
-<<<<<<< HEAD
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-6">
-          {filtered.map((tattoo) => (
-            <TattooCard key={tattoo.id} tattoo={tattoo} artist={artist} />
-          ))}
-        </div>
-      )}
-
-      <ContactModal artist={artist} isOpen={contactOpen} onClose={() => setContactOpen(false)} />
-=======
       )}
 
       </div>
@@ -315,7 +286,6 @@ export default function ArtistDetailPage() {
       {lightbox && lightboxMounted && (
         <TattooLightbox entry={lightbox} onClose={closeLightbox} hideArtistLink />
       )}
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
     </div>
   );
 }

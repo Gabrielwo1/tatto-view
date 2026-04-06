@@ -11,12 +11,8 @@ import { interleaveByArtist } from '../utils';
 export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
-<<<<<<< HEAD
-  const isLoading = useStore((s) => s.isLoading);
-=======
   const hiddenStyles = useStore((s) => s.hiddenStyles);
   const customStyles = useStore((s) => s.customStyles);
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
@@ -76,25 +72,11 @@ export default function ShowcasePage() {
           ))}
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-20 text-gray-600">
-            <p className="font-display text-2xl tracking-widest uppercase animate-pulse">Carregando...</p>
-          </div>
-        ) : filtered.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="text-center py-20 text-gray-600">
             <p className="font-display text-3xl tracking-widest uppercase">Nenhuma tatuagem encontrada</p>
           </div>
         ) : (
-<<<<<<< HEAD
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-6">
-            {filtered.map((tattoo) => (
-              <TattooCard
-                key={tattoo.id}
-                tattoo={tattoo}
-                artist={artists.find((a) => a.id === tattoo.artistId)}
-              />
-            ))}
-=======
           /* ── Grid 4:5 (Instagram 1080×1350) ── */
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
             {filtered.map((tattoo) => {
@@ -108,7 +90,6 @@ export default function ShowcasePage() {
                 />
               );
             })}
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           </div>
         )}
       </div>

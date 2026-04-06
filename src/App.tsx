@@ -1,10 +1,6 @@
 import { useEffect } from 'react';
-<<<<<<< HEAD
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-=======
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView } from './lib/analytics';
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
 import { useStore } from './store';
 import { applyTheme, applyCustomColors, getThemeForHostname, THEMES } from './lib/themes';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -50,21 +46,6 @@ import WishlistPage from './pages/WishlistPage';
 import CartPage from './pages/CartPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 
-<<<<<<< HEAD
-function DataLoader() {
-  const fetchTattoos = useStore((s) => s.fetchTattoos);
-  const fetchArtists = useStore((s) => s.fetchArtists);
-
-  useEffect(() => {
-    fetchTattoos();
-    fetchArtists();
-  }, [fetchTattoos, fetchArtists]);
-
-  return null;
-}
-
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-=======
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
   const h = window.location.hostname.toLowerCase().replace(/^www\./, '');
@@ -85,7 +66,6 @@ function RecoveryRedirect() {
 
 // Requires super admin
 function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
   const isAdmin = useStore((state) => state.isAdmin);
   const authChecked = useStore((state) => state.authChecked);
   if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
@@ -188,17 +168,11 @@ export default function App() {
   }
 
   return (
-<<<<<<< HEAD
-    <BrowserRouter>
-      <DataLoader />
-      <Routes>
-=======
     <ErrorBoundary>
       <BrowserRouter>
         <RecoveryRedirect />
         <PageTracker />
         <Routes>
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
         {/* Public routes */}
         <Route
           path="/"

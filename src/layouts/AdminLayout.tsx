@@ -218,10 +218,6 @@ export default function AdminLayout() {
       <aside className="hidden md:flex w-52 bg-black border-l border-white/10 flex-col flex-shrink-0">
         <div className="p-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-3">
-<<<<<<< HEAD
-            <img src="/eldude logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
-=======
             <div className="relative h-8 flex-shrink-0">
               <img
                 src={logoSrc}
@@ -244,7 +240,6 @@ export default function AdminLayout() {
               )}
             </div>
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 truncate max-w-[100px]">{displayName}</p>
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
@@ -286,22 +281,6 @@ export default function AdminLayout() {
       </aside>
 
       {/* ── Mobile: Top Bar ── */}
-<<<<<<< HEAD
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 flex items-center justify-between px-4 h-14">
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/eldude logo.png" alt="El Dude" className="h-7 w-auto object-contain" />
-        </Link>
-        <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400">{currentLabel}</span>
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="p-2 text-gray-400 hover:text-white transition-colors"
-          aria-label="Menu"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-=======
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-black border-b border-white/10 h-14">
         {/* Logo — absolute centered */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -345,7 +324,6 @@ export default function AdminLayout() {
             </svg>
           </button>
         </div>
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
       </div>
 
       {/* ── Mobile: Drawer (RIGHT) ── */}
@@ -355,10 +333,6 @@ export default function AdminLayout() {
           <aside className="relative ml-auto w-64 bg-black border-l border-white/10 flex flex-col h-full">
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <Link to="/" onClick={closeDrawer} className="flex items-center gap-3">
-<<<<<<< HEAD
-                <img src="/eldude logo.png" alt="El Dude" className="h-8 w-auto object-contain" />
-                <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Admin</p>
-=======
                 <div className="relative h-8 flex-shrink-0">
                   <img
                     src={logoSrc}
@@ -381,7 +355,6 @@ export default function AdminLayout() {
                   )}
                 </div>
                 <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 truncate max-w-[100px]">{displayName}</p>
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
               </Link>
               <button onClick={closeDrawer} className="p-1 text-gray-600 hover:text-white">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -6,7 +6,6 @@ import { TATTOO_STYLES } from '../types';
 export default function ArchivedPage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
-  const isLoading = useStore((s) => s.isLoading);
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
 
   const archived = tattoos.filter((t) => t.status === 'archived');
@@ -39,20 +38,12 @@ export default function ArchivedPage() {
         ))}
       </div>
 
-      {isLoading ? (
-        <div className="text-center py-20 text-gray-600">
-          <p className="font-display text-2xl tracking-widest uppercase animate-pulse">Carregando...</p>
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-20 text-gray-600">
           <p className="font-display text-3xl tracking-widest uppercase">Nenhuma encontrada</p>
         </div>
       ) : (
-<<<<<<< HEAD
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-6">
-=======
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-5">
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           {filtered.map((tattoo) => (
             <TattooCard
               key={tattoo.id}

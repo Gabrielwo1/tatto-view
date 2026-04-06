@@ -76,14 +76,6 @@ export default function Navbar() {
           </div>
 
           {/* Center: Logo */}
-<<<<<<< HEAD
-          <Link to="/" className="absolute left-1/2 -translate-x-1/2">
-            <img
-              src="/eldude logo.png"
-              alt="El Dude"
-              className="h-9 w-auto object-contain"
-            />
-=======
           <Link to="/" className="flex justify-center">
             {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
               <div
@@ -123,7 +115,6 @@ export default function Navbar() {
                 }}
               />
             )}
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           </Link>
 
           {/* Right group: Loja + Sobre Nós + Admin */}

@@ -60,11 +60,7 @@ export default function AdminLogin() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-<<<<<<< HEAD
-          <img src="/eldude logo.png" alt="El Dude" className="h-16 w-auto object-contain mx-auto mb-4" />
-=======
           <img src={logoSrc} alt="Logo" className="h-16 w-auto object-contain mx-auto mb-4" />
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">
             Painel Administrativo
           </p>

@@ -37,11 +37,6 @@ export interface Artist {
   specialties: string[];
   instagram?: string;
   whatsapp?: string;
-<<<<<<< HEAD
-  createdAt: string;
-  hiddenFromHero?: boolean;
-  preferredContactMethod?: string;
-=======
   preferredContactMethod?: 'whatsapp' | 'instagram';
   createdAt: string;
   hiddenFromHero?: boolean;
@@ -123,7 +118,6 @@ export interface MerchRow {
   link: string | null;
   category: string | null;
   created_at: string;
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
 }
 
 export const TATTOO_STYLES = [

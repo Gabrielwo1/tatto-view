@@ -1,16 +1,11 @@
 import { useState, useMemo, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
-<<<<<<< HEAD
-import ImageUpload from '../../components/ImageUpload';
-import { uploadArtistPhoto } from '../../lib/storage';
-=======
 import type { Tattoo } from '../../types';
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage } from '../../lib/uploadImage';
 import { useImageCrop } from '../../hooks/useImageCrop';
 import { toSlug } from '../../utils';
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -53,8 +48,6 @@ export default function AdminArtistForm() {
     setTattooCaption({ title: t.title, description: t.description, price: t.price ?? '' });
   }
 
-<<<<<<< HEAD
-=======
   function saveTattooCaption() {
     if (!editingTattoo) return;
     updateTattoo(editingTattoo.id, {
@@ -70,7 +63,6 @@ export default function AdminArtistForm() {
     setForm((f) => ({ ...f, [e.target.name]: value }));
   }
 
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setUploading(true);
@@ -257,48 +249,11 @@ export default function AdminArtistForm() {
           </div>
         </div>
 
-<<<<<<< HEAD
-        <div>
-          <label className={labelCls}>Biografia</label>
-          <textarea name="bio" value={form.bio} onChange={handleChange} rows={4}
-            className={`${inputCls} resize-none`} placeholder="Sobre o artista..." />
-        </div>
-
-        <div>
-          <label className={labelCls}>Foto do Artista</label>
-          <ImageUpload
-            label=""
-            initialUrl={existing?.photoUrl}
-            onImageUrl={(url) => setForm((f) => ({ ...f, photoUrl: url }))}
-            onUpload={uploadArtistPhoto}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>
-            Especialidades
-            <span className="text-gray-700 ml-1 normal-case tracking-normal font-normal">(separadas por vírgula)</span>
-          </label>
-          <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls}
-            placeholder="Realismo, Blackwork, Aquarela" />
-        </div>
-
-        <div>
-          <label className={labelCls}>Instagram</label>
-          <input name="instagram" value={form.instagram} onChange={handleChange} className={inputCls} placeholder="@artista.ink" />
-        </div>
-
-        <div className="flex gap-3 pt-2">
-          <button type="submit"
-            className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
-            {existing ? 'Salvar' : 'Criar Artista'}
-=======
         {/* ── Botões de ação ── */}
         <div className="flex gap-3 pt-6">
           <button type="submit" disabled={uploading}
             className="flex-1 lg:flex-none lg:px-12 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
             {uploading ? 'Enviando…' : existing ? 'Salvar' : 'Criar Artista'}
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           </button>
           <Link to="/admin/artistas"
             className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors text-center">

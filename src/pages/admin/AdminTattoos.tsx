@@ -208,12 +208,8 @@ export default function AdminTattoos() {
 
   async function handleDelete(id: string, title: string) {
     if (confirm(`Excluir "${title}"? Esta ação não pode ser desfeita.`)) {
-<<<<<<< HEAD
-      await deleteTattoo(id);
-=======
       setPendingDeleteIds((prev) => { const n = new Set(prev); n.add(id); return n; });
       deleteTattoo(id);
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
     }
   }
 

@@ -2,13 +2,8 @@ import { useState, useRef, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { TATTOO_STYLES } from '../../types';
-<<<<<<< HEAD
-import ImageUpload from '../../components/ImageUpload';
-import { uploadTattooImage } from '../../lib/storage';
-=======
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage, uploadImages } from '../../lib/uploadImage';
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -99,21 +94,6 @@ export default function AdminTattooForm() {
   function handleEditChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setEditForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
-<<<<<<< HEAD
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    const data = {
-      ...form,
-      artistId: form.artistId || null,
-      status: form.status as 'available' | 'archived',
-    };
-    if (existing) {
-      await updateTattoo(existing.id, data);
-    } else {
-      await addTattoo(data);
-    }
-=======
   function handleEditFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; if (!file) return;
     const reader = new FileReader();
@@ -141,7 +121,6 @@ export default function AdminTattooForm() {
       artistId: editForm.artistId || null,
       status: editForm.status as 'available' | 'archived',
     });
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
     navigate('/admin/tatuagens');
   }
 
@@ -514,36 +493,7 @@ export default function AdminTattooForm() {
       {/* ── PHASE 3: REVIEW & SAVE ──────────────────────────────────────────── */}
       {phase === 'review' && (
         <div>
-<<<<<<< HEAD
-          <label className={labelCls}>Título *</label>
-          <input name="title" value={form.title} onChange={handleChange} required className={inputCls} placeholder="Ex: Leão Realista" />
-        </div>
-
-        <div>
-          <label className={labelCls}>Descrição *</label>
-          <textarea name="description" value={form.description} onChange={handleChange} required rows={3}
-            className={`${inputCls} resize-none`} placeholder="Descreva a tatuagem..." />
-        </div>
-
-        <div>
-          <label className={labelCls}>Imagem da Tatuagem *</label>
-          <ImageUpload
-            label=""
-            initialUrl={existing?.imageUrl}
-            onImageUrl={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
-            onUpload={uploadTattooImage}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Estilo *</label>
-            <select name="style" value={form.style} onChange={handleChange}
-              className={`${inputCls} bg-zinc-950`}>
-              {TATTOO_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-=======
-          <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6">
             <p className="font-body text-sm text-gray-400">
               Confira as <span className="text-white font-bold">{items.length} arte{items.length !== 1 ? 's' : ''}</span> antes de salvar
             </p>
@@ -554,7 +504,6 @@ export default function AdminTattooForm() {
             >
               ← Voltar e editar
             </button>
->>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           </div>
 
           {/* Review grid */}
