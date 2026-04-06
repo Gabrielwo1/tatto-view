@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { trackPageView } from './lib/analytics';
 import { useStore } from './store';
 import { applyTheme, applyCustomColors, getThemeForHostname, THEMES } from './lib/themes';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import ShowcasePage from './pages/ShowcasePage';
 import ArchivedPage from './pages/ArchivedPage';
@@ -24,7 +25,7 @@ import GuestsPage from './pages/GuestsPage';
 import EventsPage from './pages/EventsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
-import AftercareePage from './pages/AftercareePage';
+import AftercarePage from './pages/AftercarePage';
 import SobreNosPage from './pages/SobreNosPage';
 import AdminSobreNos from './pages/admin/AdminSobreNos';
 import AdminTatuados from './pages/admin/AdminTatuados';
@@ -167,10 +168,11 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <RecoveryRedirect />
-      <PageTracker />
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <RecoveryRedirect />
+        <PageTracker />
+        <Routes>
         {/* Public routes */}
         <Route
           path="/"
@@ -232,7 +234,7 @@ export default function App() {
           path="/aftercare"
           element={
             <PublicLayout>
-              <AftercareePage />
+              <AftercarePage />
             </PublicLayout>
           }
         />
@@ -323,5 +325,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+  </ErrorBoundary>
   );
 }
