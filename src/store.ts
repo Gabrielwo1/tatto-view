@@ -75,6 +75,7 @@ export interface EventItem {
   description: string;
   ctaLabel: string;
   ctaUrl: string;
+  hidden?: boolean;
 }
 
 export interface EventsContent {
