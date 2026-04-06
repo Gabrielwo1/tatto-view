@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+<<<<<<< HEAD
 import type { Tattoo, Artist } from '../types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
@@ -161,3 +162,14 @@ export async function deleteTattoo(id: string): Promise<void> {
   const { error } = await supabase.from('tattoos').delete().eq('id', id);
   if (error) throw error;
 }
+=======
+
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+/**
+ * Supabase client — null when env vars are not configured.
+ * The app works offline/local without it (falls back to localStorage).
+ */
+export const supabase = url && key ? createClient(url, key) : null;
+>>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee

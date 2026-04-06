@@ -48,7 +48,11 @@ export default function ArchivedPage() {
           <p className="font-display text-3xl tracking-widest uppercase">Nenhuma encontrada</p>
         </div>
       ) : (
+<<<<<<< HEAD
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-6">
+=======
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-5">
+>>>>>>> 109f2ea17a906fcc97cb379883ca6831aef03aee
           {filtered.map((tattoo) => (
             <TattooCard
               key={tattoo.id}

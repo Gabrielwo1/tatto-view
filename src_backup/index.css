@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Default theme: Ember (orange/red) ───────────────────────────────────────
+   These are overridden at runtime by applyTheme() based on the subdomain.
+   Values are "R G B" so Tailwind opacity modifiers (e.g. /30) work correctly.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Primary — Ember (overridden by applyTheme at runtime) */
+  --ink-50:  255 245 240;
+  --ink-100: 255 227 213;
+  --ink-200: 255 196 168;
+  --ink-300: 255 155 112;
+  --ink-400: 255 103 51;
+  --ink-500: 255 69 0;
+  --ink-600: 224 51 0;
+  --ink-700: 184 37 0;
+  --ink-800: 138 28 0;
+  --ink-900: 92 17 0;
+
+  /* Secondary — slate-blue default (overridden by applyTheme at runtime) */
+  --ink2-50:  239 246 255;
+  --ink2-100: 219 234 254;
+  --ink2-200: 191 219 254;
+  --ink2-300: 147 197 253;
+  --ink2-400: 96 165 250;
+  --ink2-500: 59 130 246;
+  --ink2-600: 37 99 235;
+  --ink2-700: 29 78 216;
+  --ink2-800: 30 64 175;
+  --ink2-900: 30 58 138;
+}
+
+body {
+  margin: 0;
+  background-color: #000;
+  font-family: 'Barlow', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
