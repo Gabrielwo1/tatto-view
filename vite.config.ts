@@ -1,1 +1,24 @@
-aW1wb3J0IHsgZGVmaW5lQ29uZmlnIH0gZnJvbSAndml0ZScKaW1wb3J0IHJlYWN0IGZyb20gJ0B2aXRlanMvcGx1Z2luLXJlYWN0JwppbXBvcnQgcGF0aCBmcm9tICdwYXRoJwoKLy8gaHR0cHM6Ly92aXRlLmRldi9jb25maWcvCmV4cG9ydCBkZWZhdWx0IGRlZmluZUNvbmZpZyh7CiAgcGx1Z2luczogW3JlYWN0KCldLAogIHJlc29sdmU6IHsKICAgIGFsaWFzOiB7CiAgICAgICdAJzogcGF0aC5yZXNvbHZlKF9fZGlybmFtZSwgJy4vc3JjJyksCiAgICB9LAogIH0sCiAgYnVpbGQ6IHsKICAgIHJvbGxkb3duT3B0aW9uczogewogICAgICBvdXRwdXQ6IHsKICAgICAgICBtYW51YWxDaHVua3M6IHsKICAgICAgICAgICdyZWFjdC12ZW5kb3InOiBbJ3JlYWN0JywgJ3JlYWN0LWRvbScsICdyZWFjdC1yb3V0ZXItZG9tJ10sCiAgICAgICAgICAnc3VwYWJhc2UtY2xpZW50JzogWydAc3VwYWJhc2Uvc3VwYWJhc2UtanMnXSwKICAgICAgICB9LAogICAgICB9LAogICAgfSwKICAgIHRhcmdldDogJ2VzbmV4dCcsCiAgfSwKICBzZXJ2ZXI6IHsKICAgIGhtcjogdHJ1ZSwKICAgIGhvc3Q6IHRydWUsCiAgfSwKICBwcmV2aWV3OiB7CiAgICBwb3J0OiA0MTczLAogICAgaG9zdDogdHJ1ZSwKICB9LAp9KQo=
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  build: {
+    target: 'esnext',
+  },
+  server: {
+    hmr: true,
+    host: true,
+  },
+  preview: {
+    port: 4173,
+    host: true,
+  },
+})
