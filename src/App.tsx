@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useStore } from './store';
 import Navbar from './components/Navbar';
@@ -12,6 +13,18 @@ import AdminTattoos from './pages/admin/AdminTattoos';
 import AdminTattooForm from './pages/admin/AdminTattooForm';
 import AdminArtists from './pages/admin/AdminArtists';
 import AdminArtistForm from './pages/admin/AdminArtistForm';
+
+function DataLoader() {
+  const fetchTattoos = useStore((s) => s.fetchTattoos);
+  const fetchArtists = useStore((s) => s.fetchArtists);
+
+  useEffect(() => {
+    fetchTattoos();
+    fetchArtists();
+  }, [fetchTattoos, fetchArtists]);
+
+  return null;
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
@@ -31,6 +44,7 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <DataLoader />
       <Routes>
         {/* Public routes */}
         <Route

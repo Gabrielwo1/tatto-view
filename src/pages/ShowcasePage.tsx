@@ -7,6 +7,7 @@ import { TATTOO_STYLES } from '../types';
 export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
+  const isLoading = useStore((s) => s.isLoading);
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
 
   const available = tattoos.filter((t) => t.status === 'available');
@@ -48,12 +49,16 @@ export default function ShowcasePage() {
           ))}
         </div>
 
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-20 text-gray-600">
+            <p className="font-display text-2xl tracking-widest uppercase animate-pulse">Carregando...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-20 text-gray-600">
             <p className="font-display text-3xl tracking-widest uppercase">Nenhuma tatuagem encontrada</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-x-2 gap-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-6">
             {filtered.map((tattoo) => (
               <TattooCard
                 key={tattoo.id}

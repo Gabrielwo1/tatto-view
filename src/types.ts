@@ -17,7 +17,10 @@ export interface Artist {
   photoUrl: string;
   specialties: string[];
   instagram?: string;
+  whatsapp?: string;
   createdAt: string;
+  hiddenFromHero?: boolean;
+  preferredContactMethod?: string;
 }
 
 export const TATTOO_STYLES = [

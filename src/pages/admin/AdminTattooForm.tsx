@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { TATTOO_STYLES } from '../../types';
+import ImageUpload from '../../components/ImageUpload';
+import { uploadTattooImage } from '../../lib/storage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -30,7 +32,7 @@ export default function AdminTattooForm() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const data = {
       ...form,
@@ -38,9 +40,9 @@ export default function AdminTattooForm() {
       status: form.status as 'available' | 'archived',
     };
     if (existing) {
-      updateTattoo(existing.id, data);
+      await updateTattoo(existing.id, data);
     } else {
-      addTattoo(data);
+      await addTattoo(data);
     }
     navigate('/admin/tatuagens');
   }
@@ -73,14 +75,13 @@ export default function AdminTattooForm() {
         </div>
 
         <div>
-          <label className={labelCls}>URL da Imagem *</label>
-          <input name="imageUrl" value={form.imageUrl} onChange={handleChange} required className={inputCls}
-            placeholder="https://picsum.photos/seed/exemplo/600/600" />
-          {form.imageUrl && (
-            <img src={form.imageUrl} alt="Preview"
-              className="mt-2 w-full aspect-square object-cover border border-white/10"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          )}
+          <label className={labelCls}>Imagem da Tatuagem *</label>
+          <ImageUpload
+            label=""
+            initialUrl={existing?.imageUrl}
+            onImageUrl={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
+            onUpload={uploadTattooImage}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

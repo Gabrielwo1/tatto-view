@@ -6,9 +6,9 @@ export default function AdminArtists() {
   const tattoos = useStore((s) => s.tattoos);
   const deleteArtist = useStore((s) => s.deleteArtist);
 
-  function handleDelete(id: string, name: string) {
+  async function handleDelete(id: string, name: string) {
     if (confirm(`Excluir artista "${name}"? Esta ação não pode ser desfeita.`)) {
-      deleteArtist(id);
+      await deleteArtist(id);
     }
   }
 

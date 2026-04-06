@@ -3,6 +3,7 @@ import ArtistCard from '../components/ArtistCard';
 
 export default function ArtistsPage() {
   const artists = useStore((s) => s.artists);
+  const isLoading = useStore((s) => s.isLoading);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -11,7 +12,11 @@ export default function ArtistsPage() {
         <h1 className="font-display text-5xl md:text-6xl text-white uppercase tracking-wide leading-none">Artistas</h1>
       </div>
 
-      {artists.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-20 text-gray-600">
+          <p className="font-display text-2xl tracking-widest uppercase animate-pulse">Carregando...</p>
+        </div>
+      ) : artists.length === 0 ? (
         <div className="text-center py-20 text-gray-600">
           <p className="font-display text-3xl tracking-widest uppercase">Nenhum artista cadastrado</p>
         </div>

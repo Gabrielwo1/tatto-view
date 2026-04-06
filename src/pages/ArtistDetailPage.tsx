@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
+import ContactModal from '../components/ContactModal';
 
 export default function ArtistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
   const [tab, setTab] = useState<'available' | 'archived'>('available');
+  const [contactOpen, setContactOpen] = useState(false);
 
   const artist = artists.find((a) => a.id === id);
   if (!artist) {
@@ -51,9 +53,12 @@ export default function ArtistDetailPage() {
               </span>
             ))}
           </div>
-          {artist.instagram && (
-            <span className="text-gray-600 text-xs font-body tracking-wide">{artist.instagram}</span>
-          )}
+          <button
+            onClick={() => setContactOpen(true)}
+            className="mt-4 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase px-6 py-2.5 transition-colors"
+          >
+            Agendar Tatuagem
+          </button>
         </div>
       </div>
 
@@ -91,12 +96,14 @@ export default function ArtistDetailPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-x-2 gap-y-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-6">
           {filtered.map((tattoo) => (
             <TattooCard key={tattoo.id} tattoo={tattoo} artist={artist} />
           ))}
         </div>
       )}
+
+      <ContactModal artist={artist} isOpen={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );
 }

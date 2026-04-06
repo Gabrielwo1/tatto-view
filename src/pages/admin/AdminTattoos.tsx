@@ -11,9 +11,9 @@ export default function AdminTattoos() {
   const [filter, setFilter] = useState<'all' | 'available' | 'archived'>('all');
   const [styleFilter, setStyleFilter] = useState('Todos');
 
-  function handleDelete(id: string, title: string) {
+  async function handleDelete(id: string, title: string) {
     if (confirm(`Excluir "${title}"? Esta ação não pode ser desfeita.`)) {
-      deleteTattoo(id);
+      await deleteTattoo(id);
     }
   }
 

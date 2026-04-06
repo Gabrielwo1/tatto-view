@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
+import ImageUpload from '../../components/ImageUpload';
+import { uploadArtistPhoto } from '../../lib/storage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -26,7 +28,7 @@ export default function AdminArtistForm() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const data = {
       name: form.name,
@@ -36,9 +38,9 @@ export default function AdminArtistForm() {
       instagram: form.instagram || undefined,
     };
     if (existing) {
-      updateArtist(existing.id, data);
+      await updateArtist(existing.id, data);
     } else {
-      addArtist(data);
+      await addArtist(data);
     }
     navigate('/admin/artistas');
   }
@@ -71,14 +73,13 @@ export default function AdminArtistForm() {
         </div>
 
         <div>
-          <label className={labelCls}>URL da Foto</label>
-          <input name="photoUrl" value={form.photoUrl} onChange={handleChange} className={inputCls}
-            placeholder="https://picsum.photos/seed/exemplo/400/400" />
-          {form.photoUrl && (
-            <img src={form.photoUrl} alt="Preview"
-              className="mt-2 w-16 h-16 object-cover border border-white/10"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          )}
+          <label className={labelCls}>Foto do Artista</label>
+          <ImageUpload
+            label=""
+            initialUrl={existing?.photoUrl}
+            onImageUrl={(url) => setForm((f) => ({ ...f, photoUrl: url }))}
+            onUpload={uploadArtistPhoto}
+          />
         </div>
 
         <div>
