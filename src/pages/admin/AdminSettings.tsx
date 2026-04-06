@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '../../store';
 import { applyCustomColors, generateShades } from '../../lib/themes';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
-import { toSlug } from '../../utils';
 import { supabase } from '../../lib/supabase';
 
 /* ── Compress old Storage images ──────────────────────────────────────────── */
@@ -316,7 +315,6 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 }
 
 export default function AdminSettings() {
-  const artists         = useStore((s) => s.artists);
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
