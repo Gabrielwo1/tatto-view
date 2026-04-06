@@ -13,6 +13,15 @@ const navItems = [
     ),
   },
   {
+    to: '/admin/dashboard',
+    label: 'Dashboard',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" />
+      </svg>
+    ),
+  },
+  {
     to: '/admin/tatuagens',
     label: 'Tatuagens',
     icon: (
@@ -135,6 +144,7 @@ const navItems = [
 
 // Items shown only to the super admin
 const adminOnlyItems = [
+  '/admin/dashboard',
   '/admin/artistas',
   '/admin/guests',
   '/admin/events',
