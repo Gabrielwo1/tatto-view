@@ -8,6 +8,42 @@ import domtoimage from 'dom-to-image-more';
 import { toSlug } from '../utils';
 import type { TatuadoPost } from '../types';
 
+function normalizeExternalUrl(raw?: string): string | null {
+  if (!raw) return null;
+  const value = raw.trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^[\w.-]+\.[a-z]{2,}/i.test(value)) return `https://${value}`;
+  return null;
+}
+
+function normalizeWhatsAppUrl(raw?: string): string | null {
+  if (!raw) return null;
+  const value = raw.trim();
+  if (!value) return null;
+  const msg = 'Olá! Vi seu trabalho no site da El Dude e gostaria de fazer um orçamento. 🖤';
+
+  if (/^https?:\/\//i.test(value)) {
+    if ((/wa\.me|api\.whatsapp\.com/i.test(value)) && !/[?&]text=/i.test(value)) {
+      return `${value}${value.includes('?') ? '&' : '?'}text=${encodeURIComponent(msg)}`;
+    }
+    return value;
+  }
+
+  if (/wa\.me|api\.whatsapp\.com/i.test(value)) {
+    const full = `https://${value.replace(/^\/+/, '')}`;
+    if (!/[?&]text=/i.test(full)) {
+      return `${full}${full.includes('?') ? '&' : '?'}text=${encodeURIComponent(msg)}`;
+    }
+    return full;
+  }
+
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return null;
+  const phone = digits.startsWith('55') ? digits : `55${digits}`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+}
+
 export default function ArtistDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const artists = useStore((s) => s.artists);
@@ -38,6 +74,8 @@ export default function ArtistDetailPage() {
   const artistTattoos = tattoos.filter((t) => t.artistId === artist.id);
   const filtered = artistTattoos.filter((t) => t.status === (tab === 'tatuados' ? 'available' : tab));
   const artistPosts = tatuadoPosts.filter((p) => p.artistId === artist.id);
+  const instagramUrl = normalizeExternalUrl(artist.instagram);
+  const whatsappUrl = normalizeWhatsAppUrl(artist.whatsapp);
 
   const handlePrint = async () => {
     if (!printRef.current) return;
@@ -115,9 +153,9 @@ export default function ArtistDetailPage() {
             ))}
           </div>
           <div className="flex flex-wrap gap-3 mt-2">
-            {artist.instagram && (
+            {instagramUrl && (
               <a
-                href={artist.instagram}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white text-white/70 hover:text-white text-xs font-body font-semibold tracking-widest uppercase transition-colors"
@@ -128,9 +166,9 @@ export default function ArtistDetailPage() {
                 Instagram
               </a>
             )}
-            {artist.whatsapp && (
+            {whatsappUrl && (
               <a
-                href={artist.whatsapp}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white text-white/70 hover:text-white text-xs font-body font-semibold tracking-widest uppercase transition-colors"
