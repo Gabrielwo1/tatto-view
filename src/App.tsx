@@ -151,8 +151,16 @@ export default function App() {
   // Apply custom favicon + og:image dynamically
   useEffect(() => {
     const faviconUrl = customFavicon ?? '/dudeicone.png';
-    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (link) link.href = faviconUrl;
+    const selectors = [
+      'link[rel="icon"]',
+      'link[rel="shortcut icon"]',
+      'link[rel="apple-touch-icon"]',
+    ];
+    selectors.forEach((selector) => {
+      document.querySelectorAll<HTMLLinkElement>(selector).forEach((link) => {
+        link.href = faviconUrl;
+      });
+    });
 
     // og:image is served by /api/og-image (server-side, always up-to-date)
   }, [customFavicon]);
