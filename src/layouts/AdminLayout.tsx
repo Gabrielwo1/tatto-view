@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
+import SubscriptionGate from '../components/SubscriptionGate';
 
 const navItems = [
   {
@@ -121,6 +122,15 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    to: '/admin/billing',
+    label: 'Plano',
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+      </svg>
+    ),
+  },
   // Artist-only item
   {
     to: '/admin/meu-perfil',
@@ -202,7 +212,9 @@ export default function AdminLayout() {
 
       {/* ── Main content ── */}
       <main className="flex-1 overflow-auto pt-14 md:pt-0">
-        <Outlet />
+        <SubscriptionGate>
+          <Outlet />
+        </SubscriptionGate>
       </main>
 
       {/* ── Desktop Sidebar (RIGHT) ── */}
