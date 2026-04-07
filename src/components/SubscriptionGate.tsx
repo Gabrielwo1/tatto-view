@@ -16,9 +16,11 @@ export default function SubscriptionGate({ children }: Props) {
   const isStaffUser = isAdmin || isArtist || isMerchManager;
   const isBillingPage = location.pathname === '/admin/billing';
 
-  // Always allow billing page so blocked users can subscribe
-  // Allow access if trialing or active
-  if (!isStaffUser || isBillingPage || subscriptionStatus === 'trialing' || subscriptionStatus === 'active') {
+  // eldude.vitrink.app is the base studio — always has full access, no billing required
+  const isBaseStudio = window.location.hostname === 'eldude.vitrink.app';
+
+  // Always allow: base studio, billing page, or active/trialing subscription
+  if (!isStaffUser || isBaseStudio || isBillingPage || subscriptionStatus === 'trialing' || subscriptionStatus === 'active') {
     return <>{children}</>;
   }
 
