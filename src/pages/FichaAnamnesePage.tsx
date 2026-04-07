@@ -426,7 +426,6 @@ export default function FichaAnamnesePage() {
               { to: '/guests', label: 'Guests', end: false },
               { to: '/loja', label: 'Loja', end: false },
               { to: '/aftercare', label: 'Pós Tattoo', end: false },
-              { to: '/sobre-nos', label: 'Sobre Nós', end: false },
               { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
             ].map(({ to, label, end }) => (
               <NavLink
