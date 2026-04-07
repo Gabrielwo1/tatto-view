@@ -1,8 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { useStore } from '../../store';
-import type { Expense, ExpenseCategory } from '../../types';
+import type { Expense, ExpenseCategory, FichaSubmission } from '../../types';
 import { EXPENSE_CATEGORIES } from '../../types';
-import type { FichaSubmission } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

@@ -174,9 +174,9 @@ export default function AdminLandingPage() {
           </div>
         </section>
 
-        <div className="border-t border-white/8" />
-
-        {/* ── PROCESSO ── */}
+        {/* ══════════════════════════════════════════════════
+            PROCESSO (COMO FUNCIONA)
+        ══════════════════════════════════════════════════ */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
             Como Funciona (Processo)

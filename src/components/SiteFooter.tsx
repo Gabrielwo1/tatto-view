@@ -4,7 +4,17 @@ import { useStore } from '../store';
 export default function SiteFooter() {
   const { studio, contact } = useStore((s) => s.sobreNosContent);
   const customLogo = useStore((s) => s.customLogo);
+  const logoColorMode = useStore((s) => s.logoColorMode);
+
+  // Logo source
   const logoSrc = customLogo ?? '/logosemo-3.png';
+
+  // Logo mode filters
+  const logoFilter = logoColorMode === 'white' 
+    ? 'brightness(0) invert(1)' 
+    : logoColorMode === 'black'
+    ? 'brightness(0)'
+    : 'none';
 
   return (
     <footer className="bg-zinc-950 border-t border-ink2-500/20">
@@ -62,7 +72,7 @@ export default function SiteFooter() {
             <div className="flex flex-col gap-3">
               {contact.instagram && (
                 <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-ink-500 hover:text-white transition-colors font-body text-sm">
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
                     <circle cx="12" cy="12" r="4"/>
@@ -73,20 +83,11 @@ export default function SiteFooter() {
               )}
               {contact.tiktok && (
                 <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-ink-500 hover:text-white transition-colors font-body text-sm">
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/>
                   </svg>
                   {contact.tiktok}
-                </a>
-              )}
-              {contact.twitter && (
-                <a href={contact.twitterUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-ink-500 hover:text-white transition-colors font-body text-sm">
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                  </svg>
-                  {contact.twitter}
                 </a>
               )}
             </div>
@@ -98,8 +99,13 @@ export default function SiteFooter() {
       {/* ── Bottom bar ── */}
       <div className="border-t border-ink2-500/10">
         <div className="max-w-6xl mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link to="/landingpage">
-            <img src={logoSrc} alt="El Dude" className="h-7 w-auto object-contain opacity-50 hover:opacity-100 transition-opacity" />
+          <Link to="/">
+            <img 
+              src={logoSrc} 
+              alt="Logo" 
+              className="h-7 w-auto object-contain transition-all duration-700" 
+              style={{ filter: logoFilter }}
+            />
           </Link>
 
           <nav className="flex flex-wrap gap-x-6 gap-y-2 justify-center">

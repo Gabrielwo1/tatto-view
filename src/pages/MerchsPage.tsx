@@ -3,6 +3,8 @@ import { useStore } from '../store';
 import type { Merch } from '../types';
 import { formatPrice } from '../lib/utils';
 
+const STUDIO_PHONE = '554699704747';
+
 /* ─── helpers ─── */
 function categorizeMerchs(merchs: Merch[]) {
   const prints     = merchs.filter((m) => m.category === 'prints');
@@ -110,11 +112,11 @@ function VestuarioCard({ m }: { m: Merch }) {
           <p className="font-body text-xs font-bold text-white mt-1.5">{formatPrice(m.price)}</p>
         </div>
         <a
-          href={`https://wa.me/554699704747?text=${encodeURIComponent(`Olá! Tenho interesse no produto: ${m.name}`)}`}
+          href={`https://wa.me/${STUDIO_PHONE}?text=${encodeURIComponent('Olá, vi este produto na loja do site (' + m.name + (selectedSize ? ', tamanho ' + selectedSize : '') + ') e gostaria de comprar. 🖤')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 p-2 border border-white/20 text-white/60 hover:border-green-500 hover:text-green-400 transition-colors"
-          title="Comprar via WhatsApp"
+          className="shrink-0 p-2 border border-white/20 text-white/60 hover:border-white hover:text-white transition-colors"
+          title="Comprar"
         >
           <CartIcon className="w-4 h-4" />
         </a>
@@ -146,7 +148,17 @@ function AcessorioCard({ m }: { m: Merch }) {
       <p className="font-body text-[9px] font-bold tracking-wide uppercase text-white leading-tight line-clamp-2">
         {m.name}
       </p>
-      <p className="font-body text-[9px] text-zinc-500 mt-0.5">{formatPrice(m.price)}</p>
+      <div className="flex items-center justify-between mt-0.5">
+        <p className="font-body text-[9px] text-zinc-500">{formatPrice(m.price)}</p>
+        <a
+          href={`https://wa.me/${STUDIO_PHONE}?text=${encodeURIComponent('Olá, vi este produto na loja do site (' + m.name + ') e gostaria de comprar. 🖤')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white/40 hover:text-white transition-colors"
+        >
+          <CartIcon className="w-3 h-3" />
+        </a>
+      </div>
     </div>
   );
 }

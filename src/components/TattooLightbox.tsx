@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toSlug } from '../utils';
-import type { LightboxEntry } from '../hooks/useLightbox';
 import { formatPrice } from '../lib/utils';
+import type { LightboxEntry } from '../hooks/useLightbox';
 
 export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: LightboxEntry; onClose: () => void; hideArtistLink?: boolean }) {
   const [visible, setVisible] = useState(false);

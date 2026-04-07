@@ -9,6 +9,7 @@ import ShowcasePage from './pages/ShowcasePage';
 import ArchivedPage from './pages/ArchivedPage';
 import ArtistsPage from './pages/ArtistsPage';
 import ArtistDetailPage from './pages/ArtistDetailPage';
+import ArtistGuestTripPage from './pages/ArtistGuestTripPage';
 import AddressPage from './pages/AddressPage';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminResetPassword from './pages/admin/AdminResetPassword';
@@ -214,6 +215,14 @@ export default function App() {
           element={
             <PublicLayout>
               <ArtistDetailPage />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/artistas/:slug/guest-trip"
+          element={
+            <PublicLayout>
+              <ArtistGuestTripPage />
             </PublicLayout>
           }
         />

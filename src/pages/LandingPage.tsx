@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
-import { interleaveByArtist } from '../utils';
-import { toSlug } from '../utils';
+import { TATTOO_STYLES } from '../types';
+import { toSlug, interleaveByArtist } from '../utils';
 import GeneralLightbox from '../components/GeneralLightbox';
 
 
@@ -35,6 +35,7 @@ export default function LandingPage() {
 
   /* section visibility hooks */
   const { ref: sobreRef,    visible: sobreVisible }    = useVisible();
+  const { ref: estilosRef,  visible: estilosVisible }  = useVisible();
   const { ref: teamRef,     visible: teamVisible }     = useVisible();
   const { ref: galeriaRef,  visible: galeriaVisible }  = useVisible();
   const { ref: processoRef, visible: processoVisible } = useVisible();
@@ -70,8 +71,8 @@ export default function LandingPage() {
         {/* Faint horizontal rule lines */}
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 80px)' }} />
 
-        {/* Tagline — 40% smaller than original */}
-        <h1 className="font-display text-3xl sm:text-5xl md:text-[6rem] lg:text-[7.2rem] text-white uppercase tracking-tight leading-none mb-4">
+        {/* Tagline */}
+        <h1 className="font-display text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-4">
           {lc.hero.tagline.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
@@ -96,6 +97,12 @@ export default function LandingPage() {
           >
             Falar com artista
           </a>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-10 flex flex-col items-center gap-2 opacity-30">
+          <span className="font-body text-xs tracking-widest uppercase">Rolar</span>
+          <div className="w-px h-10 bg-white animate-pulse" />
         </div>
       </section>
 
@@ -133,6 +140,40 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════
+          ESTILOS
+      ══════════════════════════════════════════════════ */}
+      <section className="bg-black py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div
+            ref={estilosRef}
+            className={`mb-12 transition-all duration-700 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          >
+            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Especialidades</p>
+            <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
+              Seu estilo,<br />nossa arte
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px border border-white/10">
+            {TATTOO_STYLES.map((style, i) => {
+              const info = lc.estilos?.[style] ?? { icon: '◎', desc: '' };
+              return (
+                <div
+                  key={style}
+                  className={`bg-zinc-950 p-6 group hover:bg-zinc-900 transition-all duration-700 border border-transparent hover:border-white/10 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+                  style={{ transitionDelay: `${i * 60}ms` }}
+                >
+                  <span className="font-display text-3xl text-ink-500 block mb-3">{info.icon}</span>
+                  <h3 className="font-display text-xl uppercase tracking-wide text-white mb-2 leading-tight">{style}</h3>
+                  <p className="font-body text-xs text-gray-600 group-hover:text-gray-400 transition-colors leading-relaxed">{info.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
           ARTISTAS
       ══════════════════════════════════════════════════ */}
       <section className="bg-zinc-950 py-20 px-6">
@@ -163,6 +204,7 @@ export default function LandingPage() {
                   decoding="async"
                   onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/400/600`; }}
                 />
+                {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="font-display text-lg uppercase tracking-wide text-white leading-tight">{artist.name}</p>
@@ -507,7 +549,7 @@ export default function LandingPage() {
               {contact.tiktok && (
                 <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/>
                   </svg>
                   {contact.tiktok}

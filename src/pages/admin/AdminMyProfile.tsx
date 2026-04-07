@@ -3,6 +3,9 @@ import { useStore } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
 import ImageCropper from '../../components/ImageCropper';
 import { useImageCrop } from '../../hooks/useImageCrop';
+import type { GuestTrip } from '../../types';
+import ImageUpload from '../../components/ImageUpload';
+import { uploadArtistPhoto } from '../../lib/storage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -22,6 +25,17 @@ export default function AdminMyProfile() {
     instagram:   artist?.instagram   ?? '',
     whatsapp:    artist?.whatsapp    ?? '',
     specialties: artist?.specialties?.join(', ') ?? '',
+    guestTrip:   artist?.guestTrip ?? {
+      active: false,
+      tagline: 'GUEST ARTIST',
+      title: '',
+      bannerUrl: '',
+      subtitle: 'ARTISTA CONVIDADO',
+      guestName: '',
+      period: '',
+      instagram: '',
+      galleryImages: ['', '', '', ''],
+    } as GuestTrip,
   });
 
   const [uploading, setUploading] = useState(false);
@@ -47,7 +61,28 @@ export default function AdminMyProfile() {
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    const value = e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
+    setForm((f) => ({ ...f, [e.target.name]: value }));
+    setSaved(false);
+  }
+
+  function handleGuestTripChange(field: keyof GuestTrip, value: any) {
+    setForm((f) => ({
+      ...f,
+      guestTrip: { ...f.guestTrip, [field]: value },
+    }));
+    setSaved(false);
+  }
+
+  function handleGuestTripGalleryChange(index: number, url: string) {
+    setForm((f) => {
+      const galleryImages = [...f.guestTrip.galleryImages];
+      galleryImages[index] = url;
+      return {
+        ...f,
+        guestTrip: { ...f.guestTrip, galleryImages },
+      };
+    });
     setSaved(false);
   }
 
@@ -65,6 +100,7 @@ export default function AdminMyProfile() {
         specialties: form.specialties
           ? form.specialties.split(',').map((s) => s.trim()).filter(Boolean)
           : [],
+        guestTrip:   form.guestTrip,
       });
       setSaved(true);
     } catch (err) {
@@ -96,23 +132,137 @@ export default function AdminMyProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
           {/* ── Coluna esquerda: info principal ── */}
-          <div className="lg:col-span-2 border border-white/10 p-6 space-y-6">
-            {/* Name */}
-            <div>
-              <label className={labelCls}>Nome</label>
-              <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder="Seu nome artístico" />
+          <div className="lg:col-span-2 space-y-6">
+            <div className="border border-white/10 p-6 space-y-6">
+              {/* Name */}
+              <div>
+                <label className={labelCls}>Nome</label>
+                <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder="Seu nome artístico" />
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className={labelCls}>Bio</label>
+                <textarea name="bio" value={form.bio} onChange={handleChange} rows={6} className={`${inputCls} resize-none`} placeholder="Fale sobre você e seu estilo..." />
+              </div>
+
+              {/* Specialties */}
+              <div>
+                <label className={labelCls}>Especialidades (separe por vírgula)</label>
+                <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls} placeholder="Realismo, Blackwork, Old School" />
+              </div>
             </div>
 
-            {/* Bio */}
-            <div>
-              <label className={labelCls}>Bio</label>
-              <textarea name="bio" value={form.bio} onChange={handleChange} rows={6} className={`${inputCls} resize-none`} placeholder="Fale sobre você e seu estilo..." />
-            </div>
+            {/* ── Guest Trip Section ── */}
+            <div className="border border-white/10 p-6 space-y-6 bg-white/[0.02]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display text-xl uppercase tracking-wide text-white">Guest Trip</h2>
+                  <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest mt-1">Configurações de viagem ou guest artist</p>
+                </div>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={form.guestTrip.active}
+                      onChange={(e) => handleGuestTripChange('active', e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
+                  </div>
+                  <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
+                    {form.guestTrip.active ? 'Ativo' : 'Inativo'}
+                  </span>
+                </label>
+              </div>
 
-            {/* Specialties */}
-            <div>
-              <label className={labelCls}>Especialidades (separe por vírgula)</label>
-              <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls} placeholder="Realismo, Blackwork, Old School" />
+              {form.guestTrip.active && (
+                <div className="space-y-5 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Tagline (ex: GUEST ARTIST)</label>
+                      <input 
+                        value={form.guestTrip.tagline} 
+                        onChange={(e) => handleGuestTripChange('tagline', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Título (ex: ABRIL!!!)</label>
+                      <input 
+                        value={form.guestTrip.title} 
+                        onChange={(e) => handleGuestTripChange('title', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Subtítulo (ex: ARTISTA CONVIDADO)</label>
+                      <input 
+                        value={form.guestTrip.subtitle} 
+                        onChange={(e) => handleGuestTripChange('subtitle', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Nome do Convidado/Evento</label>
+                      <input 
+                        value={form.guestTrip.guestName} 
+                        onChange={(e) => handleGuestTripChange('guestName', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Período (ex: do dia 24 de Abril a 10 de Maio)</label>
+                      <input 
+                        value={form.guestTrip.period} 
+                        onChange={(e) => handleGuestTripChange('period', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Instagram (@handle)</label>
+                      <input 
+                        value={form.guestTrip.instagram} 
+                        onChange={(e) => handleGuestTripChange('instagram', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Imagem Principal / Banner</label>
+                    <ImageUpload 
+                      label="" 
+                      initialUrl={form.guestTrip.bannerUrl} 
+                      onImageUrl={(url) => handleGuestTripChange('bannerUrl', url)} 
+                      onUpload={uploadArtistPhoto}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Galeria (4 imagens)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+                      {form.guestTrip.galleryImages.map((img, i) => (
+                        <div key={i} className="flex flex-col gap-2">
+                          <p className="text-[8px] text-gray-600 tracking-widest uppercase">Foto {i+1}</p>
+                          <ImageUpload 
+                            label="" 
+                            initialUrl={img} 
+                            onImageUrl={(url) => handleGuestTripGalleryChange(i, url)} 
+                            onUpload={uploadArtistPhoto}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

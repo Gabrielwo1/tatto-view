@@ -1,11 +1,13 @@
 import { useState, useMemo, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
-import type { Tattoo } from '../../types';
+import type { Tattoo, GuestTrip } from '../../types';
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage } from '../../lib/uploadImage';
 import { useImageCrop } from '../../hooks/useImageCrop';
 import { toSlug } from '../../utils';
+import ImageUpload from '../../components/ImageUpload';
+import { uploadArtistPhoto } from '../../lib/storage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -31,6 +33,17 @@ export default function AdminArtistForm() {
     whatsapp: existing?.whatsapp ?? '',
     preferredContactMethod: existing?.preferredContactMethod ?? 'whatsapp',
     hiddenFromHero: existing?.hiddenFromHero ?? false,
+    guestTrip: existing?.guestTrip ?? {
+      active: false,
+      tagline: 'GUEST ARTIST',
+      title: '',
+      bannerUrl: '',
+      subtitle: 'ARTISTA CONVIDADO',
+      guestName: '',
+      period: '',
+      instagram: '',
+      galleryImages: ['', '', '', ''],
+    } as GuestTrip,
   });
 
   const { cropSrc, fileInputRef, handleFileChange, handleCropConfirm, handleCropCancel, openFilePicker } =
@@ -63,6 +76,24 @@ export default function AdminArtistForm() {
     setForm((f) => ({ ...f, [e.target.name]: value }));
   }
 
+  function handleGuestTripChange(field: keyof GuestTrip, value: any) {
+    setForm((f) => ({
+      ...f,
+      guestTrip: { ...f.guestTrip, [field]: value },
+    }));
+  }
+
+  function handleGuestTripGalleryChange(index: number, url: string) {
+    setForm((f) => {
+      const galleryImages = [...f.guestTrip.galleryImages];
+      galleryImages[index] = url;
+      return {
+        ...f,
+        guestTrip: { ...f.guestTrip, galleryImages },
+      };
+    });
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setUploading(true);
@@ -77,6 +108,7 @@ export default function AdminArtistForm() {
         whatsapp: form.whatsapp || undefined,
         preferredContactMethod: form.preferredContactMethod as 'whatsapp' | 'instagram',
         hiddenFromHero: form.hiddenFromHero,
+        guestTrip: form.guestTrip,
       };
       if (existing) {
         await updateArtist(existing.id, data);
@@ -110,43 +142,157 @@ export default function AdminArtistForm() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
           {/* ── Coluna esquerda: info principal ── */}
-          <div className="lg:col-span-2 border border-white/10 p-6 space-y-5">
-            <div>
-              <label className={labelCls}>Nome *</label>
-              <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder="Ex: Rafael Mendes" />
+          <div className="lg:col-span-2 space-y-6">
+            <div className="border border-white/10 p-6 space-y-5">
+              <div>
+                <label className={labelCls}>Nome *</label>
+                <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder="Ex: Rafael Mendes" />
+              </div>
+
+              <div>
+                <label className={labelCls}>Biografia</label>
+                <textarea name="bio" value={form.bio} onChange={handleChange} rows={6}
+                  className={`${inputCls} resize-none`} placeholder="Sobre o artista..." />
+              </div>
+
+              <div>
+                <label className={labelCls}>
+                  Especialidades
+                  <span className="text-gray-700 ml-1 normal-case tracking-normal font-normal">(separadas por vírgula)</span>
+                </label>
+                <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls}
+                  placeholder="Realismo, Blackwork, Aquarela" />
+              </div>
+
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer group mt-4">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      name="hiddenFromHero"
+                      checked={form.hiddenFromHero}
+                      onChange={handleChange}
+                      className="peer sr-only"
+                    />
+                    <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
+                  </div>
+                  <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
+                    Ocultar este artista da página inicial (Hero Slider)
+                  </span>
+                </label>
+              </div>
             </div>
 
-            <div>
-              <label className={labelCls}>Biografia</label>
-              <textarea name="bio" value={form.bio} onChange={handleChange} rows={6}
-                className={`${inputCls} resize-none`} placeholder="Sobre o artista..." />
-            </div>
-
-            <div>
-              <label className={labelCls}>
-                Especialidades
-                <span className="text-gray-700 ml-1 normal-case tracking-normal font-normal">(separadas por vírgula)</span>
-              </label>
-              <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls}
-                placeholder="Realismo, Blackwork, Aquarela" />
-            </div>
-
-            <div>
-              <label className="flex items-center gap-3 cursor-pointer group mt-4">
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    name="hiddenFromHero"
-                    checked={form.hiddenFromHero}
-                    onChange={handleChange}
-                    className="peer sr-only"
-                  />
-                  <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
+            {/* ── Guest Trip Section ── */}
+            <div className="border border-white/10 p-6 space-y-6 bg-white/[0.02]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display text-xl uppercase tracking-wide text-white">Guest Trip</h2>
+                  <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest mt-1">Configurações de viagem ou guest artist</p>
                 </div>
-                <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
-                  Ocultar este artista da página inicial (Hero Slider)
-                </span>
-              </label>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={form.guestTrip.active}
+                      onChange={(e) => handleGuestTripChange('active', e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
+                  </div>
+                  <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
+                    {form.guestTrip.active ? 'Ativo' : 'Inativo'}
+                  </span>
+                </label>
+              </div>
+
+              {form.guestTrip.active && (
+                <div className="space-y-5 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Tagline (ex: GUEST ARTIST)</label>
+                      <input 
+                        value={form.guestTrip.tagline} 
+                        onChange={(e) => handleGuestTripChange('tagline', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Título (ex: ABRIL!!!)</label>
+                      <input 
+                        value={form.guestTrip.title} 
+                        onChange={(e) => handleGuestTripChange('title', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Subtítulo (ex: ARTISTA CONVIDADO)</label>
+                      <input 
+                        value={form.guestTrip.subtitle} 
+                        onChange={(e) => handleGuestTripChange('subtitle', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Nome do Convidado/Evento</label>
+                      <input 
+                        value={form.guestTrip.guestName} 
+                        onChange={(e) => handleGuestTripChange('guestName', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Período (ex: do dia 24 de Abril a 10 de Maio)</label>
+                      <input 
+                        value={form.guestTrip.period} 
+                        onChange={(e) => handleGuestTripChange('period', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Instagram (@handle)</label>
+                      <input 
+                        value={form.guestTrip.instagram} 
+                        onChange={(e) => handleGuestTripChange('instagram', e.target.value)} 
+                        className={inputCls} 
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Imagem Principal / Banner</label>
+                    <ImageUpload 
+                      label="" 
+                      initialUrl={form.guestTrip.bannerUrl} 
+                      onImageUrl={(url) => handleGuestTripChange('bannerUrl', url)} 
+                      onUpload={uploadArtistPhoto}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Galeria (4 imagens)</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+                      {form.guestTrip.galleryImages.map((img, i) => (
+                        <div key={i} className="flex flex-col gap-2">
+                          <p className="text-[8px] text-gray-600 tracking-widest uppercase">Foto {i+1}</p>
+                          <ImageUpload 
+                            label="" 
+                            initialUrl={img} 
+                            onImageUrl={(url) => handleGuestTripGalleryChange(i, url)} 
+                            onUpload={uploadArtistPhoto}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -273,7 +419,7 @@ export default function AdminArtistForm() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              Exportar Portfólio
+              Ver Perfil
             </Link>
           )}
         </div>

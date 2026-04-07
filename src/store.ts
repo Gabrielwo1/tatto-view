@@ -1,14 +1,72 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Tattoo, Artist, Merch, TattooSession, ShopContent, TatuadoPost, TattooRow, ArtistRow, MerchRow, Expense, ExpenseCategory } from './types';
+import type { Tattoo, Artist, Merch, TattooSession, ShopContent, TatuadoPost, TattooRow, ArtistRow, MerchRow, Expense, ExpenseCategory, FichaSubmission, FichaConfig, PublicUser, WishlistItem, CartItem } from './types';
+export type { FichaSubmission, FichaConfig };
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
+
+// ── Default Sessions ──────────────────────────────────────────────────────────
+const defaultSessions: TattooSession[] = [
+  {
+    id: 'session-1',
+    typeNum: '01',
+    title: 'SMALL SESSION',
+    description: 'Até 5cm. Linework minimalista ou micro-realismo. Perfeito para quem está começando.',
+    price: 'R$ 250',
+    bookingLink: '',
+  },
+  {
+    id: 'session-2',
+    typeNum: '02',
+    title: 'MEDIUM SESSION',
+    description: '5 – 15cm. Projetos médios com detalhes e sombreamento elaborado.',
+    price: 'R$ 500',
+    bookingLink: '',
+  },
+  {
+    id: 'session-3',
+    typeNum: '03',
+    title: 'FULL SESSION',
+    description: 'Projetos grandes ou complexos. Área extensa, múltiplas sessões, alto detalhamento.',
+    price: 'A combinar',
+    bookingLink: '',
+  },
+];
+
+// ── Default Ficha Config ──────────────────────────────────────────────────────
+const defaultFichaConfig: FichaConfig = {
+  tatuadores: [
+    'Bruna Lopes',
+    'Dionatan Lacerda',
+    'Kodai Muniz',
+    'Lucas Vasconcellos',
+    'Luiza Vasconcellos',
+    'Marília Garcia',
+    'Rafaella Golio',
+    'Outro',
+  ],
+  conditions: [
+    'Alteração na pressão',
+    'Epilepsia / Convulsão / Desmaio constante',
+    'Diabetes / Hipoglicemia',
+    'Hemofilia',
+    'Soropositivo',
+    'Hepatite A B C',
+    'Dificuldade de cicatrização',
+    'Alergias',
+    'Faz uso de medicamentos',
+    'Tem alguma doença crônica',
+    'Gestante',
+    'Alimentou-se bem hoje',
+  ],
+};
 
 // ── Landing Page Content ──────────────────────────────────────────────────────
 export interface LandingContent {
   hero: { tagline: string; description: string };
   manifesto: { title1: string; title2: string; body1: string; body2: string };
   processo: Array<{ n: string; title: string; desc: string }>;
+  especialidades: Array<{ style: string; icon: string; desc: string }>;
   precos: Array<{ label: string; range: string; detail: string }>;
   faq: Array<{ q: string; a: string }>;
   cta: { tagline: string; title1: string; title2: string; description: string };
@@ -31,6 +89,17 @@ const defaultLandingContent: LandingContent = {
     { n: '02', title: 'Briefing',      desc: 'Compartilhe referências, tamanho, local no corpo e orçamento. O artista vai entender o que você precisa.' },
     { n: '03', title: 'Agendamento',   desc: 'Confirmamos data, valor e duração da sessão. Um sinal pode ser solicitado para garantir o horário.' },
     { n: '04', title: 'Sessão & Arte', desc: 'Na data marcada, o artista traz o desenho. Você aprova e a tatuagem começa. Cuidamos de você do início ao fim.' },
+  ],
+  especialidades: [
+    { style: 'Realismo',        icon: '◉', desc: 'Detalhes fotográficos e sombreamento profundo' },
+    { style: 'Blackwork',       icon: '◼', desc: 'Linhas fortes, preenchimento sólido em preto' },
+    { style: 'Aquarela',        icon: '◈', desc: 'Cores vibrantes e fluxo livre de pigmento' },
+    { style: 'Geométrico',      icon: '◇', desc: 'Precisão matemática e simetria perfeita' },
+    { style: 'Old School',      icon: '★', desc: 'Linhas marcantes e paleta clássica americana' },
+    { style: 'Tribal',          icon: '◆', desc: 'Padrões ancestrais com significado cultural' },
+    { style: 'Tradicional',     icon: '◎', desc: 'Estética atemporal com traços precisos' },
+    { style: 'Neo-Tradicional', icon: '✦', desc: 'Traços tradicionais com cores contemporâneas' },
+    { style: 'Minimalista',     icon: '—', desc: 'Essência pura, menos é mais' },
   ],
   precos: [
     { label: 'Minimalista',               range: 'A partir de R$ 250',   detail: 'Peças pequenas, traço simples' },
@@ -453,66 +522,6 @@ const defaultGuestContent: GuestContent = {
   },
 };
 
-// ── Ficha de Anamnese Config ──────────────────────────────────────────────────
-export interface FichaConfig {
-  tatuadores: string[];
-  conditions: string[];
-  cidade?: string;
-}
-
-// ── Ficha de Anamnese Submission ──────────────────────────────────────────────
-export interface FichaSubmission {
-  id: string;
-  submittedAt: string;
-  // Identificação
-  email: string;
-  nome: string;
-  dataNascimento: string;
-  cpf: string;
-  endereco: string;
-  cidade: string;
-  cep: string;
-  telefone: string;
-  // Procedimento
-  tatuadoresSelecionados: string[];
-  outroTatuador: string;
-  localCorpo: string;
-  valorAcordado: string;
-  // Histórico clínico
-  conditions: Record<string, 'sim' | 'nao' | null>;
-  detalhesCondicoes: string;
-  telefoneEmergencia: string;
-  // Assinatura
-  dataAssinatura: string;
-}
-
-const defaultFichaConfig: FichaConfig = {
-  tatuadores: [
-    'Bruna Lopes',
-    'Dionatan Lacerda',
-    'Kodai Muniz',
-    'Lucas Vasconcellos',
-    'Luiza Vasconcellos',
-    'Marília Garcia',
-    'Rafaella Golio',
-    'Outro',
-  ],
-  conditions: [
-    'Alteração na pressão',
-    'Epilepsia / Convulsão / Desmaio constante',
-    'Diabetes / Hipoglicemia',
-    'Hemofilia',
-    'Soropositivo',
-    'Hepatite A B C',
-    'Dificuldade de cicatrização',
-    'Alergias',
-    'Faz uso de medicamentos',
-    'Tem alguma doença crônica',
-    'Gestante',
-    'Alimentou-se bem hoje',
-  ],
-};
-
 // ── Row → App type converters (snake_case → camelCase) ──────────────────────
 function toTattoo(r: TattooRow): Tattoo {
   return {
@@ -522,6 +531,7 @@ function toTattoo(r: TattooRow): Tattoo {
     imageUrl: r.image_url,
     style: r.style,
     price: r.price ?? '',
+    depositAmount: r.deposit_amount ?? undefined,
     artistId: r.artist_id ?? null,
     status: r.status,
     createdAt: r.created_at,
@@ -537,6 +547,7 @@ function toArtist(r: ArtistRow): Artist {
     instagram: r.instagram ?? undefined,
     whatsapp: r.whatsapp ?? undefined,
     preferredContactMethod: r.preferred_contact_method || undefined,
+    guestTrip: r.guest_trip || undefined,
     createdAt: r.created_at,
     hiddenFromHero: r.hidden_from_hero ?? false,
   };
@@ -549,6 +560,7 @@ function toMerch(r: MerchRow): Merch {
     price: r.price,
     imageUrl: r.image_url,
     link: r.link ?? undefined,
+    sizes: r.sizes ?? [],
     category: (r.category as Merch['category']) ?? undefined,
     createdAt: r.created_at,
   };
@@ -596,34 +608,6 @@ export const defaultShopContent: ShopContent = {
     { label: 'CRYPTO', sub: 'BTC/ETH' },
   ],
 };
-
-// ── Shop Sessions ────────────────────────────────────────────────────────────
-const defaultSessions: TattooSession[] = [
-  {
-    id: 'session-1',
-    typeNum: '01',
-    title: 'SMALL SESSION',
-    description: 'Até 5cm. Linework minimalista ou micro-realismo. Perfeito para quem está começando.',
-    price: 'R$ 250',
-    bookingLink: '',
-  },
-  {
-    id: 'session-2',
-    typeNum: '02',
-    title: 'MEDIUM SESSION',
-    description: '5 – 15cm. Projetos médios com detalhes e sombreamento elaborado.',
-    price: 'R$ 500',
-    bookingLink: '',
-  },
-  {
-    id: 'session-3',
-    typeNum: '03',
-    title: 'FULL SESSION',
-    description: 'Projetos grandes ou complexos. Área extensa, múltiplas sessões, alto detalhamento.',
-    price: 'A combinar',
-    bookingLink: '',
-  },
-];
 
 // ── Store interface ──────────────────────────────────────────────────────────
 interface AppState {
@@ -711,17 +695,17 @@ interface AppState {
   /** Email of the currently logged-in user. null when not logged in. */
   currentUserEmail: string | null;
   // ── Public user (customer) auth ───────────────────────────────────────
-  publicUser: { id: string; email: string; name: string } | null;
+  publicUser: PublicUser | null;
   publicLogin: (email: string, password: string) => Promise<'customer' | 'admin' | 'artist' | 'merch_manager' | false>;
   publicRegister: (email: string, password: string, name: string) => Promise<boolean>;
   publicLogout: () => Promise<void>;
   // ── Wishlist ──────────────────────────────────────────────────────────
-  wishlist: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  wishlist: WishlistItem[];
   loadWishlist: () => Promise<void>;
   addToWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   removeFromWishlist: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   // ── Cart ──────────────────────────────────────────────────────────────
-  cart: { itemType: 'tattoo' | 'merch'; itemId: string }[];
+  cart: CartItem[];
   loadCart: () => Promise<void>;
   addToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
@@ -1020,7 +1004,7 @@ export const useStore = create<AppState>()(
               ...(r.receipt_url ? { receiptUrl: r.receipt_url } : {}),
             })),
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
-            ...(config.landingContent   ? { landingContent:   config.landingContent   as typeof defaultLandingContent }   : {}),
+            ...(config.landingContent   ? { landingContent:   config.landingContent   as LandingContent }                 : {}),
             ...(config.tatuadosContent  ? { tatuadosContent:  config.tatuadosContent  as TatuadosContent }               : {}),
             ...(config.tatuadoPosts     ? { tatuadoPosts:     config.tatuadoPosts     as TatuadoPost[] }                  : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
@@ -1124,13 +1108,13 @@ export const useStore = create<AppState>()(
         const { publicUser } = get();
         if (!supabase || !publicUser) return;
         const { data } = await supabase.from('wishlists').select('item_type, item_id').eq('user_id', publicUser.id);
-        if (data) set({ wishlist: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+        if (data) set({ wishlist: data.map((r) => ({ id: crypto.randomUUID(), itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
       },
 
       addToWishlist: async (itemType, itemId) => {
         const { publicUser } = get();
         if (!supabase || !publicUser) return;
-        set((s) => ({ wishlist: [...s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)), { itemType, itemId }] }));
+        set((s) => ({ wishlist: [...s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)), { id: crypto.randomUUID(), itemType, itemId }] }));
         await supabase.from('wishlists').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
       },
 
@@ -1146,13 +1130,13 @@ export const useStore = create<AppState>()(
         const { publicUser } = get();
         if (!supabase || !publicUser) return;
         const { data } = await supabase.from('cart_items').select('item_type, item_id').eq('user_id', publicUser.id);
-        if (data) set({ cart: data.map((r) => ({ itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+        if (data) set({ cart: data.map((r) => ({ id: crypto.randomUUID(), itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
       },
 
       addToCart: async (itemType, itemId) => {
         const { publicUser } = get();
         if (!supabase || !publicUser) return;
-        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { itemType, itemId }] }));
+        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { id: crypto.randomUUID(), itemType, itemId }] }));
         await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
       },
 
@@ -1332,6 +1316,7 @@ export const useStore = create<AppState>()(
         if (updates.instagram    !== undefined) row.instagram   = updates.instagram ?? null;
         if (updates.whatsapp     !== undefined) row.whatsapp    = updates.whatsapp ?? null;
         if (updates.preferredContactMethod !== undefined) row.preferred_contact_method = updates.preferredContactMethod ?? null;
+        if (updates.guestTrip    !== undefined) row.guest_trip  = updates.guestTrip ?? null;
         if (updates.hiddenFromHero !== undefined) row.hidden_from_hero = updates.hiddenFromHero;
         const { error } = await supabase.from('artists').update(row).eq('id', id);
         if (error) throw new Error(error.message);
@@ -1351,6 +1336,7 @@ export const useStore = create<AppState>()(
           id: merch.id, name: merch.name, description: merch.description,
           price: merch.price, image_url: merch.imageUrl, link: merch.link,
           category: merch.category ?? null,
+          sizes: merch.sizes ?? [],
           created_at: merch.createdAt,
         }).then(({ error }) => { if (error) console.error('[store] addMerch:', error); });
       },
@@ -1364,6 +1350,7 @@ export const useStore = create<AppState>()(
         if (updates.imageUrl    !== undefined) row.image_url   = updates.imageUrl;
         if (updates.link        !== undefined) row.link        = updates.link;
         if (updates.category    !== undefined) row.category    = updates.category ?? null;
+        if (updates.sizes       !== undefined) row.sizes       = updates.sizes;
         supabase?.from('merchs').update(row).eq('id', id)
           .then(({ error }) => { if (error) console.error('[store] updateMerch:', error); });
       },
@@ -1396,6 +1383,9 @@ export const useStore = create<AppState>()(
         sobreNosContent: state.sobreNosContent,
         guestContent: state.guestContent,
         aftercareContent: state.aftercareContent,
+        publicUser: state.publicUser,
+        wishlist: state.wishlist,
+        cart: state.cart,
       }),
       // Deep-merge nested content objects so new fields always get their defaults
       // even when localStorage has an older version without those fields

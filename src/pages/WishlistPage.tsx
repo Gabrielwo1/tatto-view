@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
+import type { Tattoo, Merch, WishlistItem, CartItem } from '../types';
 
 export default function WishlistPage() {
   const publicUser = useStore((s) => s.publicUser);
@@ -21,13 +22,13 @@ export default function WishlistPage() {
     );
   }
 
-  const items = wishlist.map((w) => {
+  const items = wishlist.map((w: WishlistItem) => {
     if (w.itemType === 'tattoo') {
-      const t = tattoos.find((x) => x.id === w.itemId);
+      const t = tattoos.find((x: Tattoo) => x.id === w.itemId);
       if (!t) return null;
       return { ...w, name: t.title, image: t.imageUrl, price: t.price ?? 'Consultar', subtitle: 'Design de tatuagem' };
     } else {
-      const m = merchs.find((x) => x.id === w.itemId);
+      const m = merchs.find((x: Merch) => x.id === w.itemId);
       if (!m) return null;
       return { ...w, name: m.name, image: m.imageUrl, price: m.price, subtitle: 'Produto' };
     }
@@ -54,7 +55,7 @@ export default function WishlistPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {items.map((item) => {
-              const inCart = cart.some((c) => c.itemType === item.itemType && c.itemId === item.itemId);
+              const inCart = cart.some((c: CartItem) => c.itemType === item.itemType && c.itemId === item.itemId);
               return (
                 <div key={`${item.itemType}-${item.itemId}`} className="border border-white/10 bg-black/20 group">
                   <div className="aspect-square overflow-hidden bg-zinc-900">
