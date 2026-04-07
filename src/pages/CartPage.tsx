@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
+import { formatPrice } from '../lib/utils';
+import type { Tattoo, Merch, CartItem } from '../types';
 
 export default function CartPage() {
   const publicUser = useStore((s) => s.publicUser);
@@ -23,17 +25,17 @@ export default function CartPage() {
     );
   }
 
-  const items = cart.map((c) => {
+  const items = cart.map((c: CartItem) => {
     if (c.itemType === 'tattoo') {
-      const t = tattoos.find((x) => x.id === c.itemId);
+      const t = tattoos.find((x: Tattoo) => x.id === c.itemId);
       if (!t) return null;
       const cents = t.depositAmount ?? 15000;
-      return { ...c, name: t.title, image: t.imageUrl, priceCents: cents, priceLabel: `Sinal: R$${(cents / 100).toFixed(2).replace('.', ',')}`, subtitle: 'Reserva de design' };
+      return { ...c, name: t.title, image: t.imageUrl, priceCents: cents, priceLabel: `Sinal: ${formatPrice(cents / 100)}`, subtitle: 'Reserva de design' };
     } else {
-      const m = merchs.find((x) => x.id === c.itemId);
+      const m = merchs.find((x: Merch) => x.id === c.itemId);
       if (!m) return null;
       const cents = Math.round(parseFloat(m.price.replace(/[^0-9.,]/g, '').replace(',', '.')) * 100) || 0;
-      return { ...c, name: m.name, image: m.imageUrl, priceCents: cents, priceLabel: m.price, subtitle: 'Produto' };
+      return { ...c, name: m.name, image: m.imageUrl, priceCents: cents, priceLabel: formatPrice(m.price), subtitle: 'Produto' };
     }
   }).filter(Boolean) as { itemType: 'tattoo' | 'merch'; itemId: string; name: string; image: string; priceCents: number; priceLabel: string; subtitle: string }[];
 
@@ -106,12 +108,12 @@ export default function CartPage() {
               <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Resumo</h2>
               <div className="flex justify-between mb-2">
                 <span className="font-body text-sm text-gray-400">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
-                <span className="font-body text-sm text-white">R${(totalCents / 100).toFixed(2).replace('.', ',')}</span>
+                <span className="font-body text-sm text-white">{formatPrice(totalCents / 100)}</span>
               </div>
               <div className="border-t border-white/10 my-4" />
               <div className="flex justify-between mb-6">
                 <span className="font-body text-xs font-bold tracking-widest uppercase text-white">Total</span>
-                <span className="font-display text-xl text-white">R${(totalCents / 100).toFixed(2).replace('.', ',')}</span>
+                <span className="font-display text-xl text-white">{formatPrice(totalCents / 100)}</span>
               </div>
               {error && (
                 <div className="mb-4 px-3 py-2 border border-red-500/30 bg-red-500/10">

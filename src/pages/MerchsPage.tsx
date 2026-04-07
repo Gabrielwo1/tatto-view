@@ -1,4 +1,7 @@
 import { useStore } from '../store';
+import { formatPrice } from '../lib/utils';
+
+const STUDIO_PHONE = '554699704747';
 
 export default function MerchsPage() {
   const merchs = useStore((s) => s.merchs);
@@ -50,7 +53,7 @@ export default function MerchsPage() {
                 </p>
                 <div className="border-t border-white/10 pt-4">
                   <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">A partir de</p>
-                  <p className="font-display text-4xl text-white leading-none mb-4">{session.price}</p>
+                  <p className="font-display text-4xl text-white leading-none mb-4">{formatPrice(session.price)}</p>
                   {session.bookingLink ? (
                     <a
                       href={session.bookingLink}
@@ -122,7 +125,7 @@ export default function MerchsPage() {
                       {m.name}
                     </h3>
                     <span className="font-body font-bold text-[9px] text-gray-600">
-                      {m.price}
+                      {formatPrice(m.price)}
                     </span>
                   </div>
 
@@ -141,20 +144,14 @@ export default function MerchsPage() {
                   )}
 
                   <div className="mt-auto">
-                    {m.link ? (
-                      <a
-                        href={m.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full text-center border border-white/10 hover:border-white text-white/30 hover:text-white font-body font-bold text-[8px] tracking-tight uppercase py-1.5 transition-colors"
-                      >
-                        ADD
-                      </a>
-                    ) : (
-                      <div className="w-full text-center border border-white/5 text-white/10 font-body font-bold text-[8px] tracking-tight uppercase py-1.5">
-                        ADD
-                      </div>
-                    )}
+                    <a
+                      href={`https://wa.me/${STUDIO_PHONE}?text=${encodeURIComponent('Olá, vi este produto na loja do site (' + m.name + ') e gostaria de comprar. 🖤')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center border border-white/10 hover:border-white text-white/30 hover:text-white font-body font-bold text-[8px] tracking-tight uppercase py-1.5 transition-colors"
+                    >
+                      COMPRAR
+                    </a>
                   </div>
                 </div>
               </div>

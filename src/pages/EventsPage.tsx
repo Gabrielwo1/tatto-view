@@ -88,7 +88,7 @@ function EventCard({ event }: { event: EventItem }) {
             <img
               src={event.image}
               alt={event.title}
-              className="w-full h-full object-cover grayscale contrast-110"
+              className="w-full h-full object-cover"
             />
           </div>
         )}
@@ -163,7 +163,7 @@ export default function EventsPage() {
               <img
                 src={ec.hero.heroImage}
                 alt="Events hero"
-                className="w-full h-full object-cover grayscale"
+                className="w-full h-full object-cover"
               />
             </div>
           </Fade>

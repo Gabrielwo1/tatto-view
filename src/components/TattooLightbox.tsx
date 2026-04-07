@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toSlug } from '../utils';
+import { formatPrice } from '../lib/utils';
 import type { LightboxEntry } from '../hooks/useLightbox';
 
 export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: LightboxEntry; onClose: () => void; hideArtistLink?: boolean }) {
@@ -77,7 +78,7 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
                   <>
                     {artist && <span className="text-white/20 text-xs">·</span>}
                     <p className="font-body text-xs" style={{ color: 'rgb(var(--ink-500))' }}>
-                      {tattoo.price}
+                      {formatPrice(tattoo.price)}
                     </p>
                   </>
                 )}

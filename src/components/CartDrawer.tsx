@@ -1,5 +1,6 @@
 import { useStore } from '../store';
 import { useNavigate } from 'react-router-dom';
+import { formatPrice } from '../lib/utils';
 
 interface Props {
   open: boolean;
@@ -20,11 +21,11 @@ export default function CartDrawer({ open, onClose }: Props) {
     if (c.itemType === 'tattoo') {
       const t = tattoos.find((x) => x.id === c.itemId);
       if (!t) return null;
-      return { ...c, name: t.title, image: t.imageUrl, price: t.depositAmount ? `Sinal: R$${(t.depositAmount / 100).toFixed(2)}` : t.price ?? 'Consultar' };
+      return { ...c, name: t.title, image: t.imageUrl, price: t.depositAmount ? `Sinal: ${formatPrice(t.depositAmount / 100)}` : formatPrice(t.price) ?? 'Consultar' };
     } else {
       const m = merchs.find((x) => x.id === c.itemId);
       if (!m) return null;
-      return { ...c, name: m.name, image: m.imageUrl, price: m.price };
+      return { ...c, name: m.name, image: m.imageUrl, price: formatPrice(m.price) };
     }
   }).filter(Boolean) as { itemType: 'tattoo' | 'merch'; itemId: string; name: string; image: string; price: string }[];
 

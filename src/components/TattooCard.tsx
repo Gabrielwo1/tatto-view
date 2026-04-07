@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Tattoo, Artist } from '../types';
 import WishlistButton from './WishlistButton';
 import { toSlug } from '../utils';
+import { formatPrice } from '../lib/utils';
 
 interface TattooCardProps {
   tattoo: Tattoo;
@@ -47,7 +48,7 @@ function TattooCard({ tattoo, artist, onClick }: TattooCardProps) {
         {tattoo.price && (
           <p className="text-xs font-body mt-0.5">
             <span className="text-ink2-500">a partir de </span>
-            <span className="text-ink-500">{tattoo.price}</span>
+            <span className="text-ink-500">{formatPrice(tattoo.price)}</span>
           </p>
         )}
       </div>
