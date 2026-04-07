@@ -50,7 +50,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           HERO
       ══════════════════════════════════════════════════ */}
-      <section className="relative min-h-[82vh] flex flex-col items-center justify-start text-center px-6 pt-20 sm:pt-24 md:pt-28 pb-14 overflow-hidden">
+      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
         {/* Noise texture overlay */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }} />
@@ -59,12 +59,12 @@ export default function LandingPage() {
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 80px)' }} />
 
         {/* Tagline */}
-        <h1 className="font-display text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-4">
+        <h1 className="font-display text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-6">
           {lc.hero.tagline.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
         </h1>
-        <p className="font-body text-base md:text-xl text-gray-400 max-w-xl mb-8 leading-relaxed">
+        <p className="font-body text-base md:text-xl text-gray-400 max-w-xl mb-12 leading-relaxed">
           {lc.hero.description.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
@@ -96,13 +96,13 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           MANIFESTO / SOBRE
       ══════════════════════════════════════════════════ */}
-      <section className="bg-zinc-950 py-20 px-6">
+      <section className="bg-zinc-950 py-28 px-6">
         <div
           ref={sobreRef}
-          className={`max-w-4xl mx-auto transition-all duration-700 ${sobreVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          className={`max-w-4xl mx-auto transition-all duration-1000 ${sobreVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
         >
           <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Manifesto</p>
-          <h2 className="font-display text-5xl sm:text-7xl md:text-8xl uppercase leading-none text-white mb-8">
+          <h2 className="font-display text-5xl sm:text-7xl md:text-8xl uppercase leading-none text-white mb-10">
             {lc.manifesto.title1}<br />{lc.manifesto.title2}
           </h2>
           <div className="grid md:grid-cols-2 gap-8 text-gray-400 font-body text-base leading-relaxed">
@@ -111,7 +111,7 @@ export default function LandingPage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-px mt-10 border border-white/10">
+          <div className="grid grid-cols-3 gap-px mt-16 border border-white/10">
             {[
               { n: `${artists.length}+`, label: 'Artistas' },
               { n: `${tattoos.length}+`, label: 'Artes realizadas' },
@@ -129,11 +129,11 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           ESTILOS
       ══════════════════════════════════════════════════ */}
-      <section className="bg-black py-20 px-6">
+      <section className="bg-black py-28 px-6">
         <div className="max-w-6xl mx-auto">
           <div
             ref={estilosRef}
-            className={`mb-12 transition-all duration-700 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+            className={`mb-14 transition-all duration-1000 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Especialidades</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
@@ -163,11 +163,11 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           ARTISTAS
       ══════════════════════════════════════════════════ */}
-      <section className="bg-zinc-950 py-20 px-6">
+      <section className="bg-zinc-950 py-28 px-6">
         <div className="max-w-6xl mx-auto">
           <div
             ref={teamRef}
-            className={`mb-12 transition-all duration-700 ${teamVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+            className={`mb-14 transition-all duration-1000 ${teamVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">A equipe</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
@@ -219,11 +219,11 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           PORTFÓLIO PREVIEW
       ══════════════════════════════════════════════════ */}
-      <section className="bg-black py-20 px-6">
+      <section className="bg-black py-28 px-6">
         <div className="max-w-6xl mx-auto">
           <div
             ref={galeriaRef}
-            className={`mb-12 flex items-end justify-between transition-all duration-700 ${galeriaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+            className={`mb-14 flex items-end justify-between transition-all duration-1000 ${galeriaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <div>
               <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Portfólio</p>
@@ -282,11 +282,11 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           COMO FUNCIONA
       ══════════════════════════════════════════════════ */}
-      <section className="bg-zinc-950 py-20 px-6">
+      <section className="bg-zinc-950 py-28 px-6">
         <div className="max-w-4xl mx-auto">
           <div
             ref={processoRef}
-            className={`mb-12 transition-all duration-700 ${processoVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+            className={`mb-16 transition-all duration-1000 ${processoVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Processo</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
@@ -315,11 +315,11 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           PREÇOS
       ══════════════════════════════════════════════════ */}
-      <section className="bg-black py-20 px-6">
+      <section className="bg-black py-28 px-6">
         <div className="max-w-4xl mx-auto">
           <div
             ref={precosRef}
-            className={`mb-12 transition-all duration-700 ${precosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+            className={`mb-14 transition-all duration-1000 ${precosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Investimento</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
@@ -355,11 +355,11 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           FAQ
       ══════════════════════════════════════════════════ */}
-      <section className="bg-zinc-950 py-20 px-6">
+      <section className="bg-zinc-950 py-28 px-6">
         <div className="max-w-3xl mx-auto">
           <div
             ref={faqRef}
-            className={`mb-12 transition-all duration-700 ${faqVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+            className={`mb-14 transition-all duration-1000 ${faqVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Dúvidas</p>
             <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
@@ -390,7 +390,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           CTA FINAL / CONTATO
       ══════════════════════════════════════════════════ */}
-      <section id="contato" className="bg-black py-24 px-6 text-center relative overflow-hidden">
+      <section id="contato" className="bg-black py-32 px-6 text-center relative overflow-hidden">
         {/* Decorative background text */}
         <p className="absolute inset-0 flex items-center justify-center font-display text-[20vw] text-white/[0.02] uppercase leading-none select-none pointer-events-none">
           El Dude
