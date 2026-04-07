@@ -41,7 +41,7 @@ export default function Navbar() {
         <div
           className="grid items-center transition-all duration-500 ease-in-out"
           style={{
-            height: scrolled ? '64px' : '160px',
+            height: scrolled ? '64px' : '80px',
             gridTemplateColumns: '1fr auto 1fr',
           }}
         >
@@ -80,7 +80,7 @@ export default function Navbar() {
             {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
               <div
                 className="transition-all duration-500 ease-in-out relative"
-                style={{ height: scrolled ? '40px' : '120px', display: 'inline-block' }}
+                style={{ height: scrolled ? '40px' : '56px', display: 'inline-block' }}
               >
                 <img
                   src={logoSrc}
@@ -104,7 +104,7 @@ export default function Navbar() {
                 alt="El Dude"
                 className="w-auto object-contain transition-all duration-500 ease-in-out"
                 style={{
-                  height: scrolled ? '40px' : '120px',
+                  height: scrolled ? '40px' : '56px',
                   filter: logoColorMode === 'white'
                     ? 'brightness(0) invert(1)'
                     : logoColorMode === 'black'
