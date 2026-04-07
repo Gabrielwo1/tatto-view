@@ -106,7 +106,6 @@ export default function SiteFooter() {
             {[
               { to: '/',           label: 'Vitrine' },
               { to: '/artistas',   label: 'Artistas' },
-              { to: '/sobre-nos',  label: 'Estúdio' },
               { to: '/aftercare',  label: 'Cuidados' },
               { to: '/guests',     label: 'Guests' },
               { to: '/loja',       label: 'Loja' },

@@ -26,8 +26,6 @@ import EventsPage from './pages/EventsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
 import AftercarePage from './pages/AftercarePage';
-import SobreNosPage from './pages/SobreNosPage';
-import AdminSobreNos from './pages/admin/AdminSobreNos';
 import AdminTatuados from './pages/admin/AdminTatuados';
 import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
@@ -247,14 +245,6 @@ export default function App() {
             </PublicLayout>
           }
         />
-        <Route
-          path="/sobre-nos"
-          element={
-            <PublicLayout>
-              <SobreNosPage />
-            </PublicLayout>
-          }
-        />
 
         {/* Public user auth */}
         <Route path="/login" element={<LoginPage />} />
@@ -321,7 +311,6 @@ export default function App() {
           <Route path="guests" element={<ProtectedAdminRoute><AdminGuestPage /></ProtectedAdminRoute>} />
           <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
           <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
-          <Route path="sobre-nos" element={<ProtectedAdminRoute><AdminSobreNos /></ProtectedAdminRoute>} />
           <Route path="tatuados" element={<ProtectedRoute><AdminTatuados /></ProtectedRoute>} />
           <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
