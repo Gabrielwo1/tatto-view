@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
-import { TATTOO_STYLES } from '../types';
-import { toSlug, interleaveByArtist } from '../utils';
+import { interleaveByArtist } from '../utils';
+import { toSlug } from '../utils';
+import GeneralLightbox from '../components/GeneralLightbox';
 
 
 /* ─── tiny hook: element is visible ─── */
@@ -20,10 +21,12 @@ function useVisible(threshold = 0.15) {
 }
 
 export default function LandingPage() {
-  const tattoos = useStore((s) => s.tattoos);
-  const artists = useStore((s) => s.artists);
-  const lc = useStore((s) => s.landingContent);
-  const [faqOpen, setFaqOpen] = useState<number | null>(null);
+  const tattoos  = useStore((s) => s.tattoos);
+  const artists  = useStore((s) => s.artists);
+  const lc       = useStore((s) => s.landingContent);
+  const c        = useStore((s) => s.sobreNosContent);
+  const [faqOpen, setFaqOpen]           = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const available = useMemo(
     () => interleaveByArtist(tattoos.filter((t) => t.status === 'available')).slice(0, 15),
@@ -32,20 +35,29 @@ export default function LandingPage() {
 
   /* section visibility hooks */
   const { ref: sobreRef,    visible: sobreVisible }    = useVisible();
-  const { ref: estilosRef,  visible: estilosVisible }  = useVisible();
   const { ref: teamRef,     visible: teamVisible }     = useVisible();
   const { ref: galeriaRef,  visible: galeriaVisible }  = useVisible();
   const { ref: processoRef, visible: processoVisible } = useVisible();
-  const { ref: precosRef,   visible: precosVisible }   = useVisible();
   const { ref: faqRef,      visible: faqVisible }      = useVisible();
+  const { ref: quemSomosRef, visible: quemSomosVisible } = useVisible();
+  const { ref: quoteRef,    visible: quoteVisible }    = useVisible();
+  const { ref: estudioRef,  visible: estudioVisible }  = useVisible();
 
   // Safety check for persisted content
-  if (!lc || !lc.hero || !lc.manifesto || !lc.processo || !lc.precos || !lc.faq || !lc.cta) {
+  if (!lc || !lc.hero || !lc.manifesto || !lc.processo || !lc.faq || !lc.cta) {
     return <div className="min-h-screen bg-zinc-900 flex items-center justify-center text-white/20 font-display uppercase tracking-widest text-sm">Carregando...</div>;
   }
 
+  const { collective, quote, studio, contact } = c;
+  const mapAddress = encodeURIComponent([studio.street, studio.city, studio.cep].filter(Boolean).join(', '));
+  const mapSrc = `https://maps.google.com/maps?q=${mapAddress}&z=${studio.mapZoom || 15}&output=embed`;
+
   return (
     <div className="bg-zinc-900 text-white overflow-x-hidden">
+
+      {selectedImage && (
+        <GeneralLightbox imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
+      )}
 
       {/* ══════════════════════════════════════════════════
           HERO
@@ -58,8 +70,8 @@ export default function LandingPage() {
         {/* Faint horizontal rule lines */}
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 80px)' }} />
 
-        {/* Tagline */}
-        <h1 className="font-display text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-6">
+        {/* Tagline — 40% smaller than original */}
+        <h1 className="font-display text-3xl sm:text-5xl md:text-[6rem] lg:text-[7.2rem] text-white uppercase tracking-tight leading-none mb-6">
           {lc.hero.tagline.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
@@ -84,12 +96,6 @@ export default function LandingPage() {
           >
             Falar com artista
           </a>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 flex flex-col items-center gap-2 opacity-30">
-          <span className="font-body text-xs tracking-widest uppercase">Rolar</span>
-          <div className="w-px h-10 bg-white animate-pulse" />
         </div>
       </section>
 
@@ -127,40 +133,6 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          ESTILOS
-      ══════════════════════════════════════════════════ */}
-      <section className="bg-black py-28 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div
-            ref={estilosRef}
-            className={`mb-14 transition-all duration-1000 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-          >
-            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Especialidades</p>
-            <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
-              Seu estilo,<br />nossa arte
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px border border-white/10">
-            {TATTOO_STYLES.map((style, i) => {
-              const info = lc.estilos?.[style] ?? { icon: '◎', desc: '' };
-              return (
-                <div
-                  key={style}
-                  className={`bg-zinc-950 p-6 group hover:bg-zinc-900 transition-all duration-700 border border-transparent hover:border-white/10 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-                  style={{ transitionDelay: `${i * 60}ms` }}
-                >
-                  <span className="font-display text-3xl text-ink-500 block mb-3">{info.icon}</span>
-                  <h3 className="font-display text-xl uppercase tracking-wide text-white mb-2 leading-tight">{style}</h3>
-                  <p className="font-body text-xs text-gray-600 group-hover:text-gray-400 transition-colors leading-relaxed">{info.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════
           ARTISTAS
       ══════════════════════════════════════════════════ */}
       <section className="bg-zinc-950 py-28 px-6">
@@ -191,7 +163,6 @@ export default function LandingPage() {
                   decoding="async"
                   onError={(e) => { (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${artist.id}/400/600`; }}
                 />
-                {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <p className="font-display text-lg uppercase tracking-wide text-white leading-tight">{artist.name}</p>
@@ -313,46 +284,6 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          PREÇOS
-      ══════════════════════════════════════════════════ */}
-      <section className="bg-black py-28 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div
-            ref={precosRef}
-            className={`mb-14 transition-all duration-1000 ${precosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-          >
-            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Investimento</p>
-            <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
-              Quanto<br />custa?
-            </h2>
-            <p className="font-body text-sm text-gray-500 mt-6 leading-relaxed max-w-xl">
-              O valor final depende do tamanho, complexidade e tempo de sessão. Abaixo uma referência geral — solicite um orçamento personalizado com o artista.
-            </p>
-          </div>
-
-          <div className="grid gap-px border border-white/10">
-            {lc.precos.map(({ label, range, detail }, i) => (
-              <div
-                key={label}
-                className={`flex items-center justify-between px-6 py-5 bg-zinc-950 hover:bg-zinc-900 transition-all duration-700 group ${precosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-                style={{ transitionDelay: `${i * 80}ms` }}
-              >
-                <div>
-                  <p className="font-body text-sm font-semibold text-white group-hover:text-white">{label}</p>
-                  <p className="font-body text-xs tracking-widest uppercase text-gray-600 mt-0.5">{detail}</p>
-                </div>
-                <p className="font-display text-xl uppercase text-ink-500 flex-shrink-0 ml-6">{range}</p>
-              </div>
-            ))}
-          </div>
-
-          <p className="font-body text-xs text-gray-700 mt-4 tracking-wide">
-            * Valores estimados. O orçamento final é definido pelo artista após análise do projeto.
-          </p>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════
           FAQ
       ══════════════════════════════════════════════════ */}
       <section className="bg-zinc-950 py-28 px-6">
@@ -388,10 +319,218 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════════════════════════════════════
+          QUEM SOMOS (from SobreNós)
+      ══════════════════════════════════════════════════ */}
+      <section className="bg-black py-28 px-6 lg:px-20">
+        <div
+          ref={quemSomosRef}
+          className={`max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-stretch transition-all duration-1000 ${quemSomosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+        >
+          <div className="flex flex-col h-full">
+            <div>
+              <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">O Coletivo</p>
+              <h2 className="font-display text-4xl lg:text-5xl uppercase tracking-wide mb-8">
+                {collective.title}
+              </h2>
+              <div className="space-y-5 text-white/60 font-body text-sm leading-relaxed">
+                <p>{collective.body1}</p>
+                <p>{collective.body2}</p>
+                {collective.body3 && <p>{collective.body3}</p>}
+              </div>
+              <Link
+                to="/artistas"
+                className="inline-block mt-8 px-6 py-3 border border-white/30 font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors"
+              >
+                {collective.ctaLabel}
+              </Link>
+            </div>
+
+            {collective.galleryImages?.some(Boolean) && (
+              <div className="mt-auto pt-10 grid grid-cols-3 gap-1.5">
+                {collective.galleryImages.map((img, i) =>
+                  img ? (
+                    <div key={i} className="aspect-square bg-zinc-800 overflow-hidden cursor-zoom-in" onClick={() => setSelectedImage(img)}>
+                      <img src={img} alt={`Galeria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  ) : null
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <div className={`aspect-[3/4] bg-zinc-800 overflow-hidden flex items-center justify-center ml-auto ${
+              collective.imageSize === 'sm'   ? 'max-w-xs w-full' :
+              collective.imageSize === 'lg'   ? 'max-w-lg w-full' :
+              collective.imageSize === 'full' ? 'w-full' :
+                                                'max-w-sm w-full'
+            }`}>
+              {collective.image ? (
+                <img
+                  src={collective.image}
+                  alt={collective.imageCaption || 'Estúdio'}
+                  className="w-full h-full object-cover cursor-zoom-in"
+                  onClick={() => setSelectedImage(collective.image!)}
+                />
+              ) : (
+                <span className="font-body text-[10px] tracking-widest uppercase text-white/20">Imagem do Estúdio</span>
+              )}
+            </div>
+            {collective.imageCaption && (
+              <p className="mt-2 text-right font-body text-[10px] tracking-widest uppercase text-ink-500">
+                {collective.imageCaption}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
+          QUOTE (from SobreNós)
+      ══════════════════════════════════════════════════ */}
+      <section className="px-6 lg:px-20 py-20 lg:py-32 bg-zinc-950 overflow-hidden">
+        <div
+          ref={quoteRef}
+          className={`max-w-6xl mx-auto text-center transition-all duration-1000 ${quoteVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+        >
+          <blockquote className="font-display text-3xl sm:text-5xl lg:text-6xl uppercase leading-tight tracking-wide italic">
+            {quote.replace(/^"|"$/g, '')}
+          </blockquote>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
+          ESTÚDIO / MAPA (from SobreNós)
+      ══════════════════════════════════════════════════ */}
+      <section className="px-6 lg:px-20 py-20 lg:py-32 bg-zinc-900/50">
+        <div
+          ref={estudioRef}
+          className={`max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start transition-all duration-1000 ${estudioVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+        >
+          <div>
+            <h2 className="font-display text-3xl lg:text-4xl uppercase tracking-wide text-ink-500 mb-8">
+              {studio.title}
+            </h2>
+            <div className="mb-8">
+              <p className="font-display text-xl uppercase tracking-wide">{studio.street}</p>
+              <p className="font-display text-xl uppercase tracking-wide">{studio.city}</p>
+              <p className="font-display text-xl uppercase tracking-wide">{studio.cep}</p>
+            </div>
+            <div>
+              <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-white/40 mb-4">Horários</p>
+              <div className="space-y-3">
+                {studio.hours.map((h, i) => (
+                  <div key={i} className="flex items-center justify-between border-b border-white/5 pb-3">
+                    <span className={`font-body text-sm font-semibold tracking-widest uppercase ${h.closed ? 'text-ink-500' : 'text-white/70'}`}>
+                      {h.days}
+                    </span>
+                    <span className={`font-body text-sm tracking-widest ${h.closed ? 'text-ink-500' : 'text-white/50'}`}>
+                      {h.time}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative">
+            <div className="w-full aspect-square lg:aspect-[4/3] bg-zinc-800 overflow-hidden">
+              <iframe
+                src={mapSrc}
+                title="Localização"
+                width="100%"
+                height="100%"
+                style={{ border: 0, filter: 'grayscale(1) invert(0.9) contrast(0.9)' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            {studio.mapLabel && (
+              <p className="mt-2 font-body text-[10px] tracking-widest uppercase text-white/30 text-center">
+                {studio.mapLabel}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
+          CONTATO & REDES SOCIAIS (from SobreNós)
+      ══════════════════════════════════════════════════ */}
+      <section className="bg-zinc-950 border-t border-white/10 px-6 lg:px-20 py-14 lg:py-20">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+          <div>
+            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Contato</h3>
+            <div className="space-y-3 font-body text-sm text-white/60">
+              {contact.email && (
+                <p>
+                  Você pode entrar em contato pelo e-mail:{' '}
+                  <a href={`mailto:${contact.email}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                    {contact.email}
+                  </a>
+                </p>
+              )}
+              {(contact.phone1 || contact.phone2) && (
+                <p>
+                  Telefones de contato:{' '}
+                  {contact.phone1 && (
+                    <a href={contact.phone1Url || `tel:${contact.phone1}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                      {contact.phone1}
+                    </a>
+                  )}
+                  {contact.phone1 && contact.phone2 && <span> e </span>}
+                  {contact.phone2 && (
+                    <a href={contact.phone2Url || `tel:${contact.phone2}`} className="text-ink-500 hover:text-white transition-colors underline underline-offset-2">
+                      {contact.phone2}
+                    </a>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-display text-xl uppercase tracking-widest text-white mb-6">Redes Sociais</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {contact.instagram && (
+                <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                    <circle cx="12" cy="12" r="4"/>
+                    <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/>
+                  </svg>
+                  {contact.instagram}
+                </a>
+              )}
+              {contact.tiktok && (
+                <a href={contact.tiktokUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.75a4.85 4.85 0 01-1.01-.06z"/>
+                  </svg>
+                  {contact.tiktok}
+                </a>
+              )}
+              {contact.twitter && (
+                <a href={contact.twitterUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-ink-500 hover:text-white transition-colors font-body text-sm">
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                  {contact.twitter}
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════
           CTA FINAL / CONTATO
       ══════════════════════════════════════════════════ */}
       <section id="contato" className="bg-black py-32 px-6 text-center relative overflow-hidden">
-        {/* Decorative background text */}
         <p className="absolute inset-0 flex items-center justify-center font-display text-[20vw] text-white/[0.02] uppercase leading-none select-none pointer-events-none">
           El Dude
         </p>
