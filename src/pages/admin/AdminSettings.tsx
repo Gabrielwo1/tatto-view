@@ -315,6 +315,10 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 }
 
 export default function AdminSettings() {
+  const c = useStore((s) => s.sobreNosContent);
+  const setSobreNosContent = useStore((s) => s.setSobreNosContent);
+  const { studio } = c;
+
   const customPrimary   = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const setCustomColors = useStore((s) => s.setCustomColors);
