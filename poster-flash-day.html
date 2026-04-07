@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Day - El Dude</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Permanent+Marker&family=Rubik+Mono+One&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .btn-download {
+            background: #c41e3a;
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background: #a01830;
+        }
+        
+        .poster-container {
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        
+        .poster {
+            width: 1080px;
+            height: 1350px;
+            background: #f5f0e8;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 40px;
+        }
+        
+        /* Textura de papel */
+        .poster::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+        }
+        
+        /* FLASH DAY */
+        .flash-day {
+            font-family: 'Creepster', cursive;
+            font-size: 140px;
+            color: #c41e3a;
+            text-shadow: 
+                4px 4px 0 #000,
+                -2px -2px 0 #000,
+                6px 6px 20px rgba(0,0,0,0.3);
+            letter-spacing: 8px;
+            transform: rotate(-2deg);
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+        
+        /* Container central */
+        .center-content {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Ilustração do santo */
+        .saint-illustration {
+            width: 500px;
+            height: 500px;
+            position: relative;
+        }
+        
+        .saint-illustration svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Snake */
+        .snake {
+            position: absolute;
+            left: -80px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 150px;
+            height: 400px;
+        }
+        
+        .snake svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(3px 3px 5px rgba(0,0,0,0.3));
+        }
+        
+        /* FUCK OFF */
+        .fuck-off {
+            position: absolute;
+            left: 20px;
+            top: 30%;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 36px;
+            color: #2d5a3d;
+            transform: rotate(-15deg);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+        
+        /* Data */
+        .date-container {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            text-align: center;
+        }
+        
+        .date-number {
+            font-family: 'Rubik Mono One', sans-serif;
+            font-size: 120px;
+            color: #666;
+            line-height: 1;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+        
+        .date-text {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 48px;
+            color: #c41e3a;
+            transform: rotate(-5deg);
+        }
+        
+        /* Gotas de sangue */
+        .blood-drops {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .drop {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            background: #c41e3a;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        /* EL DUDE */
+        .el-dude {
+            font-family: 'Rubik Mono One', sans-serif;
+            font-size: 100px;
+            color: #333;
+            letter-spacing: 15px;
+            text-shadow: 
+                4px 4px 0 #999,
+                8px 8px 0 rgba(0,0,0,0.1);
+            margin-top: 20px;
+            z-index: 10;
+        }
+        
+        /* Info adicional */
+        .info {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 28px;
+            color: #555;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        /* Borda decorativa */
+        .border-frame {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 4px solid #333;
+            pointer-events: none;
+        }
+        
+        .border-frame::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 2px solid #c41e3a;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button class="btn-download" onclick="downloadPNG()">📥 Baixar PNG</button>
+    </div>
+    
+    <div class="poster-container" id="poster">
+        <div class="poster">
+            <div class="border-frame"></div>
+            
+            <h1 class="flash-day">FLASH DAY</h1>
+            
+            <div class="center-content">
+                <!-- Snake -->
+                <div class="snake">
+                    <svg viewBox="0 0 100 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 10 C70 30, 80 60, 60 90 C40 120, 20 150, 40 180 C60 210, 80 240, 50 270 C30 290, 40 300, 50 300" 
+                              stroke="#2d5a3d" stroke-width="25" fill="none" stroke-linecap="round"/>
+                        <path d="M50 10 C70 30, 80 60, 60 90 C40 120, 20 150, 40 180 C60 210, 80 240, 50 270 C30 290, 40 300, 50 300" 
+                              stroke="#1a3d26" stroke-width="15" fill="none" stroke-linecap="round"/>
+                        
+                        <!-- Cabeça da cobra -->
+                        <ellipse cx="50" cy="15" rx="20" ry="15" fill="#2d5a3d"/>
+                        <ellipse cx="50" cy="15" rx="12" ry="10" fill="#1a3d26"/>
+                        <circle cx="45" cy="12" r="3" fill="#ff6b6b"/>
+                        <circle cx="55" cy="12" r="3" fill="#ff6b6b"/>
+                        <path d="M45 20 Q50 25 55 20" stroke="#000" stroke-width="2" fill="none"/>
+                        <path d="M35 15 L25 5 M65 15 L75 5" stroke="#2d5a3d" stroke-width="3" fill="none"/>
+                    </svg>
+                </div>
+                
+                <span class="fuck-off">FUCK OFF!!</span>
+                
+                <!-- Saint Illustration -->
+                <div class="saint-illustration">
+                    <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Aura/Santo -->
+                        <ellipse cx="200" cy="80" rx="80" ry="40" fill="#ffd700" opacity="0.3"/>
+                        <ellipse cx="200" cy="80" rx="60" ry="30" fill="#ffd700" opacity="0.5"/>
+                        
+                        <!-- Cabeça -->
+                        <circle cx="200" cy="100" r="35" fill="#f5d0c5"/>
+                        <path d="M175 95 Q200 85 225 95" stroke="#333" stroke-width="2" fill="none"/>
+                        
+                        <!-- Barba -->
+                        <path d="M175 110 Q200 150 225 110" fill="#ddd"/>
+                        <path d="M180 115 Q200 140 220 115" fill="#ccc"/>
+                        
+                        <!-- Olhos fechados (estilo santo) -->
+                        <path d="M185 100 Q192 105 199 100" stroke="#333" stroke-width="2" fill="none"/>
+                        <path d="M201 100 Q208 105 215 100" stroke="#333" stroke-width="2" fill="none"/>
+                        
+                        <!-- Corpo/Roupas -->
+                        <path d="M150 140 L130 250 L270 250 L250 140 Z" fill="#8b4513"/>
+                        <path d="M150 140 Q200 160 250 140" fill="#654321"/>
+                        
+                        <!-- Mãos em posição de meditação -->
+                        <ellipse cx="200" cy="180" rx="40" ry="25" fill="#f5d0c5"/>
+                        <ellipse cx="200" cy="175" rx="30" ry="15" fill="#e8c4b8"/>
+                        
+                        <!-- Taça na mão esquerda -->
+                        <path d="M140 160 L140 200 L160 200 L160 160" fill="#c0c0c0" stroke="#666" stroke-width="2"/>
+                        <ellipse cx="150" cy="160" rx="12" ry="5" fill="#e8e8e8" stroke="#666" stroke-width="2"/>
+                        <path d="M145 165 L150 185 L155 165" fill="#8b0000"/>
+                        
+                        <!-- Base/Almofada -->
+                        <rect x="120" y="250" width="160" height="30" rx="5" fill="#d4a574"/>
+                        <rect x="110" y="280" width="180" height="20" rx="3" fill="#8b6914"/>
+                        
+                        <!-- Pernas cruzadas -->
+                        <path d="M130 250 Q100 280 140 300 L260 300 Q300 280 270 250" fill="#3d2817"/>
+                        <ellipse cx="150" cy="310" rx="30" ry="15" fill="#2d1f12"/>
+                        <ellipse cx="250" cy="310" rx="30" ry="15" fill="#2d1f12"/>
+                        
+                        <!-- Cigarro na mão direita -->
+                        <line x1="240" y1="170" x2="260" y2="150" stroke="#fff" stroke-width="4"/>
+                        <line x1="258" y1="148" x2="265" y2="140" stroke="#ff6b35" stroke-width="3"/>
+                        <circle cx="265" cy="138" r="3" fill="#ff4500"/>
+                    </svg>
+                </div>
+                
+                <!-- Blood drops -->
+                <div class="blood-drops">
+                    <div class="drop" style="top: 20%; left: 30%;"></div>
+                    <div class="drop" style="top: 35%; left: 70%;"></div>
+                    <div class="drop" style="top: 50%; left: 25%;"></div>
+                    <div class="drop" style="top: 60%; left: 75%;"></div>
+                    <div class="drop" style="top: 25%; left: 80%;"></div>
+                    <div class="drop" style="top: 45%; left: 15%;"></div>
+                    <div class="drop" style="top: 70%; left: 60%;"></div>
+                    <div class="drop" style="top: 15%; left: 50%;"></div>
+                </div>
+                
+                <!-- Data -->
+                <div class="date-container">
+                    <div class="date-number">7</div>
+                    <div class="date-text">de MAR</div>
+                </div>
+            </div>
+            
+            <h2 class="el-dude">EL DUDE</h2>
+            
+            <p class="info">Flashs exclusivos • Sábado das 14h às 20h<br>@eldude.tattoo</p>
+        </div>
+    </div>
+    
+    <script>
+        function downloadPNG() {
+            const poster = document.getElementById('poster');
+            
+            html2canvas(poster, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'flash-day-el-dude.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>
