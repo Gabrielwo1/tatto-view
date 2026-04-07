@@ -84,6 +84,8 @@ export default function BillingPage() {
     past_due: 'Pagamento pendente',
     canceled: 'Cancelado',
     unpaid: 'Inadimplente',
+    incomplete: 'Pagamento incompleto',
+    incomplete_expired: 'Expirado',
   };
 
   const statusColor: Record<string, string> = {
@@ -92,6 +94,8 @@ export default function BillingPage() {
     past_due: 'text-yellow-400',
     canceled: 'text-red-400',
     unpaid: 'text-red-400',
+    incomplete: 'text-yellow-400',
+    incomplete_expired: 'text-red-400',
   };
 
   return (
@@ -137,7 +141,7 @@ export default function BillingPage() {
       {/* Actions */}
       {isStaff && (
         <div className="space-y-3">
-          {!subscriptionStatus || subscriptionStatus === 'canceled' || subscriptionStatus === 'unpaid' ? (
+          {!subscriptionStatus || subscriptionStatus === 'canceled' || subscriptionStatus === 'unpaid' || subscriptionStatus === 'incomplete' || subscriptionStatus === 'incomplete_expired' ? (
             <button
               onClick={handleStartSubscription}
               disabled={loading}

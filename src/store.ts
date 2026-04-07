@@ -727,7 +727,7 @@ interface AppState {
   removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   moveToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   // ── Subscription ─────────────────────────────────────────────────────
-  subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | null;
+  subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | 'incomplete' | 'incomplete_expired' | null;
   trialEndsAt: string | null;
   loadSubscription: () => Promise<void>;
   // ── Admin auth ────────────────────────────────────────────────────────
