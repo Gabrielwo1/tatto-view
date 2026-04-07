@@ -54,19 +54,24 @@ export default function AdminMyProfile() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setUploading(true);
-    const photoUrl = await uploadImage(form.photoUrl);
-    setUploading(false);
-    updateArtist(artist!.id, {
-      name:        form.name,
-      bio:         form.bio,
-      photoUrl,
-      instagram:   form.instagram || undefined,
-      whatsapp:    form.whatsapp  || undefined,
-      specialties: form.specialties
-        ? form.specialties.split(',').map((s) => s.trim()).filter(Boolean)
-        : [],
-    });
-    setSaved(true);
+    try {
+      const photoUrl = await uploadImage(form.photoUrl);
+      await updateArtist(artist!.id, {
+        name:        form.name,
+        bio:         form.bio,
+        photoUrl,
+        instagram:   form.instagram || undefined,
+        whatsapp:    form.whatsapp  || undefined,
+        specialties: form.specialties
+          ? form.specialties.split(',').map((s) => s.trim()).filter(Boolean)
+          : [],
+      });
+      setSaved(true);
+    } catch (err) {
+      alert('Erro ao salvar: ' + (err as Error).message);
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (

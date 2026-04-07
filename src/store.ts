@@ -738,7 +738,7 @@ interface AppState {
   reorderTattoos: (orderedIds: string[]) => void;
   reorderArtists: (orderedIds: string[]) => void;
   addArtist: (artist: Omit<Artist, 'id' | 'createdAt'>) => void;
-  updateArtist: (id: string, updates: Partial<Artist>) => void;
+  updateArtist: (id: string, updates: Partial<Artist>) => Promise<void>;
   deleteArtist: (id: string) => void;
   addMerch: (merch: Omit<Merch, 'id' | 'createdAt'>) => void;
   updateMerch: (id: string, updates: Partial<Merch>) => void;
@@ -1296,19 +1296,20 @@ export const useStore = create<AppState>()(
         }).then(({ error }) => { if (error) console.error('[store] addArtist:', error); });
       },
 
-      updateArtist: (id, updates) => {
+      updateArtist: async (id, updates) => {
         set((s) => ({ artists: s.artists.map((a) => a.id === id ? { ...a, ...updates } : a) }));
+        if (!supabase) return;
         const row: Record<string, unknown> = {};
         if (updates.name         !== undefined) row.name        = updates.name;
         if (updates.bio          !== undefined) row.bio         = updates.bio;
         if (updates.photoUrl     !== undefined) row.photo_url   = updates.photoUrl;
         if (updates.specialties  !== undefined) row.specialties = updates.specialties;
-        if (updates.instagram    !== undefined) row.instagram   = updates.instagram;
-        if (updates.whatsapp     !== undefined) row.whatsapp    = updates.whatsapp;
-        if (updates.preferredContactMethod !== undefined) row.preferred_contact_method = updates.preferredContactMethod;
+        if (updates.instagram    !== undefined) row.instagram   = updates.instagram ?? null;
+        if (updates.whatsapp     !== undefined) row.whatsapp    = updates.whatsapp ?? null;
+        if (updates.preferredContactMethod !== undefined) row.preferred_contact_method = updates.preferredContactMethod ?? null;
         if (updates.hiddenFromHero !== undefined) row.hidden_from_hero = updates.hiddenFromHero;
-        supabase?.from('artists').update(row).eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] updateArtist:', error); });
+        const { error } = await supabase.from('artists').update(row).eq('id', id);
+        if (error) throw new Error(error.message);
       },
 
       deleteArtist: (id) => {

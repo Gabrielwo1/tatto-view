@@ -66,24 +66,29 @@ export default function AdminArtistForm() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setUploading(true);
-    const photoUrl = await uploadImage(form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`);
-    setUploading(false);
-    const data = {
-      name: form.name,
-      bio: form.bio,
-      photoUrl,
-      specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
-      instagram: form.instagram || undefined,
-      whatsapp: form.whatsapp || undefined,
-      preferredContactMethod: form.preferredContactMethod as 'whatsapp' | 'instagram',
-      hiddenFromHero: form.hiddenFromHero,
-    };
-    if (existing) {
-      await updateArtist(existing.id, data);
-    } else {
-      await addArtist(data);
+    try {
+      const photoUrl = await uploadImage(form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`);
+      const data = {
+        name: form.name,
+        bio: form.bio,
+        photoUrl,
+        specialties: form.specialties.split(',').map((s) => s.trim()).filter(Boolean),
+        instagram: form.instagram || undefined,
+        whatsapp: form.whatsapp || undefined,
+        preferredContactMethod: form.preferredContactMethod as 'whatsapp' | 'instagram',
+        hiddenFromHero: form.hiddenFromHero,
+      };
+      if (existing) {
+        await updateArtist(existing.id, data);
+      } else {
+        await addArtist(data);
+      }
+      navigate('/admin/artistas');
+    } catch (err) {
+      alert('Erro ao salvar artista: ' + (err as Error).message);
+    } finally {
+      setUploading(false);
     }
-    navigate('/admin/artistas');
   }
 
   return (
