@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 import type { Merch } from '../types';
+import { formatPrice } from '../lib/utils';
 
 /* ─── helpers ─── */
 function categorizeMerchs(merchs: Merch[]) {
@@ -50,7 +51,7 @@ function PrintCard({ m }: { m: Merch }) {
             <p className="font-body text-[9px] text-zinc-500 leading-snug mt-0.5 line-clamp-1">{m.description}</p>
           )}
         </div>
-        <p className="font-body text-[10px] font-bold text-white shrink-0">{m.price}</p>
+        <p className="font-body text-[10px] font-bold text-white shrink-0">{formatPrice(m.price)}</p>
       </div>
     </div>
   );
@@ -106,23 +107,17 @@ function VestuarioCard({ m }: { m: Merch }) {
           {m.description && (
             <p className="font-body text-[9px] text-zinc-500 mt-0.5 leading-snug line-clamp-1">{m.description}</p>
           )}
-          <p className="font-body text-xs font-bold text-white mt-1.5">{m.price}</p>
+          <p className="font-body text-xs font-bold text-white mt-1.5">{formatPrice(m.price)}</p>
         </div>
-        {m.link ? (
-          <a
-            href={m.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 p-2 border border-white/20 text-white/60 hover:border-white hover:text-white transition-colors"
-            title="Comprar"
-          >
-            <CartIcon className="w-4 h-4" />
-          </a>
-        ) : (
-          <div className="shrink-0 p-2 border border-white/10 text-white/20">
-            <CartIcon className="w-4 h-4" />
-          </div>
-        )}
+        <a
+          href={`https://wa.me/554699704747?text=${encodeURIComponent(`Olá! Tenho interesse no produto: ${m.name}`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 p-2 border border-white/20 text-white/60 hover:border-green-500 hover:text-green-400 transition-colors"
+          title="Comprar via WhatsApp"
+        >
+          <CartIcon className="w-4 h-4" />
+        </a>
       </div>
     </div>
   );
@@ -151,7 +146,7 @@ function AcessorioCard({ m }: { m: Merch }) {
       <p className="font-body text-[9px] font-bold tracking-wide uppercase text-white leading-tight line-clamp-2">
         {m.name}
       </p>
-      <p className="font-body text-[9px] text-zinc-500 mt-0.5">{m.price}</p>
+      <p className="font-body text-[9px] text-zinc-500 mt-0.5">{formatPrice(m.price)}</p>
     </div>
   );
 }

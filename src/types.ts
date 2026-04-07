@@ -116,6 +116,7 @@ export interface MerchRow {
   price: string;
   image_url: string;
   link: string | null;
+  sizes: string[] | null;
   category: string | null;
   created_at: string;
 }
