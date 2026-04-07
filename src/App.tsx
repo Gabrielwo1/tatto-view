@@ -150,7 +150,9 @@ export default function App() {
   // Apply custom favicon + og:image dynamically
   useEffect(() => {
     const faviconUrl = customFavicon ?? '/dudeicone.png';
-    const cacheBustedUrl = `${faviconUrl}${faviconUrl.includes('?') ? '&' : '?'}cb=${Date.now()}`;
+    const cacheBuster = 'v=' + Date.now();
+    const fullUrl = faviconUrl + (faviconUrl.includes('?') ? '&' : '?') + cacheBuster;
+    
     const selectors = [
       'link[rel="icon"]',
       'link[rel="shortcut icon"]',
@@ -158,7 +160,7 @@ export default function App() {
     ];
     selectors.forEach((selector) => {
       document.querySelectorAll<HTMLLinkElement>(selector).forEach((link) => {
-        link.href = cacheBustedUrl;
+        link.href = fullUrl;
       });
     });
 
