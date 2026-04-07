@@ -9,6 +9,7 @@ import ShowcasePage from './pages/ShowcasePage';
 import ArchivedPage from './pages/ArchivedPage';
 import ArtistsPage from './pages/ArtistsPage';
 import ArtistDetailPage from './pages/ArtistDetailPage';
+import AddressPage from './pages/AddressPage';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminLayout from './layouts/AdminLayout';
@@ -242,6 +243,14 @@ export default function App() {
           element={
             <PublicLayout>
               <AftercarePage />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/endereco"
+          element={
+            <PublicLayout>
+              <AddressPage />
             </PublicLayout>
           }
         />

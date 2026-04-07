@@ -379,6 +379,19 @@ export default function AdminSettings() {
     applyCustomColors(draftPrimary, draftSecondary);
   }
 
+  const handleStudioChange = (field: keyof typeof studio, value: any) => {
+    setSobreNosContent({
+      ...c,
+      studio: { ...studio, [field]: value }
+    });
+  };
+
+  const handleHourChange = (index: number, field: string, value: any) => {
+    const newHours = [...studio.hours];
+    newHours[index] = { ...newHours[index], [field]: value };
+    handleStudioChange('hours', newHours);
+  };
+
   return (
     <div className="p-4 md:p-6 max-w-7xl">
       {/* Header */}
@@ -506,6 +519,97 @@ export default function AdminSettings() {
             <StyleVisibilitySection />
           </div>
         </div>{/* fim col esquerda */}
+
+        {/* ╠══ COL DIREITA — Endereço e Horários ══╣ */}
+        <div className="space-y-3">
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Endereço e Estúdio</p>
+            <div className="space-y-4">
+              <div>
+                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Título do Estúdio</label>
+                <input 
+                  type="text" 
+                  value={studio.title} 
+                  onChange={(e) => handleStudioChange('title', e.target.value)}
+                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Rua e Número</label>
+                <input 
+                  type="text" 
+                  value={studio.street} 
+                  onChange={(e) => handleStudioChange('street', e.target.value)}
+                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Cidade — UF</label>
+                  <input 
+                    type="text" 
+                    value={studio.city} 
+                    onChange={(e) => handleStudioChange('city', e.target.value)}
+                    className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">CEP</label>
+                  <input 
+                    type="text" 
+                    value={studio.cep} 
+                    onChange={(e) => handleStudioChange('cep', e.target.value)}
+                    className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Bairro / Label do Mapa</label>
+                <input 
+                  type="text" 
+                  value={studio.mapLabel} 
+                  onChange={(e) => handleStudioChange('mapLabel', e.target.value)}
+                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="border border-white/10 bg-black/20 p-4">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Horários de Funcionamento</p>
+            <div className="space-y-3">
+              {studio.hours.map((h, i) => (
+                <div key={i} className="space-y-2 pb-3 border-b border-white/5 last:border-0 last:pb-0">
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={h.days} 
+                      onChange={(e) => handleHourChange(i, 'days', e.target.value)}
+                      className="flex-1 bg-transparent border border-white/10 px-2 py-1 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors"
+                      placeholder="Dias"
+                    />
+                    <input 
+                      type="text" 
+                      value={h.time} 
+                      onChange={(e) => handleHourChange(i, 'time', e.target.value)}
+                      className="flex-1 bg-transparent border border-white/10 px-2 py-1 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors"
+                      placeholder="Horário"
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={h.closed} 
+                      onChange={(e) => handleHourChange(i, 'closed', e.target.checked)}
+                      className="rounded border-white/10 bg-transparent text-ink-500 focus:ring-offset-0 focus:ring-ink-500"
+                    />
+                    <span className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Destacar como fechado/especial</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
       </div>{/* fim config */}
 
