@@ -23,9 +23,9 @@ export default function AdminArtists() {
   const artistMap = new Map(artists.map((a) => [a.id, a]));
   const sorted = order.map((id) => artistMap.get(id)).filter(Boolean) as typeof artists;
 
-  function handleDelete(id: string, name: string) {
+  async function handleDelete(id: string, name: string) {
     if (confirm(`Excluir artista "${name}"? Esta ação não pode ser desfeita.`)) {
-      deleteArtist(id);
+      await deleteArtist(id);
     }
   }
 

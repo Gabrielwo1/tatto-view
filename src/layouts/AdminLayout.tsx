@@ -85,15 +85,6 @@ const navItems = [
     ),
   },
   {
-    to: '/admin/sobre-nos',
-    label: 'Sobre Nós',
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-      </svg>
-    ),
-  },
-  {
     to: '/admin/ficha-anamnese',
     label: 'Ficha Anamnese',
     icon: (
@@ -150,7 +141,6 @@ const adminOnlyItems = [
   '/admin/events',
   '/admin/aftercare',
   '/admin/landing',
-  '/admin/sobre-nos',
   '/admin/ficha-anamnese',
   '/admin/fichas',
   '/admin/configuracoes',
@@ -187,7 +177,7 @@ export default function AdminLayout() {
   }
 
   const items = useMemo(() => {
-    if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem);
+    if (isAdmin) return navItems.filter((item) => item.to !== artistOnlyItem && item.to !== '/admin/sobre-nos');
     if (isArtist) return navItems.filter((item) =>
       !adminOnlyItems.includes(item.to) &&
       item.to !== merchItem &&

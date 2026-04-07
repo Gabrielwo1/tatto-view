@@ -117,7 +117,7 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Right group: Loja + Sobre Nós + Admin */}
+          {/* Right group: Eventos + Pós Tattoo + Endereço + Admin */}
           <div className="flex items-center justify-end gap-6">
             <div className="hidden lg:flex items-center gap-6 mr-10">
               <Link to="/events" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
@@ -126,8 +126,8 @@ export default function Navbar() {
               <Link to="/aftercare" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
                 Pós Tattoo
               </Link>
-              <Link to="/sobre-nos" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
-                Sobre Nós
+              <Link to="/endereco" className={topNavClass} onClick={() => window.scrollTo(0, 0)}>
+                Endereço
               </Link>
             </div>
 
@@ -180,7 +180,7 @@ export default function Navbar() {
               { to: '/events', label: 'Eventos', end: false },
               { to: '/loja', label: 'Loja', end: false },
               { to: '/aftercare', label: 'Pós Tattoo', end: false },
-              { to: '/sobre-nos', label: 'Sobre Nós', end: false },
+              { to: '/endereco', label: 'Endereço', end: false },
               { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
             ].map(({ to, label, end }) => (
               <NavLink

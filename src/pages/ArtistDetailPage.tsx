@@ -8,6 +8,42 @@ import domtoimage from 'dom-to-image-more';
 import { toSlug } from '../utils';
 import type { TatuadoPost } from '../types';
 
+function normalizeExternalUrl(raw?: string): string | null {
+  if (!raw) return null;
+  const value = raw.trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^[\w.-]+\.[a-z]{2,}/i.test(value)) return `https://${value}`;
+  return null;
+}
+
+function normalizeWhatsAppUrl(raw?: string): string | null {
+  if (!raw) return null;
+  const value = raw.trim();
+  if (!value) return null;
+  const msg = 'Olá! Vi seu trabalho no site da El Dude e gostaria de fazer um orçamento. 🖤';
+
+  if (/^https?:\/\//i.test(value)) {
+    if ((/wa\.me|api\.whatsapp\.com/i.test(value)) && !/[?&]text=/i.test(value)) {
+      return `${value}${value.includes('?') ? '&' : '?'}text=${encodeURIComponent(msg)}`;
+    }
+    return value;
+  }
+
+  if (/wa\.me|api\.whatsapp\.com/i.test(value)) {
+    const full = `https://${value.replace(/^\/+/, '')}`;
+    if (!/[?&]text=/i.test(full)) {
+      return `${full}${full.includes('?') ? '&' : '?'}text=${encodeURIComponent(msg)}`;
+    }
+    return full;
+  }
+
+  const digits = value.replace(/\D/g, '');
+  if (!digits) return null;
+  const phone = digits.startsWith('55') ? digits : `55${digits}`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+}
+
 export default function ArtistDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const artists = useStore((s) => s.artists);
@@ -38,6 +74,8 @@ export default function ArtistDetailPage() {
   const artistTattoos = tattoos.filter((t) => t.artistId === artist.id);
   const filtered = artistTattoos.filter((t) => t.status === (tab === 'tatuados' ? 'available' : tab));
   const artistPosts = tatuadoPosts.filter((p) => p.artistId === artist.id);
+  const instagramUrl = normalizeExternalUrl(artist.instagram);
+  const whatsappUrl = normalizeWhatsAppUrl(artist.whatsapp);
 
   const handlePrint = async () => {
     if (!printRef.current) return;
@@ -115,9 +153,9 @@ export default function ArtistDetailPage() {
             ))}
           </div>
           <div className="flex flex-wrap gap-3 mt-2">
-            {artist.instagram && (
+            {instagramUrl && (
               <a
-                href={artist.instagram}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white text-white/70 hover:text-white text-xs font-body font-semibold tracking-widest uppercase transition-colors"
@@ -128,9 +166,9 @@ export default function ArtistDetailPage() {
                 Instagram
               </a>
             )}
-            {artist.whatsapp && (
+            {whatsappUrl && (
               <a
-                href={artist.whatsapp}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 border border-white/20 hover:border-white text-white/70 hover:text-white text-xs font-body font-semibold tracking-widest uppercase transition-colors"
@@ -140,6 +178,17 @@ export default function ArtistDetailPage() {
                 </svg>
                 WhatsApp
               </a>
+            )}
+            {artist.guestTrip?.active && (
+              <Link
+                to={`/artistas/${slug}/guest-trip`}
+                className="flex items-center gap-2 px-4 py-2 border border-ink-500/30 text-ink-400 hover:text-ink-300 hover:border-ink-500 text-xs font-body font-semibold tracking-widest uppercase transition-colors"
+              >
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Guest Trip
+              </Link>
             )}
           </div>
         </div>

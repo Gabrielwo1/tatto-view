@@ -206,7 +206,7 @@ export default function AdminTattoos() {
 
   const editingTattoo = editingId ? tattoos.find((t) => t.id === editingId) ?? null : null;
 
-  function handleDelete(id: string, title: string) {
+  async function handleDelete(id: string, title: string) {
     if (confirm(`Excluir "${title}"? Esta ação não pode ser desfeita.`)) {
       setPendingDeleteIds((prev) => { const n = new Set(prev); n.add(id); return n; });
       deleteTattoo(id);

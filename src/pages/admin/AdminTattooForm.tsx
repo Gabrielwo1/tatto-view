@@ -493,7 +493,7 @@ export default function AdminTattooForm() {
       {/* ── PHASE 3: REVIEW & SAVE ──────────────────────────────────────────── */}
       {phase === 'review' && (
         <div>
-          <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6">
             <p className="font-body text-sm text-gray-400">
               Confira as <span className="text-white font-bold">{items.length} arte{items.length !== 1 ? 's' : ''}</span> antes de salvar
             </p>

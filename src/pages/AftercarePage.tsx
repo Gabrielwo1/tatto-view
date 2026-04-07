@@ -104,7 +104,7 @@ const IconNoTight = () => (
 
 /* ─── main page ──────────────────────────────────────────────────────────── */
 
-export default function AftercareePage() {
+export default function AftercarePage() {
   const c = useStore((s) => s.aftercareContent);
 
   if (!c || !c.hero || !c.preSession || !c.daySession || !c.postSession || !c.cta) {

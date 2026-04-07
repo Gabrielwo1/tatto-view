@@ -9,7 +9,13 @@ const labelCls =
   'block font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-1.5';
 
 // ── Merch form modal ─────────────────────────────────────────────────────────
-const emptyMerchForm = { name: '', description: '', price: '', imageUrl: '', link: '', sizesRaw: '' };
+const MERCH_CATEGORIES = [
+  { value: 'prints',     label: 'Prints' },
+  { value: 'vestuario',  label: 'Vestuário' },
+  { value: 'acessorios', label: 'Acessórios' },
+] as const;
+
+const emptyMerchForm = { name: '', description: '', price: '', imageUrl: '', link: '', sizesRaw: '', category: '' };
 
 function MerchFormModal({
   initial,
@@ -69,11 +75,24 @@ function MerchFormModal({
               <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={inputCls} placeholder="Ex: Camiseta El Dude" />
             </div>
             <div>
+              <label className={labelCls}>Categoria *</label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className={inputCls}
+              >
+                <option value="">Selecionar...</option>
+                {MERCH_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className={labelCls}>Preço *</label>
               <input type="text" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required className={inputCls} placeholder="R$ 89,90" />
             </div>
-            <div>
-              <label className={labelCls}>Tamanhos</label>
+            <div className="col-span-2">
+              <label className={labelCls}>Tamanhos (para Vestuário)</label>
               <input type="text" value={form.sizesRaw} onChange={(e) => setForm({ ...form, sizesRaw: e.target.value })} className={inputCls} placeholder="P, M, G, GG" />
             </div>
           </div>
@@ -200,14 +219,16 @@ export default function AdminMerchs() {
 
   function handleAddMerch(data: typeof emptyMerchForm) {
     const sizes = data.sizesRaw.split(',').map((s) => s.trim()).filter(Boolean);
-    addMerch({ name: data.name, description: data.description, price: data.price, imageUrl: data.imageUrl, link: data.link || undefined, sizes: sizes.length ? sizes : undefined });
+    const category = data.category as Merch['category'] | undefined;
+    addMerch({ name: data.name, description: data.description, price: data.price, imageUrl: data.imageUrl, link: data.link || undefined, sizes: sizes.length ? sizes : undefined, category: category || undefined });
     setShowAddMerch(false);
   }
 
   function handleEditMerch(data: typeof emptyMerchForm) {
     if (!editingMerch) return;
     const sizes = data.sizesRaw.split(',').map((s) => s.trim()).filter(Boolean);
-    updateMerch(editingMerch.id, { name: data.name, description: data.description, price: data.price, imageUrl: data.imageUrl, link: data.link || undefined, sizes: sizes.length ? sizes : undefined });
+    const category = data.category as Merch['category'] | undefined;
+    updateMerch(editingMerch.id, { name: data.name, description: data.description, price: data.price, imageUrl: data.imageUrl, link: data.link || undefined, sizes: sizes.length ? sizes : undefined, category: category || undefined });
     setEditingMerch(null);
   }
 
@@ -364,6 +385,13 @@ export default function AdminMerchs() {
                     </div>
                   )}
                   <div className="p-3 flex-1 flex flex-col">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      {m.category && (
+                        <span className="font-body text-[8px] font-bold tracking-widest uppercase px-1.5 py-0.5 bg-zinc-800 text-zinc-400">
+                          {m.category}
+                        </span>
+                      )}
+                    </div>
                     <p className="font-display text-sm uppercase tracking-wide leading-tight mb-0.5 text-white truncate">{m.name}</p>
                     {m.sizes && m.sizes.length > 0 && (
                       <p className="font-body text-[9px] text-gray-600 mb-1">{m.sizes.join(' · ')}</p>
@@ -545,6 +573,7 @@ export default function AdminMerchs() {
             imageUrl: editingMerch.imageUrl,
             link: editingMerch.link ?? '',
             sizesRaw: editingMerch.sizes?.join(', ') ?? '',
+            category: editingMerch.category ?? '',
           }}
           onSubmit={handleEditMerch}
           onCancel={() => setEditingMerch(null)}

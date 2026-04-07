@@ -23,6 +23,29 @@ export default function WhatsAppButton() {
     window.open(url, '_blank');
   };
 
+  const openWhatsAppSafe = (raw: string, name: string) => {
+    const msg = `Olá ${name}! Vi seu trabalho no site da El Dude e gostaria de fazer um orçamento. 🖤`;
+    const value = (raw || '').trim();
+    if (!value) return;
+
+    let url = '';
+    if (/^https?:\/\//i.test(value)) {
+      url = value;
+    } else if (/wa\.me|api\.whatsapp\.com/i.test(value)) {
+      url = `https://${value.replace(/^\/+/, '')}`;
+    } else {
+      const digits = value.replace(/\D/g, '');
+      if (!digits) return;
+      const phone = digits.startsWith('55') ? digits : `55${digits}`;
+      url = `https://wa.me/${phone}`;
+    }
+
+    if (/wa\.me|api\.whatsapp\.com/i.test(url) && !/[?&]text=/i.test(url)) {
+      url += `${url.includes('?') ? '&' : '?'}text=${encodeURIComponent(msg)}`;
+    }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div style={{ position: 'fixed', bottom: '28px', right: '28px', zIndex: 10000 }}>
       {/* The Floating Button */}
@@ -133,7 +156,7 @@ export default function WhatsAppButton() {
                       const instaUser = artist.instagram.replace(/.*instagram\.com\//, '').replace(/\//g, '');
                       window.open(`https://instagram.com/${instaUser}`, '_blank');
                     } else {
-                      openWhatsApp(artist.whatsapp || STUDIO_PHONE, artist.name);
+                      openWhatsAppSafe(artist.whatsapp || STUDIO_PHONE, artist.name);
                     }
                   }}
                   className="wa-item"

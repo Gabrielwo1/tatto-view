@@ -30,6 +30,18 @@ export interface CartItem {
   itemId: string;
 }
 
+export interface GuestTrip {
+  active: boolean;
+  tagline: string;
+  title: string;
+  bannerUrl: string;
+  subtitle: string;
+  guestName: string;
+  period: string;
+  instagram: string;
+  galleryImages: string[];
+}
+
 export interface Artist {
   id: string;
   name: string;
@@ -39,6 +51,7 @@ export interface Artist {
   instagram?: string;
   whatsapp?: string;
   preferredContactMethod?: 'whatsapp' | 'instagram';
+  guestTrip?: GuestTrip;
   createdAt: string;
   hiddenFromHero?: boolean;
 }
@@ -51,6 +64,7 @@ export interface Merch {
   imageUrl: string;
   link?: string;
   sizes?: string[];
+  category?: 'prints' | 'vestuario' | 'acessorios';
   createdAt: string;
 }
 
@@ -83,6 +97,33 @@ export interface ShopContent {
   paymentMethods: Array<{ label: string; sub: string }>;
 }
 
+export interface FichaConfig {
+  tatuadores: string[];
+  conditions: string[];
+  cidade?: string;
+}
+
+export interface FichaSubmission {
+  id: string;
+  submittedAt: string;
+  email: string;
+  nome: string;
+  dataNascimento: string;
+  cpf: string;
+  endereco: string;
+  cidade: string;
+  cep: string;
+  telefone: string;
+  tatuadoresSelecionados: string[];
+  outroTatuador: string;
+  localCorpo: string;
+  valorAcordado: string;
+  conditions: Record<string, 'sim' | 'nao' | null>;
+  detalhesCondicoes: string;
+  telefoneEmergencia: string;
+  dataAssinatura: string;
+}
+
 // Supabase DB row shapes (snake_case) — used in store converters
 export interface TattooRow {
   id: string;
@@ -106,6 +147,7 @@ export interface ArtistRow {
   instagram: string | null;
   whatsapp: string | null;
   preferred_contact_method?: 'whatsapp' | 'instagram' | null;
+  guest_trip?: GuestTrip | null;
   created_at: string;
   hidden_from_hero: boolean | null;
 }
@@ -118,6 +160,7 @@ export interface MerchRow {
   image_url: string;
   link: string | null;
   sizes: string[] | null;
+  category: string | null;
   created_at: string;
 }
 

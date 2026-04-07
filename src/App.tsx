@@ -3,11 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { trackPageView } from './lib/analytics';
 import { useStore } from './store';
 import { applyTheme, applyCustomColors, getThemeForHostname, THEMES } from './lib/themes';
+import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import ShowcasePage from './pages/ShowcasePage';
 import ArchivedPage from './pages/ArchivedPage';
 import ArtistsPage from './pages/ArtistsPage';
 import ArtistDetailPage from './pages/ArtistDetailPage';
+import ArtistGuestTripPage from './pages/ArtistGuestTripPage';
+import AddressPage from './pages/AddressPage';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminLayout from './layouts/AdminLayout';
@@ -24,9 +27,7 @@ import GuestsPage from './pages/GuestsPage';
 import EventsPage from './pages/EventsPage';
 import MerchsPage from './pages/MerchsPage';
 import LandingPage from './pages/LandingPage';
-import AftercareePage from './pages/AftercareePage';
-import SobreNosPage from './pages/SobreNosPage';
-import AdminSobreNos from './pages/admin/AdminSobreNos';
+import AftercarePage from './pages/AftercarePage';
 import AdminTatuados from './pages/admin/AdminTatuados';
 import AdminAftercare from './pages/admin/AdminAftercare';
 import AdminLandingPage from './pages/admin/AdminLandingPage';
@@ -150,8 +151,19 @@ export default function App() {
   // Apply custom favicon + og:image dynamically
   useEffect(() => {
     const faviconUrl = customFavicon ?? '/dudeicone.png';
-    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (link) link.href = faviconUrl;
+    const cacheBuster = 'v=' + Date.now();
+    const fullUrl = faviconUrl + (faviconUrl.includes('?') ? '&' : '?') + cacheBuster;
+    
+    const selectors = [
+      'link[rel="icon"]',
+      'link[rel="shortcut icon"]',
+      'link[rel="apple-touch-icon"]',
+    ];
+    selectors.forEach((selector) => {
+      document.querySelectorAll<HTMLLinkElement>(selector).forEach((link) => {
+        link.href = fullUrl;
+      });
+    });
 
     // og:image is served by /api/og-image (server-side, always up-to-date)
   }, [customFavicon]);
@@ -167,10 +179,11 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <RecoveryRedirect />
-      <PageTracker />
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <RecoveryRedirect />
+        <PageTracker />
+        <Routes>
         {/* Public routes */}
         <Route
           path="/"
@@ -205,6 +218,14 @@ export default function App() {
           }
         />
         <Route
+          path="/artistas/:slug/guest-trip"
+          element={
+            <PublicLayout>
+              <ArtistGuestTripPage />
+            </PublicLayout>
+          }
+        />
+        <Route
           path="/guests"
           element={
             <PublicLayout>
@@ -232,15 +253,15 @@ export default function App() {
           path="/aftercare"
           element={
             <PublicLayout>
-              <AftercareePage />
+              <AftercarePage />
             </PublicLayout>
           }
         />
         <Route
-          path="/sobre-nos"
+          path="/endereco"
           element={
             <PublicLayout>
-              <SobreNosPage />
+              <AddressPage />
             </PublicLayout>
           }
         />
@@ -310,7 +331,6 @@ export default function App() {
           <Route path="guests" element={<ProtectedAdminRoute><AdminGuestPage /></ProtectedAdminRoute>} />
           <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
           <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
-          <Route path="sobre-nos" element={<ProtectedAdminRoute><AdminSobreNos /></ProtectedAdminRoute>} />
           <Route path="tatuados" element={<ProtectedRoute><AdminTatuados /></ProtectedRoute>} />
           <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
@@ -323,5 +343,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+  </ErrorBoundary>
   );
 }
