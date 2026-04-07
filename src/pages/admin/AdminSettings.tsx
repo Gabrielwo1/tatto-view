@@ -397,23 +397,21 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-8">
         <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">Estúdio</p>
         <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Configurações</h1>
       </div>
 
-      {/* ══ CONFIGURAÇÕES ══════════════════════ */}
-      <div className="max-w-sm">
+      {/* ══ CONFIGURAÇÕES EM GRID ══════════════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
 
-        {/* ╠══ COL ESQUERDA — Aparência + Imagens + Estilos ══╣ */}
-        <div className="space-y-3">
-
-          {/* Custom colors — col 1 continuation */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Cores personalizadas</p>
-            <div className="space-y-2 mb-3">
+        {/* ── COLUNA 1: Identidade e Cores ── */}
+        <div className="space-y-6">
+          <div className="border border-white/10 bg-black/20 p-5">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Cores personalizadas</p>
+            <div className="space-y-3 mb-4">
               <div className="border border-white/10 bg-black/30 p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
@@ -457,157 +455,115 @@ export default function AdminSettings() {
               </button>
             </div>
           </div>
-          {/* Logo upload */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Imagens do site</p>
-            {/* Logo row */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-16 h-10 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
-                <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="max-h-full max-w-full object-contain" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Logo</p>
-                <div className="flex gap-2">
-                  <button type="button" disabled={logoUploading} onClick={() => logoFileRef.current?.click()}
-                    className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40">
-                    {logoUploading ? 'Enviando...' : '↑ Upload'}
-                  </button>
-                  {customLogo && (
-                    <button type="button" onClick={() => { setCustomLogo(null); setLogoFileName(''); }}
-                      className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
-                      ✕ Reset
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-            <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setLogoFileName(f.name); handleLogoUpload(f); } e.target.value = ''; }} />
-            {logoFileName && (
-              <p className="mt-1 font-body text-[9px] text-gray-600 truncate">
-                Arquivo: {logoFileName}
-              </p>
-            )}
 
-            {/* Favicon row */}
-            <div className="flex items-center gap-3 pt-3 border-t border-white/5">
-              <div className="w-10 h-10 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
-                <img src={customFavicon ?? '/dudeicone.png'} alt="Favicon" className="max-h-full max-w-full object-contain" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Favicon</p>
-                <div className="flex gap-2">
-                  <button type="button" disabled={faviconUploading} onClick={() => faviconFileRef.current?.click()}
-                    className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors disabled:opacity-40">
-                    {faviconUploading ? 'Enviando...' : '↑ Upload'}
-                  </button>
-                  {customFavicon && (
-                    <button type="button" onClick={() => { setCustomFavicon(null); setFaviconFileName(''); }}
-                      className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
-                      ✕ Reset
+          <div className="border border-white/10 bg-black/20 p-5">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Imagens do site</p>
+            <div className="space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-12 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+                  <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="max-h-full max-w-full object-contain" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Logo Principal</p>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={logoUploading} onClick={() => logoFileRef.current?.click()}
+                      className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors">
+                      {logoUploading ? 'Enviando...' : '↑ Upload'}
                     </button>
-                  )}
+                    {customLogo && (
+                      <button type="button" onClick={() => { setCustomLogo(null); setLogoFileName(''); }}
+                        className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 transition-colors">
+                        ✕ Reset
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
+              <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setLogoFileName(f.name); handleLogoUpload(f); } e.target.value = ''; }} />
+              
+              <div className="flex items-center gap-4 pt-5 border-t border-white/5">
+                <div className="w-12 h-12 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+                  <img src={customFavicon ?? '/dudeicone.png'} alt="Favicon" className="max-h-full max-w-full object-contain" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Favicon (Ícone da Aba)</p>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={faviconUploading} onClick={() => faviconFileRef.current?.click()}
+                      className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors">
+                      {faviconUploading ? 'Enviando...' : '↑ Upload'}
+                    </button>
+                    {customFavicon && (
+                      <button type="button" onClick={() => { setCustomFavicon(null); setFaviconFileName(''); }}
+                        className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 transition-colors">
+                        ✕ Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setFaviconFileName(f.name); handleFaviconUpload(f); } e.target.value = ''; }} />
             </div>
-            <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setFaviconFileName(f.name); handleFaviconUpload(f); } e.target.value = ''; }} />
-            {faviconFileName && (
-              <p className="mt-1 font-body text-[9px] text-gray-600 truncate">
-                Arquivo: {faviconFileName}
-              </p>
-            )}
           </div>
+        </div>
 
-          {/* Estilos da Vitrine */}
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Estilos da vitrine</p>
+        {/* ── COLUNA 2: Vitrine e Estilos ── */}
+        <div className="space-y-6">
+          <div className="border border-white/10 bg-black/20 p-5">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Estilos da vitrine</p>
             <StyleVisibilitySection />
           </div>
-        </div>{/* fim col esquerda */}
+        </div>
 
-        {/* ╠══ COL DIREITA — Endereço e Horários ══╣ */}
-        <div className="space-y-3">
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Endereço e Estúdio</p>
+        {/* ── COLUNA 3: Endereço e Horários ── */}
+        <div className="space-y-6">
+          <div className="border border-white/10 bg-black/20 p-5">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Endereço e Estúdio</p>
             <div className="space-y-4">
               <div>
                 <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Título do Estúdio</label>
-                <input 
-                  type="text" 
-                  value={studio.title} 
-                  onChange={(e) => handleStudioChange('title', e.target.value)}
-                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
-                />
+                <input type="text" value={studio.title} onChange={(e) => handleStudioChange('title', e.target.value)}
+                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
               </div>
               <div>
                 <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Rua e Número</label>
-                <input 
-                  type="text" 
-                  value={studio.street} 
-                  onChange={(e) => handleStudioChange('street', e.target.value)}
-                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
-                />
+                <input type="text" value={studio.street} onChange={(e) => handleStudioChange('street', e.target.value)}
+                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Cidade — UF</label>
-                  <input 
-                    type="text" 
-                    value={studio.city} 
-                    onChange={(e) => handleStudioChange('city', e.target.value)}
-                    className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
-                  />
+                  <input type="text" value={studio.city} onChange={(e) => handleStudioChange('city', e.target.value)}
+                    className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
                 </div>
                 <div>
                   <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">CEP</label>
-                  <input 
-                    type="text" 
-                    value={studio.cep} 
-                    onChange={(e) => handleStudioChange('cep', e.target.value)}
-                    className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
-                  />
+                  <input type="text" value={studio.cep} onChange={(e) => handleStudioChange('cep', e.target.value)}
+                    className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
                 </div>
               </div>
               <div>
                 <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Bairro / Label do Mapa</label>
-                <input 
-                  type="text" 
-                  value={studio.mapLabel} 
-                  onChange={(e) => handleStudioChange('mapLabel', e.target.value)}
-                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors"
-                />
+                <input type="text" value={studio.mapLabel} onChange={(e) => handleStudioChange('mapLabel', e.target.value)}
+                  className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
               </div>
             </div>
           </div>
 
-          <div className="border border-white/10 bg-black/20 p-4">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Horários de Funcionamento</p>
-            <div className="space-y-3">
+          <div className="border border-white/10 bg-black/20 p-5">
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Horários de Funcionamento</p>
+            <div className="space-y-4">
               {studio.hours.map((h, i) => (
-                <div key={i} className="space-y-2 pb-3 border-b border-white/5 last:border-0 last:pb-0">
+                <div key={i} className="space-y-2 pb-4 border-b border-white/5 last:border-0 last:pb-0">
                   <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={h.days} 
-                      onChange={(e) => handleHourChange(i, 'days', e.target.value)}
-                      className="flex-1 bg-transparent border border-white/10 px-2 py-1 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors"
-                      placeholder="Dias"
-                    />
-                    <input 
-                      type="text" 
-                      value={h.time} 
-                      onChange={(e) => handleHourChange(i, 'time', e.target.value)}
-                      className="flex-1 bg-transparent border border-white/10 px-2 py-1 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors"
-                      placeholder="Horário"
-                    />
+                    <input type="text" value={h.days} onChange={(e) => handleHourChange(i, 'days', e.target.value)}
+                      className="flex-1 bg-transparent border border-white/10 px-2 py-1.5 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors" placeholder="Dias" />
+                    <input type="text" value={h.time} onChange={(e) => handleHourChange(i, 'time', e.target.value)}
+                      className="flex-1 bg-transparent border border-white/10 px-2 py-1.5 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors" placeholder="Horário" />
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={h.closed} 
-                      onChange={(e) => handleHourChange(i, 'closed', e.target.checked)}
-                      className="rounded border-white/10 bg-transparent text-ink-500 focus:ring-offset-0 focus:ring-ink-500"
-                    />
-                    <span className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Destacar como fechado/especial</span>
+                    <input type="checkbox" checked={h.closed} onChange={(e) => handleHourChange(i, 'closed', e.target.checked)}
+                      className="rounded border-white/10 bg-transparent text-ink-500 focus:ring-offset-0 focus:ring-ink-500" />
+                    <span className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Destaque (fechado/especial)</span>
                   </label>
                 </div>
               ))}
@@ -615,8 +571,7 @@ export default function AdminSettings() {
           </div>
         </div>
 
-      </div>{/* fim config */}
-
+      </div>
     </div>
   );
 }
