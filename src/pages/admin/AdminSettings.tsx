@@ -325,8 +325,10 @@ export default function AdminSettings() {
 
   const [logoUploading, setLogoUploading] = useState(false);
   const logoFileRef = useRef<HTMLInputElement>(null);
+  const [logoFileName, setLogoFileName] = useState<string>('');
   const [faviconUploading, setFaviconUploading] = useState(false);
   const faviconFileRef = useRef<HTMLInputElement>(null);
+  const [faviconFileName, setFaviconFileName] = useState<string>('');
 
   const [draftPrimary,   setDraftPrimary]   = useState(customPrimary   ?? '#ff4500');
   const [draftSecondary, setDraftSecondary] = useState(customSecondary ?? '#3b82f6');
@@ -454,7 +456,7 @@ export default function AdminSettings() {
                     {logoUploading ? 'Enviando...' : '↑ Upload'}
                   </button>
                   {customLogo && (
-                    <button type="button" onClick={() => setCustomLogo(null)}
+                    <button type="button" onClick={() => { setCustomLogo(null); setLogoFileName(''); }}
                       className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
                       ✕ Reset
                     </button>
@@ -462,7 +464,12 @@ export default function AdminSettings() {
                 </div>
               </div>
             </div>
-            <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
+            <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setLogoFileName(f.name); handleLogoUpload(f); } e.target.value = ''; }} />
+            {logoFileName && (
+              <p className="mt-1 font-body text-[9px] text-gray-600 truncate">
+                Arquivo: {logoFileName}
+              </p>
+            )}
 
             {/* Favicon row */}
             <div className="flex items-center gap-3 pt-3 border-t border-white/5">
@@ -477,7 +484,7 @@ export default function AdminSettings() {
                     {faviconUploading ? 'Enviando...' : '↑ Upload'}
                   </button>
                   {customFavicon && (
-                    <button type="button" onClick={() => setCustomFavicon(null)}
+                    <button type="button" onClick={() => { setCustomFavicon(null); setFaviconFileName(''); }}
                       className="font-body text-[9px] tracking-widest uppercase px-3 py-1.5 border border-white/10 text-gray-700 hover:text-red-400 hover:border-red-400/30 transition-colors">
                       ✕ Reset
                     </button>
@@ -485,7 +492,12 @@ export default function AdminSettings() {
                 </div>
               </div>
             </div>
-            <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFaviconUpload(f); e.target.value = ''; }} />
+            <input ref={faviconFileRef} type="file" accept="image/png,image/svg+xml,image/x-icon,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setFaviconFileName(f.name); handleFaviconUpload(f); } e.target.value = ''; }} />
+            {faviconFileName && (
+              <p className="mt-1 font-body text-[9px] text-gray-600 truncate">
+                Arquivo: {faviconFileName}
+              </p>
+            )}
           </div>
 
           {/* Estilos da Vitrine */}
@@ -497,10 +509,6 @@ export default function AdminSettings() {
 
       </div>{/* fim config */}
 
-      {/* ── Compress old images ── */}
-      <div className="mt-6">
-        <CompressStorageSection />
-      </div>
     </div>
   );
 }
