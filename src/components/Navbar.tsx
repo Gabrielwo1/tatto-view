@@ -41,7 +41,7 @@ export default function Navbar() {
         <div
           className="grid items-center transition-all duration-500 ease-in-out"
           style={{
-            height: scrolled ? '64px' : '160px',
+            height: scrolled ? '64px' : '80px',
             gridTemplateColumns: '1fr auto 1fr',
           }}
         >
@@ -80,7 +80,7 @@ export default function Navbar() {
             {logoColorMode === 'primary' || logoColorMode === 'secondary' ? (
               <div
                 className="transition-all duration-500 ease-in-out relative"
-                style={{ height: scrolled ? '40px' : '120px', display: 'inline-block' }}
+                style={{ height: scrolled ? '40px' : '56px', display: 'inline-block' }}
               >
                 <img
                   src={logoSrc}
@@ -104,7 +104,7 @@ export default function Navbar() {
                 alt="El Dude"
                 className="w-auto object-contain transition-all duration-500 ease-in-out"
                 style={{
-                  height: scrolled ? '40px' : '120px',
+                  height: scrolled ? '40px' : '56px',
                   filter: logoColorMode === 'white'
                     ? 'brightness(0) invert(1)'
                     : logoColorMode === 'black'
@@ -131,7 +131,7 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Wishlist + Cart icons */}
+            {/* Wishlist + Cart icons (always visible) */}
             <div className="flex items-center gap-3">
               <Link to="/lista-de-desejos" title="Lista de desejos" className="relative text-white/40 hover:text-white transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -152,17 +152,31 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-4">
-              <Link to="/admin" title="Admin" className="text-white/40 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </Link>
-              {isLoggedIn && (
-                <button onClick={() => { logout(); navigate('/'); }} className="text-white/40 hover:text-red-400 transition-colors" title="Sair">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                </button>
+              {publicUser ? (
+                <div className="flex items-center gap-3">
+                  <span className="font-body text-xs text-white/40 tracking-widest uppercase hidden lg:block truncate max-w-[100px]">{publicUser.name}</span>
+                  <button onClick={() => { publicLogout(); navigate('/'); }} title="Sair" className="text-white/30 hover:text-red-400 transition-colors">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                  </button>
+                </div>
+              ) : isLoggedIn ? (
+                <div className="flex items-center gap-4">
+                  <Link to="/admin" className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors">
+                    {displayName}
+                  </Link>
+                  <button onClick={() => { logout(); navigate('/'); }} className="flex items-center gap-1.5 font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-red-400 transition-colors" title="Sair">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Sair
+                  </button>
+                </div>
+              ) : (
+                <Link to="/login" className="font-body text-xs font-semibold tracking-widest uppercase text-white/40 hover:text-white transition-colors">
+                  Login
+                </Link>
               )}
             </div>
           </div>

@@ -35,6 +35,7 @@ import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
 import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
 import AdminMyProfile from './pages/admin/AdminMyProfile';
 import AdminFinanceiro from './pages/admin/AdminFinanceiro';
+import BillingPage from './pages/admin/BillingPage';
 import SiteFooter from './components/SiteFooter';
 import WhatsAppButton from './components/WhatsAppButton';
 import VitrinLandingPage from './pages/VitrinLandingPage';
@@ -337,6 +338,7 @@ export default function App() {
           <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
           <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
+          <Route path="billing" element={<BillingPage />} />
         </Route>
 
         {/* Fallback */}

@@ -12,7 +12,6 @@ export default function CartDrawer({ open, onClose }: Props) {
   const tattoos = useStore((s) => s.tattoos);
   const merchs = useStore((s) => s.merchs);
   const removeFromCart = useStore((s) => s.removeFromCart);
-  const publicUser = useStore((s) => s.publicUser);
   const navigate = useNavigate();
 
   if (!open) return null;
@@ -21,7 +20,14 @@ export default function CartDrawer({ open, onClose }: Props) {
     if (c.itemType === 'tattoo') {
       const t = tattoos.find((x) => x.id === c.itemId);
       if (!t) return null;
-      return { ...c, name: t.title, image: t.imageUrl, price: t.depositAmount ? `Sinal: ${formatPrice(t.depositAmount / 100)}` : formatPrice(t.price) ?? 'Consultar' };
+      return { 
+        ...c, 
+        name: t.title, 
+        image: t.imageUrl, 
+        price: t.depositAmount 
+          ? `Sinal: ${formatPrice(t.depositAmount / 100)}` 
+          : t.price ? formatPrice(t.price) : 'Consultar' 
+      };
     } else {
       const m = merchs.find((x) => x.id === c.itemId);
       if (!m) return null;
@@ -85,11 +91,6 @@ export default function CartDrawer({ open, onClose }: Props) {
 
         {items.length > 0 && (
           <div className="px-5 py-4 border-t border-white/10">
-            {!publicUser && (
-              <p className="font-body text-[10px] text-gray-600 text-center mb-3 tracking-widest uppercase">
-                Faça login para finalizar
-              </p>
-            )}
             <button
               onClick={handleCheckout}
               className="w-full bg-white text-black font-body text-xs font-bold tracking-widest uppercase py-3 hover:bg-white/90 transition-colors"

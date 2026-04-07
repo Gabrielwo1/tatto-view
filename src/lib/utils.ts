@@ -1,35 +1,32 @@
 /**
  * Formata um valor numérico ou string em formato de moeda Real (R$)
  */
-export function formatPrice(price: string | number | undefined): string {
-  if (price === undefined || price === null || price === '') return '';
+export function formatPrice(value: string | number | undefined | null): string {
+  if (value === undefined || value === null || value === '') return '';
   
-  const s = String(price).trim();
+  const s = String(value).trim();
   
   // Se for apenas o número limpo (ex: "300")
   // Ou se tiver separadores decimais (ex: "300.50" ou "300,50")
   let num: number;
   
-  if (typeof price === 'number') {
-    num = price;
+  if (typeof value === 'number') {
+    num = value;
   } else {
     // Tenta limpar e converter
     // Remove "R$", espaços, etc, mantendo apenas dígitos, vírgula e ponto
-    const cleaned = s.replace(/[^\d.,-]/g, '');
+    const cleaned = s
+      .replace(/^R\$\s*/, '')  // Remove prefixo R$
+      .replace(/\./g, '')      // Remove separador de milhar
+      .replace(',', '.');      // Troca vírgula decimal por ponto
     
-    if (cleaned.includes(',') && cleaned.includes('.')) {
-      // Formato complexo como 1.200,50 -> remove o ponto de milhar e troca vírgula por ponto
-      num = parseFloat(cleaned.replace(/\./g, '').replace(',', '.'));
-    } else if (cleaned.includes(',')) {
-      // Formato simples 300,50 -> troca vírgula por ponto
-      num = parseFloat(cleaned.replace(',', '.'));
-    } else {
-      // Formato 300 ou 300.50
-      num = parseFloat(cleaned);
-    }
+    num = parseFloat(cleaned);
   }
 
-  if (isNaN(num)) return s;
+  if (isNaN(num)) {
+    // Não é numérico ("A combinar", etc.) — retorna original
+    return s;
+  }
 
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',

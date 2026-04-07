@@ -710,6 +710,10 @@ interface AppState {
   addToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   moveToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Subscription ─────────────────────────────────────────────────────
+  subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | 'incomplete' | 'incomplete_expired' | null;
+  trialEndsAt: string | null;
+  loadSubscription: () => Promise<void>;
   // ── Admin auth ────────────────────────────────────────────────────────
   /** Check existing Supabase session on app load. */
   initAuth: () => Promise<void>;
@@ -771,6 +775,8 @@ export const useStore = create<AppState>()(
       publicUser: null,
       wishlist: [],
       cart: [],
+      subscriptionStatus: null,
+      trialEndsAt: null,
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
@@ -1146,6 +1152,24 @@ export const useStore = create<AppState>()(
         await get().removeFromWishlist(itemType, itemId);
       },
 
+      // ── Subscription ────────────────────────────────────────────────────
+      loadSubscription: async () => {
+        if (!supabase) return;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) return;
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('subscription_status, trial_ends_at')
+          .eq('id', session.user.id)
+          .single();
+        if (data) {
+          set({
+            subscriptionStatus: data.subscription_status ?? null,
+            trialEndsAt: data.trial_ends_at ?? null,
+          });
+        }
+      },
+
       // ── Admin Auth ───────────────────────────────────────────────────────
       initAuth: async () => {
         if (!supabase) { set({ authChecked: true }); return; }
@@ -1160,11 +1184,11 @@ export const useStore = create<AppState>()(
           if (!profile) { set({ authChecked: true }); return; }
           const email = session.user.email ?? null;
           if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: email });
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: email, subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null });
           } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email });
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email, subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null });
           } else if (profile.role === 'merch_manager') {
-            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: email });
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null });
           } else if (profile.role === 'customer') {
             const name = session.user.user_metadata?.name ?? (email?.split('@')[0] ?? 'Cliente');
             set({ publicUser: { id: session.user.id, email: email!, name } });
@@ -1182,21 +1206,22 @@ export const useStore = create<AppState>()(
         if (error || !data.user) return false;
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('role, artist_id, show_financeiro')
+          .select('role, artist_id, show_financeiro, subscription_status, trial_ends_at')
           .eq('id', data.user.id)
           .single();
         if (!profile) return false;
         const userEmail = data.user.email ?? null;
+        const subState = { subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null };
         if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail });
+          set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail, ...subState });
           return true;
         }
         if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail });
+          set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail, ...subState });
           return true;
         }
         if (profile.role === 'merch_manager') {
-          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null });
+          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, ...subState });
           return true;
         }
         return false;
