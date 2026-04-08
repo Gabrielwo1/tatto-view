@@ -122,12 +122,12 @@ function PageTracker() {
   return null;
 }
 
-function PublicLayout({ children }: { children: React.ReactNode }) {
+function PublicLayout({ children, hideFooter = false }: { children: React.ReactNode, hideFooter?: boolean }) {
   return (
     <div className="min-h-screen bg-zinc-900 text-white flex flex-col">
       <Navbar />
       <main className="flex-1">{children}</main>
-      <SiteFooter />
+      {!hideFooter && <SiteFooter />}
       <WhatsAppButton />
     </div>
   );
@@ -286,7 +286,7 @@ export default function App() {
 
 {/* Ficha de Anamnese */}
         <Route path="/ficha-anamnese" element={
-          <PublicLayout>
+          <PublicLayout hideFooter>
             <FichaAnamnesePage />
           </PublicLayout>
         } />
