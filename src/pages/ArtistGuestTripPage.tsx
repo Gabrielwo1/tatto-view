@@ -57,11 +57,21 @@ export default function ArtistGuestTripPage() {
           className="aspect-video bg-zinc-900 border border-white/10 overflow-hidden cursor-zoom-in mb-8"
           onClick={() => setSelectedImage(guestTrip.bannerUrl)}
         >
-          <img 
-            src={guestTrip.bannerUrl} 
-            alt={guestTrip.guestName} 
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
-          />
+          {guestTrip.bannerUrl ? (
+            <img 
+              src={guestTrip.bannerUrl} 
+              alt={guestTrip.guestName} 
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+              onError={(e) => {
+                console.error('[ArtistGuestTripPage] Failed to load banner:', guestTrip.bannerUrl);
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-zinc-600">
+              Sem banner
+            </div>
+          )}
         </div>
 
         {/* Info & Gallery Grid */}
