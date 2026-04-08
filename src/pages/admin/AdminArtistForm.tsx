@@ -100,6 +100,7 @@ export default function AdminArtistForm() {
     
     // Debug: log guestTrip data before saving
     console.log('[AdminArtistForm] Saving guestTrip:', form.guestTrip);
+    console.log('[AdminArtistForm] bannerUrl:', form.guestTrip?.bannerUrl);
     console.log('[AdminArtistForm] galleryImages:', form.guestTrip?.galleryImages);
     
     try {
