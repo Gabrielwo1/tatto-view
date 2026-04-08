@@ -325,7 +325,7 @@ export default function App() {
 
           <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
           <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
-          <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
+          <Route path="fichas" element={<ProtectedRoute><AdminFichaSubmissions /></ProtectedRoute>} />
           <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
           <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
           <Route path="billing" element={<BillingPage />} />

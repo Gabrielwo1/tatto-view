@@ -144,7 +144,6 @@ const adminOnlyItems = [
   '/admin/aftercare',
   '/admin/landing',
   '/admin/ficha-anamnese',
-  '/admin/fichas',
   '/admin/configuracoes',
 ];
 
