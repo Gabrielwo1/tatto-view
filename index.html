@@ -2,32 +2,61 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/dudeicone.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico" />
+    <!-- Mobile/Safari optimization -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/dudeicone.png?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/dudeicone.png?v=2" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/dudeicone.png?v=2" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+    <link rel="mask-icon" href="/dudeicone.png?v=2" color="#000000" />
+    <meta name="msapplication-TileColor" content="#000000" />
+    <meta name="theme-color" content="#000000" />
 
     <script>
       (function() {
         try {
-          const storage = JSON.parse(localStorage.getItem('tattoo-shop-storage-v5'));
+          const storageKey = 'tattoo-shop-storage-v5';
+          const storage = JSON.parse(localStorage.getItem(storageKey));
           if (storage && storage.state && storage.state.customFavicon) {
             const url = storage.state.customFavicon;
-            const selectors = ['link[rel="icon"]', 'link[rel="shortcut icon"]', 'link[rel="apple-touch-icon"]'];
+            // Use a stable version query for better caching behavior on mobile
+            const version = 'v=' + (storage.state.updatedAt || Date.now());
+            const fullUrl = url + (url.includes('?') ? '&' : '?') + version;
+            
+            const head = document.head || document.getElementsByTagName('head')[0];
+            const selectors = [
+              'link[rel="icon"]', 
+              'link[rel="shortcut icon"]', 
+              'link[rel="apple-touch-icon"]',
+              'link[rel="mask-icon"]'
+            ];
+            
             selectors.forEach(sel => {
-              document.querySelectorAll(sel).forEach(el => {
-                el.href = url + (url.includes('?') ? '&' : '?') + 'v=' + Date.now();
+              const links = document.querySelectorAll(sel);
+              links.forEach(el => {
+                el.href = fullUrl;
               });
             });
+
+            // Se for mobile/Safari, às vezes é necessário remover e readicionar a tag para forçar o refresh
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+              const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+              if (appleIcon) {
+                const parent = appleIcon.parentNode;
+                parent.removeChild(appleIcon);
+                parent.appendChild(appleIcon);
+              }
+            }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error('Favicon logic error:', e);
+        }
       })();
     </script>
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
 
     <title>El Dude Tattoo Studio Francisco Beltrão PR | Flash Tattoo, Realismo, Blackwork — Agende sua Sessão</title>
     <meta name="description" content="El Dude Tattoo Studio em Francisco Beltrão, Paraná. Artistas residentes especializados em flash tattoo, realismo, blackwork, old school, tribal e aquarela. Explore a vitrine de tatuagens e agende sua sessão." />
