@@ -25,16 +25,20 @@ export default function ImageUpload({ label, onImageUrl, initialUrl, onUpload }:
     // Show local preview immediately
     const localPreview = URL.createObjectURL(file);
     setPreview(localPreview);
+    console.log('[ImageUpload] Local preview set:', localPreview);
 
     // Upload if handler provided
     if (onUpload) {
       setIsLoading(true);
       try {
+        console.log('[ImageUpload] Starting upload...');
         const url = await onUpload(file);
+        console.log('[ImageUpload] Upload success, URL:', url);
         onImageUrl(url);
+        setPreview(url); // Update to the server URL
       } catch (err) {
-        console.error('Upload failed:', err);
-        setPreview(null);
+        console.error('[ImageUpload] Upload failed:', err);
+        // Keep the local preview on error, don't clear it
       } finally {
         setIsLoading(false);
       }

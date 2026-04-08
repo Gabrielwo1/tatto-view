@@ -547,7 +547,12 @@ function toArtist(r: ArtistRow): Artist {
     instagram: r.instagram ?? undefined,
     whatsapp: r.whatsapp ?? undefined,
     preferredContactMethod: r.preferred_contact_method || undefined,
-    guestTrip: r.guest_trip || undefined,
+    guestTrip: r.guest_trip 
+      ? { 
+          ...r.guest_trip, 
+          galleryImages: r.guest_trip.galleryImages || ['', '', '', ''] 
+        } 
+      : undefined,
     createdAt: r.created_at,
     hiddenFromHero: r.hidden_from_hero ?? false,
   };
