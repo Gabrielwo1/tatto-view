@@ -91,7 +91,7 @@ export default function ArtistGuestTripPage() {
 
           {/* Gallery Side */}
           <div className="grid grid-cols-2 gap-px bg-white/10">
-            {guestTrip.galleryImages.map((img, i) => (
+            {(guestTrip.galleryImages || []).map((img, i) => (
               <div 
                 key={i} 
                 className="aspect-square bg-zinc-950 overflow-hidden cursor-zoom-in"
