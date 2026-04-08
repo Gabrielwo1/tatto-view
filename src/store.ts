@@ -201,16 +201,6 @@ const defaultEventsContent: EventsContent = {
   ],
 };
 
-// ── Tatuados Content ─────────────────────────────────────────────────────────
-export interface TatuadosContent {
-  title: string;
-  subtitle: string;
-}
-
-const defaultTatuadosContent: TatuadosContent = {
-  title: 'THE ARCHIVE',
-  subtitle: 'A curated selection of permanence. Our portfolio represents the intersection of anatomical precision and avant-garde artistry.',
-};
 
 // ── Sobre Nós Content ────────────────────────────────────────────────────────
 export interface SobreNosContent {
@@ -661,9 +651,6 @@ interface AppState {
   /** Landing page content editable by admin */
   landingContent: LandingContent;
   setLandingContent: (content: LandingContent) => void;
-  /** Tatuados archive page content editable by admin */
-  tatuadosContent: TatuadosContent;
-  setTatuadosContent: (content: TatuadosContent) => void;
   /** Tatuados posts — independent photo posts linked to artists */
   tatuadoPosts: TatuadoPost[];
   addTatuadoPost: (post: TatuadoPost) => void;
@@ -845,12 +832,6 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert({ key: 'landingContent', value: content, updated_at: new Date().toISOString() })
           .then(({ error }) => { if (error) console.error('[store] setLandingContent:', error); });
       },
-      tatuadosContent: defaultTatuadosContent,
-      setTatuadosContent: (content) => {
-        set({ tatuadosContent: content });
-        supabase?.from('site_config').upsert({ key: 'tatuadosContent', value: content, updated_at: new Date().toISOString() })
-          .then(({ error }) => { if (error) console.error('[store] setTatuadosContent:', error); });
-      },
       tatuadoPosts: [],
       addTatuadoPost: (post) => {
         const posts = [...get().tatuadoPosts, post];
@@ -1010,7 +991,6 @@ export const useStore = create<AppState>()(
             })),
             ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
             ...(config.landingContent   ? { landingContent:   config.landingContent   as LandingContent }                 : {}),
-            ...(config.tatuadosContent  ? { tatuadosContent:  config.tatuadosContent  as TatuadosContent }               : {}),
             ...(config.tatuadoPosts     ? { tatuadoPosts:     config.tatuadoPosts     as TatuadoPost[] }                  : {}),
             ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
             ...(config.guestContent ? (() => {

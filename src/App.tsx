@@ -158,6 +158,7 @@ export default function App() {
       'link[rel="icon"]',
       'link[rel="shortcut icon"]',
       'link[rel="apple-touch-icon"]',
+      'link[rel="mask-icon"]',
     ];
     selectors.forEach((selector) => {
       document.querySelectorAll<HTMLLinkElement>(selector).forEach((link) => {

@@ -1,0 +1,27 @@
+{
+  "name": "El Dude Tattoo Studio",
+  "short_name": "El Dude",
+  "description": "Estúdio de tatuagem em Francisco Beltrão, Paraná.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/dudeicone.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/dudeicone.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/dudeicone.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple touch icon"
+    }
+  ]
+}
