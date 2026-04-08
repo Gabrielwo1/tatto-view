@@ -46,30 +46,45 @@ export default function ImageUpload({ label, onImageUrl, initialUrl, onUpload }:
   }
 
   return (
-    <div>
-      <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
-        {label}
-      </label>
-      <div className="flex gap-4">
-        <div className="flex-1">
+    <div className="space-y-3">
+      {label && (
+        <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
+          {label}
+        </label>
+      )}
+      <div className="flex flex-col gap-3">
+        <div className="relative">
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
             disabled={isLoading}
-            className="w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors disabled:opacity-50 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-white file:text-black file:cursor-pointer hover:file:bg-gray-100"
+            className="w-full bg-transparent border border-white/15 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white transition-colors disabled:opacity-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-none file:border-0 file:text-[10px] file:font-semibold file:bg-white/10 file:text-white file:cursor-pointer hover:file:bg-white/20"
           />
-          {isLoading && <p className="text-xs text-gray-500 mt-2">Enviando...</p>}
+          {isLoading && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            </div>
+          )}
         </div>
+        
         {preview && (
-          <img
-            src={preview}
-            alt="Preview"
-            className="w-16 h-16 object-cover border border-white/10 flex-shrink-0"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
+          <div className="relative group">
+            <img
+              src={preview}
+              alt="Preview"
+              className="w-full aspect-square object-cover border border-white/10 rounded-sm"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+        
+        {!preview && !isLoading && (
+          <div className="w-full aspect-square bg-white/5 border border-white/10 border-dashed rounded-sm flex items-center justify-center">
+            <span className="text-[10px] text-gray-600 uppercase tracking-wider">Sem imagem</span>
+          </div>
         )}
       </div>
     </div>

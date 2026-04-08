@@ -97,6 +97,11 @@ export default function AdminArtistForm() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setUploading(true);
+    
+    // Debug: log guestTrip data before saving
+    console.log('[AdminArtistForm] Saving guestTrip:', form.guestTrip);
+    console.log('[AdminArtistForm] galleryImages:', form.guestTrip?.galleryImages);
+    
     try {
       const photoUrl = await uploadImage(form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`);
       const data = {
@@ -110,6 +115,9 @@ export default function AdminArtistForm() {
         hiddenFromHero: form.hiddenFromHero,
         guestTrip: form.guestTrip,
       };
+      
+      console.log('[AdminArtistForm] Data to save:', data);
+      
       if (existing) {
         await updateArtist(existing.id, data);
       } else {
@@ -277,10 +285,10 @@ export default function AdminArtistForm() {
 
                   <div>
                     <label className={labelCls}>Galeria (4 imagens)</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+                    <div className="grid grid-cols-2 gap-4 mt-3">
                       {form.guestTrip.galleryImages.map((img, i) => (
-                        <div key={i} className="flex flex-col gap-2">
-                          <p className="text-[8px] text-gray-600 tracking-widest uppercase">Foto {i+1}</p>
+                        <div key={i} className="bg-white/5 border border-white/10 p-4 rounded-sm">
+                          <p className="text-[10px] text-gray-500 tracking-widest uppercase mb-3 font-semibold">Foto {i+1}</p>
                           <ImageUpload 
                             label="" 
                             initialUrl={img} 
