@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import { useStore } from '../store';
 
 const DEFAULT_TATUADORES = [
@@ -62,7 +61,6 @@ export default function FichaAnamnesePage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value, type } = e.target;
@@ -414,65 +412,6 @@ export default function FichaAnamnesePage() {
           </div>
         </div>
       </form>
-
-      {/* ── Bottom Nav ── */}
-      <nav className="sticky bottom-0 border-t border-white/10 bg-black">
-        {/* Slide-up menu */}
-        {menuOpen && (
-          <div className="border-b border-white/10 bg-black px-6 py-5 flex flex-col gap-2">
-            {[
-              { to: '/', label: 'Vitrine', end: true },
-              { to: '/artistas', label: 'Artistas', end: false },
-              { to: '/guests', label: 'Guests', end: false },
-              { to: '/loja', label: 'Loja', end: false },
-              { to: '/aftercare', label: 'Pós Tattoo', end: false },
-              { to: '/ficha-anamnese', label: 'Ficha de Anamnese', end: false },
-            ].map(({ to, label, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  `font-display text-3xl uppercase tracking-wide transition-colors leading-tight ${
-                    isActive ? 'text-white' : 'text-white/50 hover:text-white'
-                  }`
-                }
-              >
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        )}
-
-        <div className="flex">
-          {[
-            { label: 'HOME', href: '/', icon: HomeIcon },
-            { label: 'CLIENTS', href: '/guests', icon: ClientsIcon },
-            { label: 'FORMS', href: '/ficha-anamnese', icon: FormsIcon, active: true },
-            { label: 'HISTORY', href: '/arquivadas', icon: HistoryIcon },
-          ].map(({ label, href, icon: Icon, active }) => (
-            <a
-              key={label}
-              href={href}
-              className="flex-1 flex flex-col items-center justify-center py-3 gap-1"
-              style={{ color: active ? '#e63737' : 'rgba(255,255,255,0.4)' }}
-            >
-              <Icon />
-              <span className="text-[9px] font-bold tracking-widest">{label}</span>
-            </a>
-          ))}
-          <button
-            onClick={() => setMenuOpen((o) => !o)}
-            className="flex-1 flex flex-col items-center justify-center py-3 gap-1"
-            style={{ color: menuOpen ? 'white' : 'rgba(255,255,255,0.4)' }}
-          >
-            <MenuIcon />
-            <span className="text-[9px] font-bold tracking-widest">MENU</span>
-          </button>
-        </div>
-      </nav>
-
       <style>{`
         .input-field {
           width: 100%;
@@ -537,47 +476,3 @@ function TermCheckbox({ checked, onToggle, text }: { checked: boolean; onToggle:
   );
 }
 
-function HomeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M3 12l9-9 9 9" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ClientsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="9" cy="7" r="3" />
-      <path d="M3 20a6 6 0 0112 0" strokeLinecap="round" />
-      <path d="M16 11a3 3 0 010 6M19 20a6 6 0 00-3-5.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function FormsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <rect x="5" y="3" width="14" height="18" rx="1" />
-      <path d="M9 7h6M9 11h6M9 15h4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function HistoryIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function MenuIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M4 6h16M4 12h16M4 18h10" strokeLinecap="round" />
-    </svg>
-  );
-}
