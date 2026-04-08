@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
-import { TATTOO_STYLES } from '../types';
+
 import { toSlug, interleaveByArtist } from '../utils';
 import GeneralLightbox from '../components/GeneralLightbox';
 
@@ -35,7 +35,7 @@ export default function LandingPage() {
 
   /* section visibility hooks */
   const { ref: sobreRef,    visible: sobreVisible }    = useVisible();
-  const { ref: estilosRef,  visible: estilosVisible }  = useVisible();
+
   const { ref: teamRef,     visible: teamVisible }     = useVisible();
   const { ref: galeriaRef,  visible: galeriaVisible }  = useVisible();
   const { ref: processoRef, visible: processoVisible } = useVisible();
@@ -139,39 +139,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════════
-          ESTILOS
-      ══════════════════════════════════════════════════ */}
-      <section className="bg-black py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div
-            ref={estilosRef}
-            className={`mb-12 transition-all duration-700 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-          >
-            <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Especialidades</p>
-            <h2 className="font-display text-5xl sm:text-7xl uppercase leading-none text-white">
-              Seu estilo,<br />nossa arte
-            </h2>
-          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px border border-white/10">
-            {TATTOO_STYLES.map((style, i) => {
-              const info = lc.estilos?.[style] ?? { icon: '◎', desc: '' };
-              return (
-                <div
-                  key={style}
-                  className={`bg-zinc-950 p-6 group hover:bg-zinc-900 transition-all duration-700 border border-transparent hover:border-white/10 ${estilosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-                  style={{ transitionDelay: `${i * 60}ms` }}
-                >
-                  <span className="font-display text-3xl text-ink-500 block mb-3">{info.icon}</span>
-                  <h3 className="font-display text-xl uppercase tracking-wide text-white mb-2 leading-tight">{style}</h3>
-                  <p className="font-body text-xs text-gray-600 group-hover:text-gray-400 transition-colors leading-relaxed">{info.desc}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {/* ══════════════════════════════════════════════════
           ARTISTAS
