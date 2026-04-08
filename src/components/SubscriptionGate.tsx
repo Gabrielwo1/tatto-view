@@ -13,11 +13,12 @@ export default function SubscriptionGate({ children }: Props) {
   const isMerchManager = useStore((s) => s.isMerchManager);
   const location = useLocation();
 
+  const currentStudioId = useStore((s) => s.currentStudioId);
   const isStaffUser = isAdmin || isArtist || isMerchManager;
   const isBillingPage = location.pathname === '/admin/billing';
 
-  // eldude.vitrink.app is the base studio — always has full access, no billing required
-  const isBaseStudio = window.location.hostname === 'eldude.vitrink.app';
+  // Base studio (eldude) always has full access — no billing required
+  const isBaseStudio = currentStudioId === 'eldude';
 
   // Always allow: base studio, billing page, or active/trialing subscription
   if (!isStaffUser || isBaseStudio || isBillingPage || subscriptionStatus === 'trialing' || subscriptionStatus === 'active') {

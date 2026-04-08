@@ -5,6 +5,21 @@ export type { FichaSubmission, FichaConfig };
 import type { ThemeId, LogoColorMode } from './lib/themes';
 import { supabase } from './lib/supabase';
 
+// ── Studio detection ──────────────────────────────────────────────────────────
+function detectStudioId(): string {
+  const host = typeof window !== 'undefined' ? window.location.hostname : 'eldude.vitrink.app';
+  const match = host.match(/^([^.]+)\.vitrink\.app$/);
+  if (match) return match[1];
+  return 'eldude'; // fallback for localhost / preview deployments
+}
+
+export const STUDIO_ID = detectStudioId();
+
+// Helper for site_config upserts — always scoped to the current studio
+const sc = (key: string, value: unknown) => ({
+  studio_id: STUDIO_ID, key, value, updated_at: new Date().toISOString(),
+});
+
 // ── Default Sessions ──────────────────────────────────────────────────────────
 const defaultSessions: TattooSession[] = [
   {
@@ -702,6 +717,8 @@ interface AppState {
   addToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
   moveToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  // ── Studio ───────────────────────────────────────────────────────────
+  currentStudioId: string;
   // ── Subscription ─────────────────────────────────────────────────────
   subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | 'incomplete' | 'incomplete_expired' | null;
   trialEndsAt: string | null;
@@ -737,7 +754,7 @@ export const useStore = create<AppState>()(
         const session: TattooSession = { ...data, id: crypto.randomUUID() };
         set((s) => {
           const sessions = [...s.sessions, session];
-          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+          supabase?.from('site_config').upsert(sc('sessions', sessions), { onConflict: 'studio_id,key' })
             .then(({ error }) => { if (error) console.error('[store] addSession:', error); });
           return { sessions };
         });
@@ -745,7 +762,7 @@ export const useStore = create<AppState>()(
       updateSession: (id, updates) => {
         set((s) => {
           const sessions = s.sessions.map((sess) => sess.id === id ? { ...sess, ...updates } : sess);
-          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+          supabase?.from('site_config').upsert(sc('sessions', sessions), { onConflict: 'studio_id,key' })
             .then(({ error }) => { if (error) console.error('[store] updateSession:', error); });
           return { sessions };
         });
@@ -753,7 +770,7 @@ export const useStore = create<AppState>()(
       deleteSession: (id) => {
         set((s) => {
           const sessions = s.sessions.filter((sess) => sess.id !== id);
-          supabase?.from('site_config').upsert({ key: 'sessions', value: sessions, updated_at: new Date().toISOString() })
+          supabase?.from('site_config').upsert(sc('sessions', sessions), { onConflict: 'studio_id,key' })
             .then(({ error }) => { if (error) console.error('[store] deleteSession:', error); });
           return { sessions };
         });
@@ -761,12 +778,13 @@ export const useStore = create<AppState>()(
       shopContent: defaultShopContent,
       setShopContent: (content) => {
         set({ shopContent: content });
-        supabase?.from('site_config').upsert({ key: 'shopContent', value: content, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('shopContent', content), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setShopContent:', error); });
       },
       publicUser: null,
       wishlist: [],
       cart: [],
+      currentStudioId: STUDIO_ID,
       subscriptionStatus: null,
       trialEndsAt: null,
       isAdmin: false,
@@ -780,99 +798,99 @@ export const useStore = create<AppState>()(
       themeId: null,
       setTheme: (id) => {
         set({ themeId: id });
-        supabase?.from('site_config').upsert({ key: 'themeId', value: id, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('themeId', id), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setTheme:', error); });
       },
       customPrimary: null,
       customSecondary: null,
       setCustomColors: (primary, secondary) => {
         set({ customPrimary: primary, customSecondary: secondary });
-        supabase?.from('site_config').upsert({ key: 'customColors', value: { primary, secondary }, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('customColors', { primary, secondary }), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setCustomColors:', error); });
       },
       logoColorMode: 'original',
       setLogoColorMode: (mode) => {
         set({ logoColorMode: mode });
-        supabase?.from('site_config').upsert({ key: 'logoColorMode', value: mode, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('logoColorMode', mode), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setLogoColorMode:', error); });
       },
       hiddenStyles: [],
       setHiddenStyles: (styles) => {
         set({ hiddenStyles: styles });
-        supabase?.from('site_config').upsert({ key: 'hiddenStyles', value: styles, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('hiddenStyles', styles), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setHiddenStyles:', error); });
       },
       customStyles: [],
       setCustomStyles: (styles) => {
         set({ customStyles: styles });
-        supabase?.from('site_config').upsert({ key: 'customStyles', value: styles, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('customStyles', styles), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setCustomStyles:', error); });
       },
       customLogo: null,
       setCustomLogo: (url) => {
         set({ customLogo: url });
-        supabase?.from('site_config').upsert({ key: 'customLogo', value: url, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('customLogo', url), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setCustomLogo:', error); });
       },
       customFavicon: null,
       setCustomFavicon: (url) => {
         set({ customFavicon: url });
-        supabase?.from('site_config').upsert({ key: 'customFavicon', value: url, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('customFavicon', url), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setCustomFavicon:', error); });
       },
       eventsContent: defaultEventsContent,
       setEventsContent: (content) => {
         set({ eventsContent: content });
-        supabase?.from('site_config').upsert({ key: 'eventsContent', value: content, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('eventsContent', content), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setEventsContent:', error); });
       },
       landingContent: defaultLandingContent,
       setLandingContent: (content) => {
         set({ landingContent: content });
-        supabase?.from('site_config').upsert({ key: 'landingContent', value: content, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('landingContent', content), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setLandingContent:', error); });
       },
       tatuadoPosts: [],
       addTatuadoPost: (post) => {
         const posts = [...get().tatuadoPosts, post];
         set({ tatuadoPosts: posts });
-        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('tatuadoPosts', posts), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] addTatuadoPost:', error); });
       },
       updateTatuadoPost: (post) => {
         const posts = get().tatuadoPosts.map((p) => (p.id === post.id ? post : p));
         set({ tatuadoPosts: posts });
-        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('tatuadoPosts', posts), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] updateTatuadoPost:', error); });
       },
       deleteTatuadoPost: (id) => {
         const posts = get().tatuadoPosts.filter((p) => p.id !== id);
         set({ tatuadoPosts: posts });
-        supabase?.from('site_config').upsert({ key: 'tatuadoPosts', value: posts, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('tatuadoPosts', posts), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] deleteTatuadoPost:', error); });
       },
       sobreNosContent: defaultSobreNosContent,
       setSobreNosContent: (content) => {
         set({ sobreNosContent: content });
-        supabase?.from('site_config').upsert({ key: 'sobreNosContent', value: content, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('sobreNosContent', content), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setSobreNosContent:', error); });
       },
       guestContent: defaultGuestContent,
       setGuestContent: (content) => {
         set({ guestContent: content });
-        supabase?.from('site_config').upsert({ key: 'guestContent', value: content, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('guestContent', content), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setGuestContent:', error); });
       },
       aftercareContent: defaultAftercareContent,
       setAftercareContent: (content) => {
         set({ aftercareContent: content });
-        supabase?.from('site_config').upsert({ key: 'aftercareContent', value: content, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('aftercareContent', content), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setAftercareContent:', error); });
       },
       fichaConfig: defaultFichaConfig,
       setFichaConfig: (config) => {
         set({ fichaConfig: config });
-        supabase?.from('site_config').upsert({ key: 'fichaConfig', value: config, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('fichaConfig', config), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setFichaConfig:', error); });
       },
       fichaSubmissions: [],
@@ -883,7 +901,7 @@ export const useStore = create<AppState>()(
           submittedAt: new Date().toISOString(),
         };
         set((s) => ({ fichaSubmissions: [submission, ...s.fichaSubmissions] }));
-        supabase?.from('ficha_submissions').insert({
+        supabase?.from('ficha_submissions').insert({ studio_id: STUDIO_ID,
           id: submission.id,
           submitted_at: submission.submittedAt,
           data: submission,
@@ -900,7 +918,7 @@ export const useStore = create<AppState>()(
       addExpense: (data) => {
         const expense: Expense = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         set((s) => ({ expenses: [expense, ...s.expenses] }));
-        supabase?.from('expenses').insert({
+        supabase?.from('expenses').insert({ studio_id: STUDIO_ID,
           id: expense.id, description: expense.description, amount: expense.amount,
           paid_by: expense.paidBy, date: expense.date, category: expense.category,
           participants: expense.participants, created_at: expense.createdAt,
@@ -935,12 +953,12 @@ export const useStore = create<AppState>()(
         try {
           const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs, error: fse }, { data: ex }] =
             await Promise.all([
-              supabase.from('tattoos').select('*').order('created_at', { ascending: false }),
-              supabase.from('artists').select('*').order('created_at', { ascending: true }),
-              supabase.from('merchs').select('*').order('created_at', { ascending: false }),
-              supabase.from('site_config').select('*'),
-              supabase.from('ficha_submissions').select('*').order('submitted_at', { ascending: false }),
-              supabase.from('expenses').select('*').order('date', { ascending: false }),
+              supabase.from('tattoos').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: false }),
+              supabase.from('artists').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: true }),
+              supabase.from('merchs').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: false }),
+              supabase.from('site_config').select('*').eq('studio_id', STUDIO_ID),
+              supabase.from('ficha_submissions').select('*').eq('studio_id', STUDIO_ID).order('submitted_at', { ascending: false }),
+              supabase.from('expenses').select('*').eq('studio_id', STUDIO_ID).order('date', { ascending: false }),
             ]);
           if (te) throw te;
           if (ae) throw ae;
@@ -1221,7 +1239,7 @@ export const useStore = create<AppState>()(
       addTattoo: (data) => {
         const tattoo: Tattoo = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         set((s) => ({ tattoos: [tattoo, ...s.tattoos] }));
-        supabase?.from('tattoos').insert({
+        supabase?.from('tattoos').insert({ studio_id: STUDIO_ID,
           id: tattoo.id, title: tattoo.title, description: tattoo.description,
           image_url: tattoo.imageUrl, style: tattoo.style, price: tattoo.price,
           artist_id: tattoo.artistId, status: tattoo.status, created_at: tattoo.createdAt,
@@ -1273,7 +1291,7 @@ export const useStore = create<AppState>()(
           const rest = s.artists.filter((a) => !orderedIds.includes(a.id));
           return { artists: [...reordered, ...rest] };
         });
-        supabase?.from('site_config').upsert({ key: 'artistsOrder', value: orderedIds, updated_at: new Date().toISOString() })
+        supabase?.from('site_config').upsert(sc('artistsOrder', orderedIds), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] reorderArtists:', error); });
       },
 
@@ -1281,7 +1299,7 @@ export const useStore = create<AppState>()(
       addArtist: (data) => {
         const artist: Artist = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         set((s) => ({ artists: [...s.artists, artist] }));
-        supabase?.from('artists').insert({
+        supabase?.from('artists').insert({ studio_id: STUDIO_ID,
           id: artist.id, name: artist.name, bio: artist.bio, photo_url: artist.photoUrl,
           specialties: artist.specialties, instagram: artist.instagram, whatsapp: artist.whatsapp,
           preferred_contact_method: artist.preferredContactMethod,
@@ -1317,7 +1335,7 @@ export const useStore = create<AppState>()(
       addMerch: (data) => {
         const merch: Merch = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
         set((s) => ({ merchs: [merch, ...s.merchs] }));
-        supabase?.from('merchs').insert({
+        supabase?.from('merchs').insert({ studio_id: STUDIO_ID,
           id: merch.id, name: merch.name, description: merch.description,
           price: merch.price, image_url: merch.imageUrl, link: merch.link,
           category: merch.category ?? null,
