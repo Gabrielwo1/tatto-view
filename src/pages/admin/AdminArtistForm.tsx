@@ -283,7 +283,7 @@ export default function AdminArtistForm() {
                         onUpload={uploadArtistPhoto}
                       />
                       {form.guestTrip.bannerUrl && (
-                        <div className="mt-4 aspect-video bg-black/20 rounded-sm overflow-hidden">
+                        <div className="mt-4 max-w-xs aspect-video bg-black/20 rounded-sm overflow-hidden">
                           <img 
                             src={form.guestTrip.bannerUrl} 
                             alt="Banner preview" 
