@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ImageUploadProps {
   label: string;
@@ -10,6 +10,13 @@ interface ImageUploadProps {
 export default function ImageUpload({ label, onImageUrl, initialUrl, onUpload }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(initialUrl ?? null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Update preview when initialUrl changes
+  useEffect(() => {
+    if (initialUrl) {
+      setPreview(initialUrl);
+    }
+  }, [initialUrl]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
