@@ -76,6 +76,9 @@ export default function ArtistDetailPage() {
   const artistPosts = tatuadoPosts.filter((p) => p.artistId === artist.id);
   const instagramUrl = normalizeExternalUrl(artist.instagram);
   const whatsappUrl = normalizeWhatsAppUrl(artist.whatsapp);
+  
+  // Debug log to help identify why the button isn't appearing
+  console.log('Artist Guest Trip state:', artist.name, artist.guestTrip);
 
   const handlePrint = async () => {
     if (!printRef.current) return;
