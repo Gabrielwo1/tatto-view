@@ -60,7 +60,6 @@ export default function ArtistGuestTripPage() {
               alt={guestTrip.guestName} 
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               onError={(e) => {
-                console.error('[ArtistGuestTripPage] Failed to load banner:', guestTrip.bannerUrl);
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
@@ -72,13 +71,13 @@ export default function ArtistGuestTripPage() {
         </div>
 
         {/* Info & Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border border-white/10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* Info Side */}
-          <div className="bg-zinc-950 p-12 flex flex-col justify-center">
+          <div className="bg-zinc-950 p-8 lg:p-12 flex flex-col justify-center border border-white/10">
             <p className="font-body text-sm font-bold tracking-[0.3em] uppercase text-zinc-500 mb-6">
               {guestTrip.subtitle || 'ARTISTA CONVIDADO'}
             </p>
-            <h2 className="font-display text-5xl lg:text-6xl uppercase tracking-wide mb-4">
+            <h2 className="font-display text-4xl lg:text-5xl uppercase tracking-wide mb-4">
               {guestTrip.guestName}
             </h2>
             <p className="font-body text-lg text-white/60 mb-8">
@@ -99,27 +98,26 @@ export default function ArtistGuestTripPage() {
             )}
           </div>
 
-          {/* Gallery Side */}
-          <div className="grid grid-cols-2 gap-px bg-white/10">
+          {/* Gallery Side - Instagram Style */}
+          <div className="grid grid-cols-2 gap-1 bg-white/5 border border-white/10 p-1">
             {(guestTrip.galleryImages || []).map((img, i) => (
               <div 
                 key={i} 
-                className="aspect-square bg-zinc-950 overflow-hidden cursor-zoom-in"
+                className="aspect-square bg-zinc-950 overflow-hidden cursor-zoom-in relative group"
                 onClick={() => setSelectedImage(img)}
               >
                 {img ? (
                   <img 
                     src={img} 
                     alt={`Gallery ${i + 1}`} 
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
-                      console.error(`[GuestTrip] Failed to load image ${i}:`, img);
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center border border-white/5">
-                    <span className="text-[10px] uppercase tracking-widest text-zinc-800">Preview</span>
+                  <div className="w-full h-full flex items-center justify-center bg-zinc-900">
+                    <span className="text-[10px] uppercase tracking-widest text-zinc-700">{i + 1}</span>
                   </div>
                 )}
               </div>
