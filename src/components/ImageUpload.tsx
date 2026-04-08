@@ -13,9 +13,7 @@ export default function ImageUpload({ label, onImageUrl, initialUrl, onUpload }:
 
   // Update preview when initialUrl changes
   useEffect(() => {
-    if (initialUrl) {
-      setPreview(initialUrl);
-    }
+    setPreview(initialUrl || null);
   }, [initialUrl]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
