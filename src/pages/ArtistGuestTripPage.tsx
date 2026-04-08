@@ -23,6 +23,9 @@ export default function ArtistGuestTripPage() {
   }
 
   const { guestTrip } = artist;
+  
+  console.log('[ArtistGuestTripPage] guestTrip:', guestTrip);
+  console.log('[ArtistGuestTripPage] bannerUrl:', guestTrip?.bannerUrl);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white pb-20">
