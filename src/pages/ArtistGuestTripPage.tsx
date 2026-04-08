@@ -98,7 +98,15 @@ export default function ArtistGuestTripPage() {
                 onClick={() => setSelectedImage(img)}
               >
                 {img ? (
-                  <img src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+                  <img 
+                    src={img} 
+                    alt={`Gallery ${i + 1}`} 
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      console.error(`[GuestTrip] Failed to load image ${i}:`, img);
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center border border-white/5">
                     <span className="text-[10px] uppercase tracking-widest text-zinc-800">Preview</span>
