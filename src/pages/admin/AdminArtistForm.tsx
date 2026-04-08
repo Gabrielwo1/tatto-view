@@ -77,6 +77,7 @@ export default function AdminArtistForm() {
   }
 
   function handleGuestTripChange(field: keyof GuestTrip, value: any) {
+    console.log(`[handleGuestTripChange] ${field}:`, value);
     setForm((f) => ({
       ...f,
       guestTrip: { ...f.guestTrip, [field]: value },
