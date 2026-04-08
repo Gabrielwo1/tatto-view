@@ -97,6 +97,11 @@ export default function AdminArtistForm() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setUploading(true);
+    
+    // Debug: log guestTrip data before saving
+    console.log('[AdminArtistForm] Saving guestTrip:', form.guestTrip);
+    console.log('[AdminArtistForm] galleryImages:', form.guestTrip?.galleryImages);
+    
     try {
       const photoUrl = await uploadImage(form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`);
       const data = {
@@ -110,6 +115,9 @@ export default function AdminArtistForm() {
         hiddenFromHero: form.hiddenFromHero,
         guestTrip: form.guestTrip,
       };
+      
+      console.log('[AdminArtistForm] Data to save:', data);
+      
       if (existing) {
         await updateArtist(existing.id, data);
       } else {
