@@ -275,23 +275,12 @@ export default function AdminArtistForm() {
 
                   <div>
                     <label className={labelCls}>Imagem Principal / Banner</label>
-                    <div className="bg-white/5 border border-white/10 p-4 rounded-sm">
-                      <ImageUpload 
-                        label="" 
-                        initialUrl={form.guestTrip.bannerUrl} 
-                        onImageUrl={(url) => handleGuestTripChange('bannerUrl', url)} 
-                        onUpload={uploadArtistPhoto}
-                      />
-                      {form.guestTrip.bannerUrl && (
-                        <div className="mt-4 max-w-xs aspect-video bg-black/20 rounded-sm overflow-hidden">
-                          <img 
-                            src={form.guestTrip.bannerUrl} 
-                            alt="Banner preview" 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                    </div>
+                    <ImageUpload 
+                      label="" 
+                      initialUrl={form.guestTrip.bannerUrl} 
+                      onImageUrl={(url) => handleGuestTripChange('bannerUrl', url)} 
+                      onUpload={uploadArtistPhoto}
+                    />
                   </div>
 
                   <div>
