@@ -37,13 +37,13 @@ export default function GeneralLightbox({ imageUrl, onClose }: Props) {
       </div>
 
       <div 
-        className="relative max-w-5xl max-h-full flex flex-col items-center"
+        className="relative max-w-[90vw] max-h-[85vh] w-auto h-auto flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
       >
         <img 
           src={imageUrl} 
           alt="Visualização" 
-          className="w-full h-full object-contain shadow-2xl border border-white/10"
+          className="max-w-full max-h-[80vh] w-auto h-auto object-contain shadow-2xl border border-white/10"
         />
         
         {/* Helper text */}

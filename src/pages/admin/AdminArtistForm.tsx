@@ -7,6 +7,7 @@ import { uploadImage } from '../../lib/uploadImage';
 import { useImageCrop } from '../../hooks/useImageCrop';
 import { toSlug } from '../../utils';
 import ImageUpload from '../../components/ImageUpload';
+import ImageUploadWithCrop from '../../components/ImageUploadWithCrop';
 import { uploadArtistPhoto } from '../../lib/storage';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
@@ -98,11 +99,6 @@ export default function AdminArtistForm() {
     e.preventDefault();
     setUploading(true);
     
-    // Debug: log guestTrip data before saving
-    console.log('[AdminArtistForm] Saving guestTrip:', form.guestTrip);
-    console.log('[AdminArtistForm] bannerUrl:', form.guestTrip?.bannerUrl);
-    console.log('[AdminArtistForm] galleryImages:', form.guestTrip?.galleryImages);
-    
     try {
       const photoUrl = await uploadImage(form.photoUrl || `https://picsum.photos/seed/${Date.now()}/400/400`);
       const data = {
@@ -116,8 +112,6 @@ export default function AdminArtistForm() {
         hiddenFromHero: form.hiddenFromHero,
         guestTrip: form.guestTrip,
       };
-      
-      console.log('[AdminArtistForm] Data to save:', data);
       
       if (existing) {
         await updateArtist(existing.id, data);
@@ -276,7 +270,7 @@ export default function AdminArtistForm() {
 
                   <div>
                     <label className={labelCls}>Imagem Principal / Banner</label>
-                    <ImageUpload 
+                    <ImageUploadWithCrop 
                       label="" 
                       initialUrl={form.guestTrip.bannerUrl} 
                       onImageUrl={(url) => handleGuestTripChange('bannerUrl', url)} 
@@ -290,7 +284,7 @@ export default function AdminArtistForm() {
                       {form.guestTrip.galleryImages.map((img, i) => (
                         <div key={i} className="bg-white/5 border border-white/10 p-4 rounded-sm">
                           <p className="text-[10px] text-gray-500 tracking-widest uppercase mb-3 font-semibold">Foto {i+1}</p>
-                          <ImageUpload 
+                          <ImageUploadWithCrop 
                             label="" 
                             initialUrl={img} 
                             onImageUrl={(url) => handleGuestTripGalleryChange(i, url)} 
