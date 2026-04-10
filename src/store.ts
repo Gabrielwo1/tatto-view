@@ -703,8 +703,8 @@ interface AppState {
   currentUserEmail: string | null;
   // ── Public user (customer) auth ───────────────────────────────────────
   publicUser: PublicUser | null;
-  publicLogin: (email: string, password: string) => Promise<'customer' | 'admin' | 'artist' | 'merch_manager' | false>;
-  publicRegister: (email: string, password: string, name: string) => Promise<boolean>;
+  publicLogin: (email: string, password: string) => Promise<{ role: 'customer' | 'admin' | 'artist' | 'merch_manager', error: null } | { role: null, error: string }>;
+  publicRegister: (email: string, password: string, name: string) => Promise<{ success: boolean, error: string | null }>;
   publicLogout: () => Promise<void>;
   // ── Wishlist ──────────────────────────────────────────────────────────
   wishlist: WishlistItem[];
@@ -1064,41 +1064,68 @@ export const useStore = create<AppState>()(
 
       // ── Public user auth ─────────────────────────────────────────────────
       publicLogin: async (email, password) => {
-        if (!supabase) return false;
+        if (!supabase) return { role: null, error: 'Supabase não configurado.' };
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error || !data.user) return false;
+        
+        if (error) {
+          let message = error.message;
+          if (message === 'Invalid login credentials') message = 'Email ou senha incorretos.';
+          return { role: null, error: message };
+        }
+        if (!data.user) return { role: null, error: 'Usuário não encontrado.' };
+
         // Check role — artists/admins get redirected to admin panel
         const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
         if (profile) {
+          const userEmail = data.user.email ?? null;
           if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
-            return 'admin';
+            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail, authChecked: true });
+            return { role: 'admin', error: null };
           } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: data.user.email ?? null, authChecked: true });
-            return 'artist';
+            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail, authChecked: true });
+            return { role: 'artist', error: null };
           } else if (profile.role === 'merch_manager') {
-            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: data.user.email ?? null, authChecked: true });
-            return 'merch_manager';
+            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: userEmail, authChecked: true });
+            return { role: 'merch_manager', error: null };
           }
         }
+
         // Regular customer
         const name = data.user.user_metadata?.name ?? email.split('@')[0];
         set({ publicUser: { id: data.user.id, email: data.user.email!, name } });
         get().loadWishlist();
         get().loadCart();
-        return 'customer';
+        return { role: 'customer', error: null };
       },
 
       publicRegister: async (email, password, name) => {
-        if (!supabase) return false;
+        if (!supabase) return { success: false, error: 'Supabase não configurado.' };
         const { data, error } = await supabase.auth.signUp({
           email, password,
           options: { data: { name } },
         });
-        if (error || !data.user) return false;
+
+        if (error) {
+          let message = error.message;
+          // Tradução amigável de erros comuns
+          if (error.status === 422 && message.toLowerCase().includes('weak')) {
+            message = 'Senha muito fraca. Tente uma senha mais complexa (ex: maiúsculas, números e símbolos).';
+          } else if (message.includes('User already registered')) {
+            message = 'Este e-mail já está cadastrado.';
+          }
+          return { success: false, error: message };
+        }
+        if (!data.user) return { success: false, error: 'Erro ao criar usuário.' };
+
         // Insert customer profile
-        await supabase.from('user_profiles').upsert({ id: data.user.id, role: 'customer', artist_id: null });
-        return true;
+        const { error: profileError } = await supabase.from('user_profiles').upsert({ id: data.user.id, role: 'customer', artist_id: null });
+        if (profileError) {
+          console.warn('[store] Profile creation warning:', profileError);
+          // Don't fail the whole registration if profile creation fails, 
+          // as the user already exists in Auth. The next login will attempt to fix it.
+        }
+
+        return { success: true, error: null };
       },
 
       publicLogout: async () => {

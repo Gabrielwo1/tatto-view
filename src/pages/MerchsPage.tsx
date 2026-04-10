@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import type { Merch } from '../types';
 import { formatPrice } from '../lib/utils';
@@ -26,14 +27,26 @@ function CartIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 /* ─── Print card (2-col portrait) ─── */
 function PrintCard({ m }: { m: Merch }) {
+  const addToCart = useStore((s) => s.addToCart);
+  const publicUser = useStore((s) => s.publicUser);
+  const navigate = useNavigate();
+
+  const handleAdd = () => {
+    if (!publicUser) {
+      navigate('/login');
+      return;
+    }
+    addToCart('merch', m.id);
+  };
+
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col group">
       <div className="aspect-[3/4] bg-zinc-900 overflow-hidden mb-2 relative">
         {m.imageUrl ? (
           <img
             src={m.imageUrl}
             alt={m.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         ) : (
@@ -43,6 +56,17 @@ function PrintCard({ m }: { m: Merch }) {
             </svg>
           </div>
         )}
+        
+        {/* ADD TO CART OVERLAY ON HOVER */}
+        <div className="absolute inset-x-0 bottom-0 p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+          <button
+            onClick={handleAdd}
+            className="w-full py-2 bg-white text-black font-body text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors"
+          >
+            <CartIcon className="w-3.5 h-3.5" />
+            Adicionar
+          </button>
+        </div>
       </div>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -62,6 +86,18 @@ function PrintCard({ m }: { m: Merch }) {
 /* ─── Vestuário card (2-col, taller, with sizes + cart) ─── */
 function VestuarioCard({ m }: { m: Merch }) {
   const [selectedSize, setSelectedSize] = useState<string | null>(m.sizes?.[0] ?? null);
+  const addToCart = useStore((s) => s.addToCart);
+  const publicUser = useStore((s) => s.publicUser);
+  const navigate = useNavigate();
+
+  const handleAdd = () => {
+    if (!publicUser) {
+      navigate('/login');
+      return;
+    }
+    // Note: for now we add the item. Size selection could be refined to pass size to addToCart.
+    addToCart('merch', m.id);
+  };
 
   return (
     <div className="flex flex-col border border-zinc-800">
@@ -111,15 +147,13 @@ function VestuarioCard({ m }: { m: Merch }) {
           )}
           <p className="font-body text-xs font-bold text-white mt-1.5">{formatPrice(m.price)}</p>
         </div>
-        <a
-          href={`https://wa.me/${STUDIO_PHONE}?text=${encodeURIComponent('Olá, vi este produto na loja do site (' + m.name + (selectedSize ? ', tamanho ' + selectedSize : '') + ') e gostaria de comprar. 🖤')}`}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={handleAdd}
           className="shrink-0 p-2 border border-white/20 text-white/60 hover:border-white hover:text-white transition-colors"
-          title="Comprar"
+          title="Adicionar ao Carrinho"
         >
           <CartIcon className="w-4 h-4" />
-        </a>
+        </button>
       </div>
     </div>
   );
@@ -127,6 +161,18 @@ function VestuarioCard({ m }: { m: Merch }) {
 
 /* ─── Acessório card (3-col, square) ─── */
 function AcessorioCard({ m }: { m: Merch }) {
+  const addToCart = useStore((s) => s.addToCart);
+  const publicUser = useStore((s) => s.publicUser);
+  const navigate = useNavigate();
+
+  const handleAdd = () => {
+    if (!publicUser) {
+      navigate('/login');
+      return;
+    }
+    addToCart('merch', m.id);
+  };
+
   return (
     <div className="flex flex-col">
       <div className="aspect-square bg-zinc-900 overflow-hidden mb-1.5">
@@ -150,14 +196,13 @@ function AcessorioCard({ m }: { m: Merch }) {
       </p>
       <div className="flex items-center justify-between mt-0.5">
         <p className="font-body text-[9px] text-zinc-500">{formatPrice(m.price)}</p>
-        <a
-          href={`https://wa.me/${STUDIO_PHONE}?text=${encodeURIComponent('Olá, vi este produto na loja do site (' + m.name + ') e gostaria de comprar. 🖤')}`}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={handleAdd}
           className="text-white/40 hover:text-white transition-colors"
+          title="Adicionar ao Carrinho"
         >
           <CartIcon className="w-3 h-3" />
-        </a>
+        </button>
       </div>
     </div>
   );

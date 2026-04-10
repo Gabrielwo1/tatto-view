@@ -30,16 +30,48 @@ async function getUserIdFromCustomer(customerId) {
   return data?.id ?? null;
 }
 
+async function handleOneTimePayment(session) {
+  const userId = session.metadata?.userId;
+  const items = JSON.parse(session.metadata?.items || '[]');
+  console.log('[webhook] Processing items for user:', userId, items);
+
+  // 1. Marcar tatuagens como arquivadas (vendidas)
+  for (const item of items) {
+    if (item.itemType === 'tattoo') {
+      await supabase
+        .from('tattoos')
+        .update({ status: 'archived' })
+        .eq('id', item.itemId);
+    }
+  }
+
+  // 2. Limpar carrinho no Supabase
+  if (userId) {
+    const { error: cartError } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (cartError) console.error('[webhook] Error clearing cart:', cartError);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const sig = req.headers['stripe-signature'];
-  let event;
+  const buf = await new Promise((resolve, reject) => {
+    let rawData = '';
+    req.on('data', chunk => rawData += chunk);
+    req.on('end', () => resolve(rawData));
+    req.on('error', err => reject(err));
+  });
 
+  let event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
     console.error('[webhook] signature error:', err.message);
     return res.status(400).json({ error: `Webhook error: ${err.message}` });
@@ -47,16 +79,20 @@ export default async function handler(req, res) {
 
   try {
     switch (event.type) {
-      // Checkout completo → subscription criada
+      // Checkout completo
       case 'checkout.session.completed': {
         const session = event.data.object;
-        if (session.mode !== 'subscription') break;
-        const userId = session.metadata?.supabase_user_id;
-        await updateSubscription(userId, {
-          status: 'active',
-          stripeCustomerId: session.customer,
-          stripeSubscriptionId: session.subscription,
-        });
+        
+        if (session.mode === 'subscription') {
+          const userId = session.metadata?.supabase_user_id;
+          await updateSubscription(userId, {
+            status: 'active',
+            stripeCustomerId: session.customer,
+            stripeSubscriptionId: session.subscription,
+          });
+        } else if (session.mode === 'payment') {
+          await handleOneTimePayment(session);
+        }
         break;
       }
 
@@ -99,7 +135,6 @@ export default async function handler(req, res) {
       }
 
       default:
-        // Ignorar eventos não tratados
         break;
     }
   } catch (err) {
@@ -111,3 +146,4 @@ export default async function handler(req, res) {
 
 // Vercel precisa do body bruto para validar assinatura do Stripe
 export const config = { api: { bodyParser: false } };
+
