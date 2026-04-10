@@ -25,17 +25,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        const result = await publicLogin(email, password);
-        if (!result) { setError('Email ou senha incorretos.'); return; }
+        const { role, error: loginError } = await publicLogin(email, password);
+        if (loginError) { setError(loginError); return; }
+
         // Artists/admins go to admin panel
-        if (result === 'admin' || result === 'artist' || result === 'merch_manager') {
+        if (role === 'admin' || role === 'artist' || role === 'merch_manager') {
           navigate('/admin');
         } else {
           navigate(-1);
         }
       } else {
-        const ok = await publicRegister(email, password, name);
-        if (!ok) { setError('Não foi possível criar a conta. Tente outro email.'); return; }
+        const { success: regSuccess, error: regError } = await publicRegister(email, password, name);
+        if (!regSuccess) { setError(regError || 'Erro ao criar conta.'); return; }
         setSuccess('Conta criada! Verifique seu email para confirmar.');
       }
     } finally {

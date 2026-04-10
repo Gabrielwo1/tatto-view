@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import type { Merch } from '../types';
 import { formatPrice } from '../lib/utils';
@@ -26,34 +27,63 @@ function CartIcon({ className = 'w-5 h-5' }: { className?: string }) {
 
 /* ─── Print card (2-col portrait) ─── */
 function PrintCard({ m }: { m: Merch }) {
+  const addToCart = useStore((s) => s.addToCart);
+  const publicUser = useStore((s) => s.publicUser);
+  const navigate = useNavigate();
+
+  const handleAdd = () => {
+    if (!publicUser) {
+      navigate('/login');
+      return;
+    }
+    addToCart('merch', m.id);
+  };
+
   return (
-    <div className="flex flex-col">
-      <div className="aspect-[3/4] bg-zinc-900 overflow-hidden mb-2 relative">
+    <div className="flex flex-col group">
+      <div className="aspect-[4/5] bg-zinc-900 overflow-hidden mb-3 relative rounded-sm border border-zinc-800/50">
         {m.imageUrl ? (
           <img
             src={m.imageUrl}
             alt={m.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-8 h-8 text-zinc-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
+        
+        {/* ADD TO CART OVERLAY - now with a clearer button */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center px-4">
+          <button
+            onClick={handleAdd}
+            className="w-full py-3 bg-white text-black font-body text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-zinc-200"
+          >
+            <CartIcon className="w-3.5 h-3.5" />
+            Adicionar
+          </button>
+        </div>
       </div>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-white leading-tight truncate">
+      <div className="flex flex-col gap-1 px-1">
+        <div className="flex justify-between items-start gap-2">
+          <p className="font-body text-[11px] font-bold tracking-widest uppercase text-white leading-tight truncate flex-1">
             {m.name}
           </p>
-          {m.description && (
-            <p className="font-body text-[9px] text-zinc-500 leading-snug mt-0.5 line-clamp-1">{m.description}</p>
-          )}
+          <p className="font-body text-[11px] font-bold text-ink-500 shrink-0">{formatPrice(m.price)}</p>
         </div>
-        <p className="font-body text-[10px] font-bold text-white shrink-0">{formatPrice(m.price)}</p>
+        {m.description && (
+          <p className="font-body text-[10px] text-zinc-500 leading-snug line-clamp-1 italic">{m.description}</p>
+        )}
+        <button
+          onClick={handleAdd}
+          className="mt-2 w-full py-2 border border-zinc-800 text-zinc-400 font-body text-[9px] font-bold uppercase tracking-widest hover:text-white hover:border-white transition-all md:hidden"
+        >
+          Adicionar ao Carrinho
+        </button>
       </div>
     </div>
   );
@@ -62,20 +92,32 @@ function PrintCard({ m }: { m: Merch }) {
 /* ─── Vestuário card (2-col, taller, with sizes + cart) ─── */
 function VestuarioCard({ m }: { m: Merch }) {
   const [selectedSize, setSelectedSize] = useState<string | null>(m.sizes?.[0] ?? null);
+  const addToCart = useStore((s) => s.addToCart);
+  const publicUser = useStore((s) => s.publicUser);
+  const navigate = useNavigate();
+
+  const handleAdd = () => {
+    if (!publicUser) {
+      navigate('/login');
+      return;
+    }
+    // Note: for now we add the item. Size selection could be refined to pass size to addToCart.
+    addToCart('merch', m.id);
+  };
 
   return (
-    <div className="flex flex-col border border-zinc-800">
-      <div className="aspect-[3/4] bg-zinc-900 overflow-hidden relative">
+    <div className="flex flex-col group bg-black/20 border border-zinc-900 hover:border-zinc-700 transition-colors">
+      <div className="aspect-[4/5] bg-zinc-900 overflow-hidden relative">
         {m.imageUrl ? (
           <img
             src={m.imageUrl}
             alt={m.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-10 h-10 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-10 h-10 text-zinc-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
@@ -83,15 +125,15 @@ function VestuarioCard({ m }: { m: Merch }) {
 
         {/* Size selector overlay */}
         {m.sizes && m.sizes.length > 0 && (
-          <div className="absolute bottom-2 left-2 flex gap-1">
+          <div className="absolute bottom-3 left-3 flex gap-1 z-10">
             {m.sizes.map((size) => (
               <button
                 key={size}
-                onClick={() => setSelectedSize(size)}
-                className={`font-body text-[9px] font-bold tracking-wide uppercase px-2 py-1 transition-colors ${
+                onClick={(e) => { e.stopPropagation(); setSelectedSize(size); }}
+                className={`font-body text-[9px] font-bold tracking-wide uppercase px-2 py-1 transition-all border ${
                   selectedSize === size
-                    ? 'bg-white text-black'
-                    : 'bg-black/70 text-white/60 border border-white/20 hover:border-white/50'
+                    ? 'bg-white text-black border-white'
+                    : 'bg-black/60 text-white/50 border-white/10 hover:border-white/40'
                 }`}
               >
                 {size}
@@ -99,27 +141,35 @@ function VestuarioCard({ m }: { m: Merch }) {
             ))}
           </div>
         )}
+
+        {/* ADD TO CART OVERLAY */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center px-4">
+          <button
+            onClick={handleAdd}
+            className="w-full py-3 bg-white text-black font-body text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-zinc-200 shadow-xl"
+          >
+            <CartIcon className="w-3.5 h-3.5" />
+            Adicionar
+          </button>
+        </div>
       </div>
 
-      <div className="p-3 flex items-end justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-body text-[10px] font-bold tracking-widest uppercase text-white leading-tight">
+      <div className="p-4 flex flex-col gap-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="font-body text-[11px] font-bold tracking-widest uppercase text-zinc-300 leading-tight flex-1">
             {m.name}
           </p>
-          {m.description && (
-            <p className="font-body text-[9px] text-zinc-500 mt-0.5 leading-snug line-clamp-1">{m.description}</p>
-          )}
-          <p className="font-body text-xs font-bold text-white mt-1.5">{formatPrice(m.price)}</p>
+          <p className="font-body text-[11px] font-bold text-ink-500 shrink-0">{formatPrice(m.price)}</p>
         </div>
-        <a
-          href={`https://wa.me/${STUDIO_PHONE}?text=${encodeURIComponent('Olá, vi este produto na loja do site (' + m.name + (selectedSize ? ', tamanho ' + selectedSize : '') + ') e gostaria de comprar. 🖤')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 p-2 border border-white/20 text-white/60 hover:border-white hover:text-white transition-colors"
-          title="Comprar"
+        {m.description && (
+          <p className="font-body text-[10px] text-zinc-600 mt-1 leading-snug line-clamp-1 italic">{m.description}</p>
+        )}
+        <button
+          onClick={handleAdd}
+          className="mt-3 w-full py-2.5 bg-zinc-900 border border-zinc-800 text-zinc-400 font-body text-[9px] font-bold uppercase tracking-widest hover:text-white hover:border-white transition-all md:hidden"
         >
-          <CartIcon className="w-4 h-4" />
-        </a>
+          Adicionar ao Carrinho
+        </button>
       </div>
     </div>
   );
@@ -127,37 +177,60 @@ function VestuarioCard({ m }: { m: Merch }) {
 
 /* ─── Acessório card (3-col, square) ─── */
 function AcessorioCard({ m }: { m: Merch }) {
+  const addToCart = useStore((s) => s.addToCart);
+  const publicUser = useStore((s) => s.publicUser);
+  const navigate = useNavigate();
+
+  const handleAdd = () => {
+    if (!publicUser) {
+      navigate('/login');
+      return;
+    }
+    addToCart('merch', m.id);
+  };
+
   return (
-    <div className="flex flex-col">
-      <div className="aspect-square bg-zinc-900 overflow-hidden mb-1.5">
+    <div className="flex flex-col group">
+      <div className="aspect-[4/5] bg-zinc-900 overflow-hidden mb-3 relative rounded-sm border border-zinc-800/50">
         {m.imageUrl ? (
           <img
             src={m.imageUrl}
             alt={m.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-zinc-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg className="w-6 h-6 text-zinc-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
         )}
+
+        {/* ADD TO CART OVERLAY */}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center px-4">
+          <button
+            onClick={handleAdd}
+            className="w-full py-3 bg-white text-black font-body text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-zinc-200"
+          >
+            <CartIcon className="w-3.5 h-3.5" />
+            Adicionar
+          </button>
+        </div>
       </div>
-      <p className="font-body text-[9px] font-bold tracking-wide uppercase text-white leading-tight line-clamp-2">
-        {m.name}
-      </p>
-      <div className="flex items-center justify-between mt-0.5">
-        <p className="font-body text-[9px] text-zinc-500">{formatPrice(m.price)}</p>
-        <a
-          href={`https://wa.me/${STUDIO_PHONE}?text=${encodeURIComponent('Olá, vi este produto na loja do site (' + m.name + ') e gostaria de comprar. 🖤')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-white/40 hover:text-white transition-colors"
+      <div className="flex flex-col gap-1 px-1">
+        <div className="flex justify-between items-start gap-2">
+          <p className="font-body text-[11px] font-bold tracking-widest uppercase text-white leading-tight truncate flex-1">
+            {m.name}
+          </p>
+          <p className="font-body text-[11px] font-bold text-ink-500 shrink-0">{formatPrice(m.price)}</p>
+        </div>
+        <button
+          onClick={handleAdd}
+          className="mt-2 w-full py-2 border border-zinc-800 text-zinc-400 font-body text-[9px] font-bold uppercase tracking-widest hover:text-white hover:border-white transition-all md:hidden"
         >
-          <CartIcon className="w-3 h-3" />
-        </a>
+          Adicionar ao Carrinho
+        </button>
       </div>
     </div>
   );
@@ -245,7 +318,7 @@ export default function MerchsPage() {
           <div className="max-w-7xl mx-auto">
             <CategoryHeader index={3} title="Acessórios" />
             <div className="px-4 lg:px-12 pb-8">
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8">
                 {acessorios.map((m) => (
                   <AcessorioCard key={m.id} m={m} />
                 ))}

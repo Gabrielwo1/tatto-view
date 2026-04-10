@@ -1,5 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/api/create-checkout-session", "destination": "/api/create-checkout-session.js" },
+    { "source": "/api/create-subscription-session", "destination": "/api/create-subscription-session.js" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
   "functions": {
     "api/tattoo-preview.js": { "maxDuration": 60 },
     "api/og-image.js":       { "maxDuration": 10 }
