@@ -63,7 +63,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════
           HERO
       ══════════════════════════════════════════════════ */}
-      <section className="relative min-h-[85vh] flex flex-col items-center justify-start text-center px-6 pt-24 md:pt-32 pb-14 overflow-hidden">
+      <section className="relative flex flex-col items-center justify-start text-center px-6 pt-12 md:pt-20 pb-14 overflow-hidden">
         {/* Noise texture overlay */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }} />
@@ -72,7 +72,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(255,255,255,0.025) 80px)' }} />
 
         {/* Tagline */}
-        <h1 className="font-display text-5xl sm:text-8xl md:text-[10rem] lg:text-[12rem] text-white uppercase tracking-tight leading-none mb-4">
+        <h1 className="font-display text-4xl sm:text-7xl md:text-8xl lg:text-9xl text-white uppercase tracking-tight leading-none mb-4">
           {lc.hero.tagline.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
@@ -97,12 +97,6 @@ export default function LandingPage() {
           >
             Falar com artista
           </a>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 flex flex-col items-center gap-2 opacity-30">
-          <span className="font-body text-xs tracking-widest uppercase">Rolar</span>
-          <div className="w-px h-10 bg-white animate-pulse" />
         </div>
       </section>
 
@@ -401,7 +395,7 @@ export default function LandingPage() {
       <section className="px-6 lg:px-20 py-14 lg:py-24 bg-zinc-950 overflow-hidden">
         <div
           ref={quoteRef}
-          className={`max-w-6xl mx-auto text-center transition-all duration-700 ${quoteVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+          className={`max-w-6xl mx-auto text-center transition-all duration-700 ${quoteRef ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
         >
           <blockquote className="font-display text-3xl sm:text-5xl lg:text-6xl uppercase leading-tight tracking-wide italic">
             {quote.replace(/^"|"$/g, '')}
