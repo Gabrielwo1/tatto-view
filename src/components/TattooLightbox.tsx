@@ -131,4 +131,3 @@ export function TattooLightbox({ entry, onClose, hideArtistLink }: { entry: Ligh
     </>
   );
 }
-

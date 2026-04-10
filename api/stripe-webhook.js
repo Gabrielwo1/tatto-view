@@ -146,4 +146,3 @@ export default async function handler(req, res) {
 
 // Vercel precisa do body bruto para validar assinatura do Stripe
 export const config = { api: { bodyParser: false } };
-
