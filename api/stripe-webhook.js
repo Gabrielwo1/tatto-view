@@ -58,7 +58,7 @@ async function handleStudioCreation(session) {
     return;
   }
 
-  const trialEndsAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+  const trialEndsAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
 
   // 2. Create studio entry
   const { error: studioError } = await supabase.from('studios').upsert({

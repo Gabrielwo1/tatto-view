@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       customer_email: email,
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 90,
+        trial_period_days: 15,
         metadata: {
           type: 'studio_creation',
           studio_name: studioName,
