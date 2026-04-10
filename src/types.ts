@@ -28,6 +28,7 @@ export interface CartItem {
   id: string;
   itemType: 'tattoo' | 'merch';
   itemId: string;
+  selectedSize?: string;
 }
 
 export interface GuestTrip {
