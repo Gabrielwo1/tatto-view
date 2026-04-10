@@ -26,9 +26,13 @@ export default async function handler(req, res) {
         product_data: {
           name: item.itemType === 'tattoo'
             ? `Reserva: ${item.name}`
-            : item.name,
+            : `${item.name}${item.selectedSize ? ` (${item.selectedSize})` : ''}`,
           images: item.image ? [item.image] : [],
-          metadata: { itemType: item.itemType, itemId: item.itemId },
+          metadata: { 
+            itemType: item.itemType, 
+            itemId: item.itemId, 
+            selectedSize: item.selectedSize || '' 
+          },
         },
         unit_amount: item.priceCents,
       },
@@ -44,7 +48,11 @@ export default async function handler(req, res) {
       cancel_url: `${origin}/carrinho`,
       metadata: {
         userId,
-        items: JSON.stringify(items.map((i) => ({ itemType: i.itemType, itemId: i.itemId }))),
+        items: JSON.stringify(items.map((i) => ({ 
+          itemType: i.itemType, 
+          itemId: i.itemId, 
+          selectedSize: i.selectedSize || null 
+        }))),
       },
     });
 

@@ -35,9 +35,17 @@ export default function CartPage() {
       const m = merchs.find((x: Merch) => x.id === c.itemId);
       if (!m) return null;
       const cents = Math.round(parseFloat(m.price.replace(/[^0-9.,]/g, '').replace(',', '.')) * 100) || 0;
-      return { ...c, name: m.name, image: m.imageUrl, priceCents: cents, priceLabel: formatPrice(m.price), subtitle: 'Produto' };
+      return { 
+        ...c, 
+        name: m.name, 
+        image: m.imageUrl, 
+        priceCents: cents, 
+        priceLabel: formatPrice(m.price), 
+        subtitle: 'Produto',
+        selectedSize: c.selectedSize 
+      };
     }
-  }).filter(Boolean) as { itemType: 'tattoo' | 'merch'; itemId: string; name: string; image: string; priceCents: number; priceLabel: string; subtitle: string }[];
+  }).filter(Boolean) as { itemType: 'tattoo' | 'merch'; itemId: string; name: string; image: string; priceCents: number; priceLabel: string; subtitle: string; selectedSize?: string }[];
 
   const totalCents = items.reduce((sum, i) => sum + i.priceCents, 0);
 
@@ -52,7 +60,14 @@ export default function CartPage() {
         body: JSON.stringify({
           userId: publicUser.id,
           email: publicUser.email,
-          items: items.map((i) => ({ itemType: i.itemType, itemId: i.itemId, name: i.name, image: i.image, priceCents: i.priceCents })),
+          items: items.map((i) => ({ 
+            itemType: i.itemType, 
+            itemId: i.itemId, 
+            name: i.name, 
+            image: i.image, 
+            priceCents: i.priceCents,
+            selectedSize: i.selectedSize
+          })),
         }),
       });
       const json = await res.json();
@@ -92,6 +107,9 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-0.5">{item.subtitle}</p>
                     <h3 className="font-display text-lg uppercase tracking-wide text-white truncate">{item.name}</h3>
+                    {item.selectedSize && (
+                      <p className="font-body text-[10px] text-gray-400 tracking-widest uppercase mt-0.5">Tamanho: {item.selectedSize}</p>
+                    )}
                     <p className="font-body text-sm text-ink-500 mt-1">{item.priceLabel}</p>
                   </div>
                   <button onClick={() => removeFromCart(item.itemType, item.itemId)} className="text-gray-700 hover:text-red-400 transition-colors self-start mt-1">
