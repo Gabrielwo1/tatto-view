@@ -101,8 +101,7 @@ function VestuarioCard({ m }: { m: Merch }) {
       navigate('/login');
       return;
     }
-    // Note: for now we add the item. Size selection could be refined to pass size to addToCart.
-    addToCart('merch', m.id);
+    addToCart('merch', m.id, selectedSize ?? undefined);
   };
 
   return (

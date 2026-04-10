@@ -594,7 +594,7 @@ const seedTattoos: Tattoo[] = [
   { id: 'tattoo-5',  title: 'Serpente Blackwork',       description: 'Cobra enrolada em estilo blackwork com padrões tribais.', imageUrl: 'https://picsum.photos/seed/tattoo5/600/400',  style: 'Blackwork',      price: 'R$ 750',   artistId: null, status: 'available', createdAt: new Date('2024-03-01').toISOString() },
   { id: 'tattoo-6',  title: 'Lobo Tribal',              description: 'Lobo majestuoso em estilo tribal com linhas fortes.', imageUrl: 'https://picsum.photos/seed/tattoo6/600/400',  style: 'Tribal',         price: 'R$ 900',   artistId: null, status: 'available', createdAt: new Date('2024-03-10').toISOString() },
   { id: 'tattoo-7',  title: 'Retrato Realista',         description: 'Retrato hiper-realista em preto e cinza.', imageUrl: 'https://picsum.photos/seed/tattoo7/600/400',  style: 'Realismo',       price: 'R$ 1.800', artistId: null, status: 'available', createdAt: new Date('2024-03-20').toISOString() },
-  { id: 'tattoo-8',  title: 'Pássaro Minimalista',      description: 'Pássaro em voo com design minimalista e linhas finas.', imageUrl: 'https://picsum.photos/seed/tattoo8/600/400',  style: 'Minimalista',    price: 'R$ 400',   artistId: null, status: 'available', createdAt: new Date('2024-04-01').toISOString() },
+  { id: 'tattoo-8',  title: 'Pássaro Minimalista',      description: 'Pássaro em voo com design minimalista e lines finas.', imageUrl: 'https://picsum.photos/seed/tattoo8/600/400',  style: 'Minimalista',    price: 'R$ 400',   artistId: null, status: 'available', createdAt: new Date('2024-04-01').toISOString() },
   { id: 'tattoo-9',  title: 'Crânio Neo-Tradicional',   description: 'Crânio decorado com flores e padrões neo-tradicionais.', imageUrl: 'https://picsum.photos/seed/tattoo9/600/400',  style: 'Neo-Tradicional',price: 'R$ 1.100', artistId: null, status: 'archived',  createdAt: new Date('2023-11-15').toISOString() },
   { id: 'tattoo-10', title: 'Rosa Aquarela',            description: 'Rosa em aquarela com degradê de cores quentes.', imageUrl: 'https://picsum.photos/seed/tattoo10/600/400', style: 'Aquarela',       price: 'R$ 700',   artistId: null, status: 'archived',  createdAt: new Date('2023-12-01').toISOString() },
   { id: 'tattoo-11', title: 'Dragão Oriental',          description: 'Dragão oriental em blackwork cobrindo o braço inteiro.', imageUrl: 'https://picsum.photos/seed/tattoo11/600/400', style: 'Blackwork',      price: 'R$ 2.500', artistId: null, status: 'available', createdAt: new Date('2024-04-10').toISOString() },
@@ -714,9 +714,9 @@ interface AppState {
   // ── Cart ──────────────────────────────────────────────────────────────
   cart: CartItem[];
   loadCart: () => Promise<void>;
-  addToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  addToCart: (itemType: 'tattoo' | 'merch', itemId: string, selectedSize?: string) => Promise<void>;
   removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
-  moveToCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  moveToCart: (itemType: 'tattoo' | 'merch', itemId: string, selectedSize?: string) => Promise<void>;
   // ── Studio ───────────────────────────────────────────────────────────
   currentStudioId: string;
   // ── Subscription ─────────────────────────────────────────────────────
@@ -1159,15 +1159,15 @@ export const useStore = create<AppState>()(
       loadCart: async () => {
         const { publicUser } = get();
         if (!supabase || !publicUser) return;
-        const { data } = await supabase.from('cart_items').select('item_type, item_id').eq('user_id', publicUser.id);
-        if (data) set({ cart: data.map((r) => ({ id: crypto.randomUUID(), itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
+        const { data } = await supabase.from('cart_items').select('item_type, item_id, selected_size').eq('user_id', publicUser.id);
+        if (data) set({ cart: data.map((r: any) => ({ id: crypto.randomUUID(), itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id, selectedSize: r.selected_size })) });
       },
 
-      addToCart: async (itemType, itemId) => {
+      addToCart: async (itemType, itemId, selectedSize) => {
         const { publicUser } = get();
         if (!supabase || !publicUser) return;
-        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { id: crypto.randomUUID(), itemType, itemId }] }));
-        await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { id: crypto.randomUUID(), itemType, itemId, selectedSize }] }));
+        await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId, selected_size: selectedSize });
       },
 
       removeFromCart: async (itemType, itemId) => {
@@ -1177,8 +1177,8 @@ export const useStore = create<AppState>()(
         await supabase.from('cart_items').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
       },
 
-      moveToCart: async (itemType, itemId) => {
-        await get().addToCart(itemType, itemId);
+      moveToCart: async (itemType, itemId, selectedSize) => {
+        await get().addToCart(itemType, itemId, selectedSize);
         await get().removeFromWishlist(itemType, itemId);
       },
 
