@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 /* ─── tiny visibility hook ─── */
 function useVisible(threshold = 0.12) {
@@ -119,22 +120,20 @@ export default function VitrinLandingPage() {
             tudo pronto para usar e personalizar sem saber programar.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/criar-studio"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #ff4500, #ff8c00)', color: '#fff' }}
+            >
+              🚀 Criar meu estúdio
+            </Link>
             <a
               href="https://eldude.vitrink.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #ff4500, #ff8c00)', color: '#fff' }}
-            >
-              🎨 Ver site demo
-            </a>
-            <a
-              href="https://wa.me/5546999704747?text=Olá! Quero saber mais sobre o Vitrink.app"
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg border border-zinc-700 hover:border-orange-500 transition-colors"
             >
-              💬 Falar no WhatsApp
+              🎨 Ver site demo
             </a>
           </div>
         </div>
@@ -361,22 +360,20 @@ export default function VitrinLandingPage() {
                   as páginas e funcionalidades que seu estúdio vai receber.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link
+                    to="/criar-studio"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95"
+                    style={{ background: 'linear-gradient(135deg, #ff4500, #ff8c00)', color: '#fff' }}
+                  >
+                    🚀 Quero o meu agora
+                  </Link>
                   <a
                     href="https://eldude.vitrink.app"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95"
-                    style={{ background: 'linear-gradient(135deg, #ff4500, #ff8c00)', color: '#fff' }}
-                  >
-                    🔗 Acessar eldude.vitrink.app
-                  </a>
-                  <a
-                    href="https://wa.me/5546999704747?text=Olá! Vi o Vitrink.app e quero um site para meu estúdio."
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-lg border border-zinc-600 hover:border-orange-500 transition-colors"
                   >
-                    💬 Quero o meu agora
+                    🔗 Ver demo
                   </a>
                 </div>
               </div>
@@ -421,6 +418,9 @@ export default function VitrinLandingPage() {
         </div>
         <p className="text-zinc-500 text-sm mb-6">Sites profissionais para estúdios de tatuagem.</p>
         <div className="flex justify-center gap-6 text-sm text-zinc-500">
+          <Link to="/criar-studio" className="hover:text-orange-400 transition-colors">
+            Criar estúdio
+          </Link>
           <a
             href="https://eldude.vitrink.app"
             target="_blank"

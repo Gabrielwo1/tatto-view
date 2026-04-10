@@ -50,7 +50,7 @@ import StudioSignupPage from './pages/StudioSignupPage';
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
   const h = window.location.hostname.toLowerCase().replace(/^www\./, '');
-  return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */;
+  return h === 'vitrink.app' || h === 'localhost.vitrink' /* dev convenience */ || h === 'tatto-view-xan-9sjp.vercel.app' /* temp test */;
 }
 
 // Detects Supabase password recovery tokens in the URL and redirects to the reset page.

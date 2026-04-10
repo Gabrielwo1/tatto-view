@@ -54,7 +54,7 @@ export default function StudioSignupPage() {
             Criar seu studio
           </h1>
           <p className="font-body text-xs text-gray-500 tracking-widest uppercase mb-6">
-            3 meses grátis · Sem cobrança imediata
+            15 dias grátis · Sem cobrança imediata
           </p>
 
           {error && (
@@ -137,7 +137,7 @@ export default function StudioSignupPage() {
           {/* Trust signals */}
           <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-3 gap-3 text-center">
             <div>
-              <p className="font-body text-[10px] text-white font-semibold">3 meses</p>
+              <p className="font-body text-[10px] text-white font-semibold">15 dias</p>
               <p className="font-body text-[10px] text-gray-500">grátis</p>
             </div>
             <div>
