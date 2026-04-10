@@ -179,7 +179,7 @@ export default function App() {
 
   // Apply custom favicon + og:image dynamically
   useEffect(() => {
-    const faviconUrl = customFavicon ?? '/dudeicone.png';
+    const faviconUrl = isMarketingDomain() ? '/vitrink-icon.png' : (customFavicon ?? '/dudeicone.png');
     const cacheBuster = 'v=' + Date.now();
     const fullUrl = faviconUrl + (faviconUrl.includes('?') ? '&' : '?') + cacheBuster;
     
