@@ -16,9 +16,9 @@ export default function CartPage() {
 
   if (!publicUser) {
     return (
-      <div className=\"min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4\">
-        <p className=\"font-body text-xs text-gray-500 tracking-widest uppercase\">Faça login para acessar seu carrinho</p>
-        <Link to=\"/login\" className=\"font-body text-xs font-bold tracking-widest uppercase bg-white text-black px-6 py-3 hover:bg-white/90 transition-colors\">
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-4">
+        <p className="font-body text-xs text-gray-500 tracking-widest uppercase">Faça login para acessar seu carrinho</p>
+        <Link to="/login" className="font-body text-xs font-bold tracking-widest uppercase bg-white text-black px-6 py-3 hover:bg-white/90 transition-colors">
           Entrar
         </Link>
       </div>
@@ -65,70 +65,85 @@ export default function CartPage() {
       const json = await res.json();
       if (!res.ok || !json.url) throw new Error(json.error ?? 'Erro ao criar sessão de pagamento');
       window.location.href = json.url;
-    } catch (err: unknown) {\n      setError(err instanceof Error ? err.message : 'Erro inesperado');
-    } finally {\n      setLoading(false);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro inesperado');
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div className=\"min-h-screen bg-zinc-950 text-white\">
-      <div className=\"max-w-3xl mx-auto px-6 py-12\">
-        <div className=\"mb-8\">
-          <p className=\"font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1\">Finalizar</p>
-          <h1 className=\"font-display text-4xl uppercase tracking-wide text-white\">Carrinho</h1>
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">Finalizar</p>
+          <h1 className="font-display text-4xl uppercase tracking-wide text-white">Carrinho</h1>
         </div>
 
         {items.length === 0 ? (
-          <div className=\"flex flex-col items-center justify-center py-24 gap-4 text-center\">
-            <p className=\"font-body text-xs text-gray-600 tracking-widest uppercase\">Seu carrinho está vazio</p>
-            <Link to=\"/\" className=\"font-body text-xs font-bold tracking-widest uppercase border border-white/20 text-white px-6 py-2.5 hover:bg-white hover:text-black transition-colors\">
+          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+            <p className="font-body text-xs text-gray-600 tracking-widest uppercase">Seu carrinho está vazio</p>
+            <Link to="/" className="font-body text-xs font-bold tracking-widest uppercase border border-white/20 text-white px-6 py-2.5 hover:bg-white hover:text-black transition-colors">
               Explorar designs
             </Link>
           </div>
         ) : (
-          <div className=\"grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start\">
-            {/* Items */}
-            <ul className=\"divide-y divide-white/5\">\n              {items.map((item) => (\n                <li key={`${item.itemType}-${item.itemId}-${item.selectedSize || 'none'}`} className=\"flex gap-4 py-5\">\n                  <div className=\"w-20 h-20 shrink-0 bg-zinc-900 overflow-hidden\">\n                    <img src={item.image} alt={item.name} className=\"w-full h-full object-cover\" />\n                  </div>
-                  <div className=\"flex-1 min-w-0\">
-                    <p className=\"font-body text-[10px] text-gray-600 tracking-widest uppercase mb-0.5\">{item.subtitle}</p>
-                    <h3 className=\"font-display text-lg uppercase tracking-wide text-white truncate\">{item.name}</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
+            <ul className="divide-y divide-white/5">
+              {items.map((item) => (
+                <li key={`${item.itemType}-${item.itemId}-${item.selectedSize || 'none'}`} className="flex gap-4 py-5">
+                  <div className="w-20 h-20 shrink-0 bg-zinc-900 overflow-hidden">
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-0.5">{item.subtitle}</p>
+                    <h3 className="font-display text-lg uppercase tracking-wide text-white truncate">{item.name}</h3>
                     {item.selectedSize && (
-                      <p className=\"font-body text-[10px] text-gray-400 tracking-widest uppercase mt-1\">
-                        Tamanho: <span className=\"text-white\">{item.selectedSize}</span>
+                      <p className="font-body text-[10px] text-gray-400 tracking-widest uppercase mt-1">
+                        Tamanho: <span className="text-white">{item.selectedSize}</span>
                       </p>
                     )}
-                    <p className=\"font-body text-sm text-ink-500 mt-1\">{item.priceLabel}</p>
+                    <p className="font-body text-sm text-ink-500 mt-1">{item.priceLabel}</p>
                   </div>
-                  <button onClick={() => removeFromCart(item.itemType, item.itemId)} className=\"text-gray-700 hover:text-red-400 transition-colors self-start mt-1\">
-                    <svg className=\"w-4 h-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" strokeWidth={2}>
-                      <path strokeLinecap=\"round\" strokeLinejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\" />
+                  <button onClick={() => removeFromCart(item.itemType, item.itemId)} className="text-gray-700 hover:text-red-400 transition-colors self-start mt-1">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </li>
-              ))}\n            </ul>
+              ))}
+            </ul>
 
-            {/* Summary */}
-            <div className=\"border border-white/10 bg-black/20 p-6 sticky top-4\">
-              <h2 className=\"font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4\">Resumo</h2>
-              <div className=\"flex justify-between mb-2\">
-                <span className=\"font-body text-sm text-gray-400\">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
-                <span className=\"font-body text-sm text-white\">{formatPrice(totalCents / 100)}</span>
+            <div className="border border-white/10 bg-black/20 p-6 sticky top-4">
+              <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Resumo</h2>
+              <div className="flex justify-between mb-2">
+                <span className="font-body text-sm text-gray-400">{items.length} {items.length === 1 ? 'item' : 'itens'}</span>
+                <span className="font-body text-sm text-white">{formatPrice(totalCents / 100)}</span>
               </div>
-              <div className=\"border-t border-white/10 my-4\" />
-              <div className=\"flex justify-between mb-6\">
-                <span className=\"font-body text-xs font-bold tracking-widest uppercase text-white\">Total</span>
-                <span className=\"font-display text-xl text-white\">{formatPrice(totalCents / 100)}</span>
+              <div className="border-t border-white/10 my-4" />
+              <div className="flex justify-between mb-6">
+                <span className="font-body text-xs font-bold tracking-widest uppercase text-white">Total</span>
+                <span className="font-display text-xl text-white">{formatPrice(totalCents / 100)}</span>
               </div>
-              {error && (\n                <div className=\"mb-4 px-3 py-2 border border-red-500/30 bg-red-500/10\">
-                  <p className=\"font-body text-xs text-red-400\">{error}</p>
+              {error && (
+                <div className="mb-4 px-3 py-2 border border-red-500/30 bg-red-500/10">
+                  <p className="font-body text-xs text-red-400">{error}</p>
                 </div>
-              )}\n              <button
-                onClick={handleCheckout}\n                disabled={loading}\n                className=\"w-full bg-white text-black font-body text-xs font-bold tracking-widest uppercase py-3 hover:bg-white/90 transition-colors disabled:opacity-50\"\n              >\n                {loading ? 'Redirecionando...' : 'Pagar com Stripe'}\n              </button>
-              <p className=\"font-body text-[10px] text-gray-700 text-center mt-3\">
+              )}
+              <button
+                onClick={handleCheckout}
+                disabled={loading}
+                className="w-full bg-white text-black font-body text-xs font-bold tracking-widest uppercase py-3 hover:bg-white/90 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Redirecionando...' : 'Pagar com Stripe'}
+              </button>
+              <p className="font-body text-[10px] text-gray-700 text-center mt-3">
                 Pagamento seguro via Stripe
               </p>
             </div>
           </div>
-        )}\n      </div>
+        )}
+      </div>
     </div>
-  );\n}\n
+  );
+}
