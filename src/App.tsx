@@ -45,6 +45,7 @@ import LoginPage from './pages/LoginPage';
 import WishlistPage from './pages/WishlistPage';
 import CartPage from './pages/CartPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
+import StudioSignupPage from './pages/StudioSignupPage';
 
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
@@ -133,6 +134,34 @@ function PublicLayout({ children, hideFooter = false }: { children: React.ReactN
   );
 }
 
+function StudioSuccessPage() {
+  const params = new URLSearchParams(window.location.search);
+  const subdomain = params.get('subdomain') ?? '';
+  return (
+    <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-4 text-center gap-6">
+      <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+        <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      </div>
+      <div>
+        <h1 className="font-display text-4xl uppercase tracking-wide text-white mb-2">Studio criado!</h1>
+        <p className="font-body text-sm text-gray-400 max-w-sm">
+          Verifique seu email — enviamos um link para você definir sua senha e acessar o painel.
+        </p>
+      </div>
+      {subdomain && (
+        <a
+          href={`https://${subdomain}.vitrink.app/admin/login`}
+          className="font-body text-xs font-bold tracking-widest uppercase bg-white text-black px-8 py-3 hover:bg-white/90 transition-colors"
+        >
+          Acessar {subdomain}.vitrink.app →
+        </a>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const loadData       = useStore((s) => s.loadData);
   const initAuth       = useStore((s) => s.initAuth);
@@ -174,9 +203,18 @@ export default function App() {
     loadData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Show marketing landing page on vitrink.app root domain
+  // Show marketing pages on vitrink.app root domain
   if (isMarketingDomain()) {
-    return <VitrinLandingPage />;
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<VitrinLandingPage />} />
+          <Route path="/criar-studio" element={<StudioSignupPage />} />
+          <Route path="/checkout/studio-sucesso" element={<StudioSuccessPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
   }
 
   return (

@@ -30,6 +30,73 @@ async function getUserIdFromCustomer(customerId) {
   return data?.id ?? null;
 }
 
+async function handleStudioCreation(session) {
+  const { studio_name, subdomain, email } = session.metadata ?? {};
+  if (!subdomain || !email) {
+    console.error('[webhook] studio_creation: missing metadata', session.metadata);
+    return;
+  }
+
+  // 1. Create Supabase auth user (service role bypasses email confirmation)
+  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    password: crypto.randomUUID(), // temporary — overwritten by password recovery flow
+  });
+
+  if (authError) {
+    // If user already exists (retry scenario), fetch their id
+    if (!authError.message?.includes('already')) {
+      console.error('[webhook] createUser error:', authError);
+      return;
+    }
+  }
+
+  const userId = authData?.user?.id;
+  if (!userId) {
+    console.error('[webhook] Could not get userId for', email);
+    return;
+  }
+
+  const trialEndsAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+
+  // 2. Create studio entry
+  const { error: studioError } = await supabase.from('studios').upsert({
+    id: subdomain,
+    name: studio_name ?? subdomain,
+    domain: `${subdomain}.vitrink.app`,
+  }, { onConflict: 'id', ignoreDuplicates: true });
+
+  if (studioError) console.error('[webhook] studios upsert error:', studioError);
+
+  // 3. Create user_profiles with trialing subscription
+  const { error: profileError } = await supabase.from('user_profiles').upsert({
+    id: userId,
+    role: 'admin',
+    studio_id: subdomain,
+    artist_id: null,
+    subscription_status: 'trialing',
+    trial_ends_at: trialEndsAt,
+    stripe_customer_id: session.customer,
+    stripe_subscription_id: session.subscription,
+  }, { onConflict: 'id' });
+
+  if (profileError) console.error('[webhook] user_profiles upsert error:', profileError);
+
+  // 4. Send password recovery email so the user can set their own password
+  const { error: recoveryError } = await supabase.auth.admin.generateLink({
+    type: 'recovery',
+    email,
+    options: {
+      redirectTo: `https://${subdomain}.vitrink.app/admin/reset-password`,
+    },
+  });
+
+  if (recoveryError) console.error('[webhook] generateLink error:', recoveryError);
+
+  console.log(`[webhook] Studio "${subdomain}" created for ${email}, trial until ${trialEndsAt}`);
+}
+
 async function handleOneTimePayment(session) {
   const userId = session.metadata?.userId;
   const items = JSON.parse(session.metadata?.items || '[]');
@@ -82,8 +149,12 @@ export default async function handler(req, res) {
       // Checkout completo
       case 'checkout.session.completed': {
         const session = event.data.object;
-        
-        if (session.mode === 'subscription') {
+
+        if (session.mode === 'subscription' && session.metadata?.type === 'studio_creation') {
+          // New studio onboarding via vitrink.app
+          await handleStudioCreation(session);
+        } else if (session.mode === 'subscription') {
+          // Existing studio activating/reactivating a plan
           const userId = session.metadata?.supabase_user_id;
           await updateSubscription(userId, {
             status: 'active',
