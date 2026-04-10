@@ -232,6 +232,7 @@ export const THEMES: Record<ThemeId, Theme> = {
 // ── Subdomain → theme mapping ─────────────────────────────────────────────────
 export const SUBDOMAIN_THEMES: Record<string, ThemeId> = {
   eldude: 'ember',
+  gurls: 'rose',
 };
 
 // ── Theme resolution ───────────────────────────────────────────────────────────
