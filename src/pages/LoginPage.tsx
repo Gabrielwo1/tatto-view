@@ -16,7 +16,8 @@ export default function LoginPage() {
   const publicLogin = useStore((s) => s.publicLogin);
   const publicRegister = useStore((s) => s.publicRegister);
   const customLogo = useStore((s) => s.customLogo);
-  const logoSrc = customLogo ?? '/logosemo-3.png';
+  const dataLoaded = useStore((s) => s.dataLoaded);
+  const logoSrc = dataLoaded ? (customLogo ?? '/logosemo-1.png') : null;
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -47,8 +48,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <Link to="/" className="flex justify-center mb-8">
-          <img src={logoSrc} alt="Logo" className="h-16 object-contain" />
+        <Link to="/" className="flex justify-center mb-8 h-16 items-center">
+          {logoSrc && <img src={logoSrc} alt="Logo" className="h-16 object-contain" />}
         </Link>
 
         <div className="border border-white/10 bg-black/40 p-8">

@@ -53,7 +53,8 @@ export default function AdminLogin() {
   const isArtist       = useStore((s) => s.isArtist);
   const isMerchManager = useStore((s) => s.isMerchManager);
   const customLogo     = useStore((s) => s.customLogo);
-  const logoSrc        = customLogo ?? '/logosemo-3.png';
+  const dataLoaded     = useStore((s) => s.dataLoaded);
+  const logoSrc        = dataLoaded ? (customLogo ?? '/logosemo-1.png') : null;
   const navigate       = useNavigate();
   const { lang } = useLang();
   const t = T[lang];
@@ -116,7 +117,9 @@ export default function AdminLogin() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-10">
-          <img src={logoSrc} alt="Logo" className="h-16 w-auto object-contain mx-auto mb-4" />
+          <div className="h-16 flex items-center justify-center mb-4">
+            {logoSrc && <img src={logoSrc} alt="Logo" className="h-16 w-auto object-contain" />}
+          </div>
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">
             {t.panel}
           </p>
