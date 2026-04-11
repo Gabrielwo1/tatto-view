@@ -120,18 +120,18 @@ export default function LandingPage() {
                 Nossas<br />obras
               </h2>
             </div>
-            <div className="columns-2 md:columns-3 lg:columns-4 gap-px space-y-px">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-1">
               {available.map((tattoo, i) => (
                 <div
                   key={tattoo.id}
-                  className={`break-inside-avoid cursor-pointer overflow-hidden transition-all duration-700 ${galeriaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                  className={`aspect-square overflow-hidden cursor-pointer transition-all duration-700 ${galeriaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
                   style={{ transitionDelay: `${i * 40}ms` }}
                   onClick={() => setSelectedImage(tattoo.imageUrl)}
                 >
                   <img
                     src={tattoo.imageUrl}
                     alt={tattoo.title}
-                    className="w-full object-cover hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                     loading="lazy"
                   />
                 </div>
@@ -176,21 +176,43 @@ export default function LandingPage() {
 
       {/* SOBRE NÓS — coletivo */}
       <section className="bg-zinc-900 py-20 px-6">
-        <div ref={quemSomosRef} className={`max-w-4xl mx-auto transition-all duration-700 ${quemSomosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-          <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Sobre nós</p>
-          <h2 className="font-display text-5xl sm:text-7xl md:text-8xl uppercase leading-none text-white mb-8">
-            {collective.title}
-          </h2>
-          <div className="grid md:grid-cols-2 gap-8 text-gray-400 font-body text-base leading-relaxed mb-8">
-            <p>{collective.body1}</p>
-            <p>{collective.body2}</p>
+        <div ref={quemSomosRef} className={`max-w-6xl mx-auto transition-all duration-700 ${quemSomosVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+          <div className="grid md:grid-cols-2 gap-12 items-start">
+            {/* Esquerda: texto + mini galeria */}
+            <div>
+              <p className="font-body text-xs font-bold tracking-widest uppercase text-ink2-500 mb-4">Sobre nós</p>
+              <h2 className="font-display text-5xl sm:text-6xl md:text-7xl uppercase leading-none text-white mb-8">
+                {collective.title}
+              </h2>
+              <div className="space-y-4 text-gray-400 font-body text-base leading-relaxed mb-8">
+                <p>{collective.body1}</p>
+                {collective.body2 && <p>{collective.body2}</p>}
+                {collective.body3 && <p>{collective.body3}</p>}
+              </div>
+              <Link to="/artistas" className="inline-block px-10 py-4 border border-white/25 hover:border-white text-white/60 hover:text-white font-body font-bold text-sm tracking-widest uppercase transition-colors mb-8">
+                {collective.ctaLabel}
+              </Link>
+              {/* Mini galeria */}
+              {collective.galleryImages?.some(img => img) && (
+                <div className="grid grid-cols-3 gap-1 mt-8">
+                  {collective.galleryImages.filter(img => img).map((img, i) => (
+                    <div key={i} className="aspect-square overflow-hidden cursor-pointer" onClick={() => setSelectedImage(img)}>
+                      <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Direita: foto grande */}
+            {collective.image && (
+              <div className="cursor-pointer overflow-hidden sticky top-24" onClick={() => setSelectedImage(collective.image)}>
+                <img src={collective.image} alt={collective.imageCaption || ''} className="w-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
+                {collective.imageCaption && (
+                  <p className="font-body text-xs tracking-widest uppercase text-gray-600 mt-2">{collective.imageCaption}</p>
+                )}
+              </div>
+            )}
           </div>
-          {collective.body3 && (
-            <p className="text-gray-400 font-body text-base leading-relaxed mb-8">{collective.body3}</p>
-          )}
-          <Link to="/artistas" className="inline-block px-10 py-4 border border-white/25 hover:border-white text-white/60 hover:text-white font-body font-bold text-sm tracking-widest uppercase transition-colors">
-            {collective.ctaLabel}
-          </Link>
         </div>
       </section>
 
