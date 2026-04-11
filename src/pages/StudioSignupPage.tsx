@@ -126,7 +126,7 @@ export default function StudioSignupPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link to="/" className="flex justify-center mb-10">
-          <img src="/vitrinklogo.png" alt="Vitrink" className="h-12 object-contain" />
+          <img src="/vitrinklogo.png" alt="Vitrink" className="h-24 object-contain" />
         </Link>
 
         <div className="border border-white/10 bg-black/40 p-8">
