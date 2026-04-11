@@ -4,6 +4,80 @@ import { useStore } from '../../store';
 import { TATTOO_STYLES } from '../../types';
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage, uploadImages } from '../../lib/uploadImage';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    backLink: '← Tatuagens', editTitle: 'Editar Arte', newTitle: 'Nova Arte',
+    stepPhotos: 'Fotos', stepDetails: 'Detalhes', stepSave: 'Salvar',
+    titleField: 'Título *', titlePlaceholder: 'Ex: Leão Realista',
+    descField: 'Descrição *', descPlaceholder: 'Descreva a tatuagem...',
+    imageUrl: 'URL da Imagem', cropBtn: 'Cortar', adjustCrop: 'Ajustar recorte da imagem',
+    styleField: 'Estilo *', priceField: 'Preço', artistField: 'Artista',
+    youLabel: 'Você', studioOption: 'Estúdio', statusField: 'Status',
+    statusAvailable: 'Disponível', statusArchived: 'Arquivada',
+    saving: 'Enviando…', save: 'Salvar', cancel: 'Cancelar',
+    tattooImage: 'Imagem da tatuagem', selectFromDevice: 'Selecionar do dispositivo',
+    noImage: 'Sem imagem',
+    savedTitle: 'Salvo!',
+    savedCount: (n: number) => `${n} arte${n !== 1 ? 's' : ''} adicionada${n !== 1 ? 's' : ''} com sucesso.`,
+    savedNote: 'As imagens foram salvas e já estão visíveis no portfólio.',
+    viewTattoos: 'Ver tatuagens →',
+    croppingLabel: (n: number, total: number) => `Recortando foto ${n} de ${total}`,
+    selectPhotos: 'Selecionar fotos', selectMultiple: 'Pode selecionar várias fotos de uma vez',
+    photoCount: (n: number) => `${n} foto${n !== 1 ? 's' : ''} selecionada${n !== 1 ? 's' : ''}`,
+    addMore: '+ Adicionar mais', photoAlt: (n: number) => `Foto ${n}`,
+    cropLabel: 'Recortar',
+    nextDetails: 'Próximo: Preencher detalhes',
+    reviewHeader: (n: number) => `Confira as ${n} arte${n !== 1 ? 's' : ''} antes de salvar`,
+    backEdit: '← Voltar e editar', editBtn: 'Editar', noTitle: 'Sem título',
+    uploadingProgress: (done: number, total: number) => `Enviando ${done}/${total}…`,
+    uploadingSaving: 'Salvando…',
+    saveCount: (n: number) => `Salvar ${n} arte${n !== 1 ? 's' : ''}`,
+    syncNote: 'As imagens serão salvas no localStorage e sincronizadas com o Supabase',
+    photoOf: (n: number, total: number) => `Foto ${n} de ${total}`,
+    photoProgress: (n: number, total: number) => `Foto ${n} / ${total}`,
+    applyToAll: 'Aplicar estilo/artista/status para todas',
+    applyConfirm: 'Aplicar estilo, artista e status desta foto para todas as outras?',
+    filledPending: '● preenchido \u00a0 ○ pendente',
+    previous: 'Anterior', nextPhoto: 'Próxima foto →', reviewSave: 'Revisar e salvar →',
+  },
+  en: {
+    backLink: '← Tattoos', editTitle: 'Edit Art', newTitle: 'New Art',
+    stepPhotos: 'Photos', stepDetails: 'Details', stepSave: 'Save',
+    titleField: 'Title *', titlePlaceholder: 'E.g.: Realistic Lion',
+    descField: 'Description *', descPlaceholder: 'Describe the tattoo...',
+    imageUrl: 'Image URL', cropBtn: 'Crop', adjustCrop: 'Adjust image crop',
+    styleField: 'Style *', priceField: 'Price', artistField: 'Artist',
+    youLabel: 'You', studioOption: 'Studio', statusField: 'Status',
+    statusAvailable: 'Available', statusArchived: 'Archived',
+    saving: 'Saving…', save: 'Save', cancel: 'Cancel',
+    tattooImage: 'Tattoo image', selectFromDevice: 'Select from device',
+    noImage: 'No image',
+    savedTitle: 'Saved!',
+    savedCount: (n: number) => `${n} artwork${n !== 1 ? 's' : ''} added successfully.`,
+    savedNote: 'Images were saved and are now visible in the portfolio.',
+    viewTattoos: 'View tattoos →',
+    croppingLabel: (n: number, total: number) => `Cropping photo ${n} of ${total}`,
+    selectPhotos: 'Select photos', selectMultiple: 'You can select multiple photos at once',
+    photoCount: (n: number) => `${n} photo${n !== 1 ? 's' : ''} selected`,
+    addMore: '+ Add more', photoAlt: (n: number) => `Photo ${n}`,
+    cropLabel: 'Crop',
+    nextDetails: 'Next: Fill in details',
+    reviewHeader: (n: number) => `Review ${n} artwork${n !== 1 ? 's' : ''} before saving`,
+    backEdit: '← Back and edit', editBtn: 'Edit', noTitle: 'No title',
+    uploadingProgress: (done: number, total: number) => `Uploading ${done}/${total}…`,
+    uploadingSaving: 'Saving…',
+    saveCount: (n: number) => `Save ${n} artwork${n !== 1 ? 's' : ''}`,
+    syncNote: 'Images will be saved to localStorage and synced with Supabase',
+    photoOf: (n: number, total: number) => `Photo ${n} of ${total}`,
+    photoProgress: (n: number, total: number) => `Photo ${n} / ${total}`,
+    applyToAll: 'Apply style/artist/status to all',
+    applyConfirm: 'Apply style, artist and status from this photo to all others?',
+    filledPending: '● filled \u00a0 ○ pending',
+    previous: 'Previous', nextPhoto: 'Next photo →', reviewSave: 'Review and save →',
+  },
+};
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
@@ -57,6 +131,8 @@ function StepBadge({ n, label, active, done }: { n: number; label: string; activ
 
 // ══════════════════════════════════════════════════════════════════════════════
 export default function AdminTattooForm() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const tattoos = useStore((s) => s.tattoos);
@@ -180,7 +256,7 @@ export default function AdminTattooForm() {
     setUploadProgress(null);
     items.forEach((item, i) => {
       addTattoo({
-        title: item.title || 'Sem título',
+        title: item.title || tr.noTitle,
         description: item.description || '',
         imageUrl: urls[i],
         style: item.style,
@@ -203,9 +279,9 @@ export default function AdminTattooForm() {
       <div className="p-4 md:p-8">
         <div className="mb-8">
           <Link to="/admin/tatuagens" className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors inline-flex items-center gap-2 mb-4">
-            ← Tatuagens
+            {tr.backLink}
           </Link>
-          <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Editar Arte</h1>
+          <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">{tr.editTitle}</h1>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -213,22 +289,22 @@ export default function AdminTattooForm() {
           <div className="w-full lg:w-96 flex-shrink-0">
             <form onSubmit={handleEditSubmit} className="border border-white/10 p-6 space-y-5">
               <div>
-                <label className={labelCls}>Título *</label>
-                <input name="title" value={editForm.title} onChange={handleEditChange} required className={inputCls} placeholder="Ex: Leão Realista" />
+                <label className={labelCls}>{tr.titleField}</label>
+                <input name="title" value={editForm.title} onChange={handleEditChange} required className={inputCls} placeholder={tr.titlePlaceholder} />
               </div>
               <div>
-                <label className={labelCls}>Descrição *</label>
-                <textarea name="description" value={editForm.description} onChange={handleEditChange} required rows={4} className={`${inputCls} resize-none`} placeholder="Descreva a tatuagem..." />
+                <label className={labelCls}>{tr.descField}</label>
+                <textarea name="description" value={editForm.description} onChange={handleEditChange} required rows={4} className={`${inputCls} resize-none`} placeholder={tr.descPlaceholder} />
               </div>
               {!editForm.imageUrl.startsWith('data:') && (
                 <div>
-                  <label className={labelCls}>URL da Imagem</label>
+                  <label className={labelCls}>{tr.imageUrl}</label>
                   <div className="flex gap-2">
                     <input name="imageUrl" value={editForm.imageUrl} onChange={handleEditChange} className={inputCls} placeholder="https://..." />
                     {editForm.imageUrl && (
                       <button type="button" onClick={() => setEditCropSrc(editForm.imageUrl)}
                         className="flex-shrink-0 px-3 border border-amber-400/40 hover:border-amber-400 text-amber-400/60 hover:text-amber-400 font-body text-[10px] tracking-widest uppercase transition-colors whitespace-nowrap">
-                        Cortar
+                        {tr.cropBtn}
                       </button>
                     )}
                   </div>
@@ -236,47 +312,47 @@ export default function AdminTattooForm() {
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelCls}>Estilo *</label>
+                  <label className={labelCls}>{tr.styleField}</label>
                   <select name="style" value={editForm.style} onChange={handleEditChange} className={`${inputCls} bg-zinc-950`}>
                     {allStyles.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className={labelCls}>Preço</label>
+                  <label className={labelCls}>{tr.priceField}</label>
                   <input name="price" value={editForm.price} onChange={handleEditChange} className={inputCls} placeholder="R$ 500" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelCls}>Artista</label>
+                  <label className={labelCls}>{tr.artistField}</label>
                   {isArtist ? (
                     <input
-                      value={artists.find((a) => a.id === editForm.artistId)?.name ?? 'Você'}
+                      value={artists.find((a) => a.id === editForm.artistId)?.name ?? tr.youLabel}
                       disabled
                       className={`${inputCls} opacity-50 cursor-not-allowed`}
                     />
                   ) : (
                     <select name="artistId" value={editForm.artistId ?? ''} onChange={handleEditChange} className={`${inputCls} bg-zinc-950`}>
-                      <option value="">Estúdio</option>
+                      <option value="">{tr.studioOption}</option>
                       {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
                   )}
                 </div>
                 <div>
-                  <label className={labelCls}>Status</label>
+                  <label className={labelCls}>{tr.statusField}</label>
                   <select name="status" value={editForm.status} onChange={handleEditChange} className={`${inputCls} bg-zinc-950`}>
-                    <option value="available">Disponível</option>
-                    <option value="archived">Arquivada</option>
+                    <option value="available">{tr.statusAvailable}</option>
+                    <option value="archived">{tr.statusArchived}</option>
                   </select>
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="submit" disabled={uploading}
                   className="flex-1 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
-                  {uploading ? 'Enviando…' : 'Salvar'}
+                  {uploading ? tr.saving : tr.save}
                 </button>
                 <Link to="/admin/tatuagens" className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors text-center">
-                  Cancelar
+                  {tr.cancel}
                 </Link>
               </div>
             </form>
@@ -284,7 +360,7 @@ export default function AdminTattooForm() {
 
           {/* RIGHT: image panel */}
           <div className="flex-1 min-w-0 lg:sticky lg:top-8">
-            <p className={labelCls}>Imagem da tatuagem</p>
+            <p className={labelCls}>{tr.tattooImage}</p>
             {editCropSrc ? (
               <ImageCropper src={editCropSrc} onConfirm={onEditCropConfirm} onCancel={onEditCropCancel} />
             ) : (
@@ -295,7 +371,7 @@ export default function AdminTattooForm() {
                   <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
-                  <span className="font-body text-xs font-semibold tracking-widest uppercase">Selecionar do dispositivo</span>
+                  <span className="font-body text-xs font-semibold tracking-widest uppercase">{tr.selectFromDevice}</span>
                 </button>
                 {editForm.imageUrl ? (
                   <div className="space-y-3">
@@ -310,12 +386,12 @@ export default function AdminTattooForm() {
                     <button type="button" onClick={() => setEditCropSrc(editForm.imageUrl)}
                       className="w-full flex items-center justify-center gap-2 py-3 bg-amber-400/10 border border-amber-400/50 hover:bg-amber-400/20 hover:border-amber-400 text-amber-400 font-body text-xs font-bold tracking-widest uppercase transition-colors">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                      Ajustar recorte da imagem
+                      {tr.adjustCrop}
                     </button>
                   </div>
                 ) : (
                   <div className="w-1/2 aspect-[3/4] border border-dashed border-white/10 flex items-center justify-center">
-                    <p className="font-body text-[10px] text-gray-700 tracking-widest uppercase">Sem imagem</p>
+                    <p className="font-body text-[10px] text-gray-700 tracking-widest uppercase">{tr.noImage}</p>
                   </div>
                 )}
               </div>
@@ -341,19 +417,19 @@ export default function AdminTattooForm() {
             </svg>
           </div>
           <h2 className="font-display text-4xl text-white uppercase tracking-wide leading-none mb-3">
-            Salvo!
+            {tr.savedTitle}
           </h2>
           <p className="font-body text-sm text-gray-400 mb-1">
-            <span className="text-white font-bold">{items.length} arte{items.length !== 1 ? 's' : ''}</span> adicionada{items.length !== 1 ? 's' : ''} com sucesso.
+            <span className="text-white font-bold">{tr.savedCount(items.length)}</span>
           </p>
           <p className="font-body text-xs text-gray-600 mb-8">
-            As imagens foram salvas e já estão visíveis no portfólio.
+            {tr.savedNote}
           </p>
           <button
             onClick={() => navigate('/admin/tatuagens')}
             className="w-full py-3.5 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
           >
-            Ver tatuagens →
+            {tr.viewTattoos}
           </button>
         </div>
       </div>
@@ -365,18 +441,18 @@ export default function AdminTattooForm() {
       {/* Header */}
       <div className="mb-6">
         <Link to="/admin/tatuagens" className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors inline-flex items-center gap-2 mb-4">
-          ← Tatuagens
+          {tr.backLink}
         </Link>
-        <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Nova Arte</h1>
+        <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">{tr.newTitle}</h1>
       </div>
 
       {/* Step indicators */}
       <div className="flex items-center gap-3 mb-8">
-        <StepBadge n={1} label="Fotos"    active={phase === 'upload'}  done={phase === 'details' || phase === 'review'} />
+        <StepBadge n={1} label={tr.stepPhotos}  active={phase === 'upload'}  done={phase === 'details' || phase === 'review'} />
         <div className="flex-1 h-px bg-white/10 max-w-16" />
-        <StepBadge n={2} label="Detalhes" active={phase === 'details'} done={phase === 'review'} />
+        <StepBadge n={2} label={tr.stepDetails} active={phase === 'details'} done={phase === 'review'} />
         <div className="flex-1 h-px bg-white/10 max-w-16" />
-        <StepBadge n={3} label="Salvar"   active={phase === 'review'}  done={false} />
+        <StepBadge n={3} label={tr.stepSave}    active={phase === 'review'}  done={false} />
       </div>
 
       {/* ── PHASE 1: UPLOAD ─────────────────────────────────────────────────── */}
@@ -384,7 +460,7 @@ export default function AdminTattooForm() {
         croppingItem ? (
           <div className="max-w-lg">
             <p className={`${labelCls} mb-3`}>
-              Recortando foto {items.findIndex((i) => i.id === cropItemId) + 1} de {items.length}
+              {tr.croppingLabel(items.findIndex((i) => i.id === cropItemId) + 1, items.length)}
             </p>
             <ImageCropper
               src={croppingItem.rawSrc}
@@ -413,10 +489,10 @@ export default function AdminTattooForm() {
               </svg>
               <div className="text-center">
                 <p className="font-body text-sm font-semibold tracking-widest uppercase">
-                  Selecionar fotos
+                  {tr.selectPhotos}
                 </p>
                 <p className="font-body text-[10px] text-gray-600 mt-1">
-                  Pode selecionar várias fotos de uma vez
+                  {tr.selectMultiple}
                 </p>
               </div>
             </button>
@@ -426,14 +502,14 @@ export default function AdminTattooForm() {
                 {/* Thumbnails grid */}
                 <div className="flex items-center justify-between">
                   <p className="font-body text-[10px] text-gray-500 tracking-widest uppercase">
-                    {items.length} foto{items.length !== 1 ? 's' : ''} selecionada{items.length !== 1 ? 's' : ''}
+                    {tr.photoCount(items.length)}
                   </p>
                   <button
                     type="button"
                     onClick={() => batchFileRef.current?.click()}
                     className="font-body text-[10px] text-amber-400/70 hover:text-amber-400 tracking-widest uppercase transition-colors"
                   >
-                    + Adicionar mais
+                    {tr.addMore}
                   </button>
                 </div>
 
@@ -442,7 +518,7 @@ export default function AdminTattooForm() {
                     <div key={item.id} className="relative group">
                       <img
                         src={item.imageUrl}
-                        alt={`Foto ${idx + 1}`}
+                        alt={tr.photoAlt(idx + 1)}
                         className="w-full aspect-[3/4] object-cover border border-white/10"
                       />
                       {/* Hover overlay */}
@@ -452,7 +528,7 @@ export default function AdminTattooForm() {
                           onClick={() => setCropItemId(item.id)}
                           className="font-body text-[10px] font-bold tracking-widest uppercase text-amber-400 border border-amber-400/60 px-3 py-1 hover:bg-amber-400/20 transition-colors"
                         >
-                          Recortar
+                          {tr.cropLabel}
                         </button>
                       </div>
                       {/* Remove button */}
@@ -479,7 +555,7 @@ export default function AdminTattooForm() {
                   onClick={() => { setCurrentIdx(0); setPhase('details'); }}
                   className="w-full py-3.5 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors flex items-center justify-center gap-2"
                 >
-                  Próximo: Preencher detalhes
+                  {tr.nextDetails}
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -495,14 +571,14 @@ export default function AdminTattooForm() {
         <div>
       <div className="flex items-center justify-between mb-6">
             <p className="font-body text-sm text-gray-400">
-              Confira as <span className="text-white font-bold">{items.length} arte{items.length !== 1 ? 's' : ''}</span> antes de salvar
+              {tr.reviewHeader(items.length)}
             </p>
             <button
               type="button"
               onClick={() => { setPhase('details'); setCurrentIdx(items.length - 1); }}
               className="font-body text-[10px] text-gray-600 hover:text-white tracking-widest uppercase transition-colors"
             >
-              ← Voltar e editar
+              {tr.backEdit}
             </button>
           </div>
 
@@ -513,20 +589,20 @@ export default function AdminTattooForm() {
               return (
                 <div key={item.id} className="relative group">
                   <div className="relative aspect-[3/4] overflow-hidden bg-zinc-900">
-                    <img src={item.imageUrl} alt={item.title || `Foto ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img src={item.imageUrl} alt={item.title || tr.photoAlt(idx + 1)} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
                       <button
                         type="button"
                         onClick={() => { setCurrentIdx(idx); setPhase('details'); }}
                         className="w-full py-1.5 border border-white/40 text-white font-body text-[9px] tracking-widest uppercase hover:border-white transition-colors"
                       >
-                        Editar
+                        {tr.editBtn}
                       </button>
                     </div>
                   </div>
                   <div className="mt-1.5 space-y-0.5">
                     <p className="font-display text-xs text-white uppercase tracking-wide leading-tight truncate">
-                      {item.title || <span className="text-gray-600 italic normal-case font-body">Sem título</span>}
+                      {item.title || <span className="text-gray-600 italic normal-case font-body">{tr.noTitle}</span>}
                     </p>
                     <p className="font-body text-[10px] text-gray-600 truncate">{item.style}</p>
                     {item.price && <p className="font-body text-[10px] text-gray-500">{item.price}</p>}
@@ -552,20 +628,20 @@ export default function AdminTattooForm() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
                   {uploadProgress
-                    ? `Enviando ${uploadProgress.done}/${uploadProgress.total}…`
-                    : 'Salvando…'}
+                    ? tr.uploadingProgress(uploadProgress.done, uploadProgress.total)
+                    : tr.uploadingSaving}
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                  Salvar {items.length} arte{items.length !== 1 ? 's' : ''}
+                  {tr.saveCount(items.length)}
                 </>
               )}
             </button>
             <p className="text-center font-body text-[10px] text-gray-700 mt-3 tracking-widest uppercase">
-              As imagens serão salvas no localStorage e sincronizadas com o Supabase
+              {tr.syncNote}
             </p>
           </div>
         </div>
@@ -582,7 +658,7 @@ export default function AdminTattooForm() {
                 key={item.id}
                 type="button"
                 onClick={() => setCurrentIdx(idx)}
-                title={`Foto ${idx + 1}`}
+                title={tr.photoAlt(idx + 1)}
                 className={`relative flex-shrink-0 w-14 xl:w-full border-2 transition-all ${
                   idx === currentIdx ? 'border-amber-400 opacity-100' : 'border-transparent opacity-40 hover:opacity-70'
                 }`}
@@ -604,19 +680,19 @@ export default function AdminTattooForm() {
             <div className="lg:w-56 flex-shrink-0">
               <img
                 src={current.imageUrl}
-                alt={`Foto ${currentIdx + 1}`}
+                alt={tr.photoAlt(currentIdx + 1)}
                 className="w-full aspect-[3/4] object-cover border border-white/10"
               />
               <div className="mt-2 flex items-center justify-between">
                 <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase">
-                  Foto {currentIdx + 1} / {items.length}
+                  {tr.photoProgress(currentIdx + 1, items.length)}
                 </p>
                 <button
                   type="button"
                   onClick={() => { setCropItemId(current.id); setPhase('upload'); }}
                   className="font-body text-[10px] text-amber-400/60 hover:text-amber-400 tracking-widest uppercase transition-colors"
                 >
-                  Recortar
+                  {tr.cropLabel}
                 </button>
               </div>
               {/* Progress dots */}
@@ -633,7 +709,7 @@ export default function AdminTattooForm() {
                 ))}
               </div>
               <p className="font-body text-[9px] text-gray-700 mt-1.5">
-                ● preenchido &nbsp; ○ pendente
+                {tr.filledPending}
               </p>
             </div>
 
@@ -644,13 +720,13 @@ export default function AdminTattooForm() {
                 {/* Progress header */}
                 <div className="flex items-center justify-between pb-3 border-b border-white/10">
                   <span className="font-body text-[10px] text-gray-500 tracking-widest uppercase">
-                    Foto {currentIdx + 1} de {items.length}
+                    {tr.photoOf(currentIdx + 1, items.length)}
                   </span>
                   {items.length > 1 && (
                     <button
                       type="button"
                       onClick={() => {
-                        const val = window.confirm('Aplicar estilo, artista e status desta foto para todas as outras?');
+                        const val = window.confirm(tr.applyConfirm);
                         if (val) {
                           applyToAll('style', current.style);
                           applyToAll('artistId', current.artistId);
@@ -659,35 +735,35 @@ export default function AdminTattooForm() {
                       }}
                       className="font-body text-[9px] text-gray-600 hover:text-amber-400 tracking-widest uppercase transition-colors"
                     >
-                      Aplicar estilo/artista/status para todas
+                      {tr.applyToAll}
                     </button>
                   )}
                 </div>
 
                 <div>
-                  <label className={labelCls}>Título</label>
+                  <label className={labelCls}>{tr.titleField}</label>
                   <input
                     value={current.title}
                     onChange={(e) => updateItem(current.id, { title: e.target.value })}
                     className={inputCls}
-                    placeholder="Ex: Leão Realista"
+                    placeholder={tr.titlePlaceholder}
                   />
                 </div>
 
                 <div>
-                  <label className={labelCls}>Descrição</label>
+                  <label className={labelCls}>{tr.descField}</label>
                   <textarea
                     value={current.description}
                     onChange={(e) => updateItem(current.id, { description: e.target.value })}
                     rows={3}
                     className={`${inputCls} resize-none`}
-                    placeholder="Descreva a tatuagem..."
+                    placeholder={tr.descPlaceholder}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={labelCls}>Estilo</label>
+                    <label className={labelCls}>{tr.styleField}</label>
                     <select
                       value={current.style}
                       onChange={(e) => updateItemAndPropagate('style', e.target.value)}
@@ -697,7 +773,7 @@ export default function AdminTattooForm() {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Preço</label>
+                    <label className={labelCls}>{tr.priceField}</label>
                     <input
                       value={current.price}
                       onChange={(e) => updateItem(current.id, { price: e.target.value })}
@@ -709,10 +785,10 @@ export default function AdminTattooForm() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={labelCls}>Artista</label>
+                    <label className={labelCls}>{tr.artistField}</label>
                     {isArtist ? (
                       <input
-                        value={artists.find((a) => a.id === current.artistId)?.name ?? 'Você'}
+                        value={artists.find((a) => a.id === current.artistId)?.name ?? tr.youLabel}
                         disabled
                         className={`${inputCls} opacity-50 cursor-not-allowed`}
                       />
@@ -722,20 +798,20 @@ export default function AdminTattooForm() {
                         onChange={(e) => updateItemAndPropagate('artistId', e.target.value)}
                         className={`${inputCls} bg-zinc-950`}
                       >
-                        <option value="">Estúdio</option>
+                        <option value="">{tr.studioOption}</option>
                         {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                       </select>
                     )}
                   </div>
                   <div>
-                    <label className={labelCls}>Status</label>
+                    <label className={labelCls}>{tr.statusField}</label>
                     <select
                       value={current.status}
                       onChange={(e) => updateItem(current.id, { status: e.target.value as 'available' | 'archived' })}
                       className={`${inputCls} bg-zinc-950`}
                     >
-                      <option value="available">Disponível</option>
-                      <option value="archived">Arquivada</option>
+                      <option value="available">{tr.statusAvailable}</option>
+                      <option value="archived">{tr.statusArchived}</option>
                     </select>
                   </div>
                 </div>
@@ -757,7 +833,7 @@ export default function AdminTattooForm() {
                       onClick={() => setCurrentIdx((i) => i - 1)}
                       className="px-5 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors"
                     >
-                      Anterior
+                      {tr.previous}
                     </button>
                   )}
 
@@ -767,7 +843,7 @@ export default function AdminTattooForm() {
                       onClick={() => setCurrentIdx((i) => i + 1)}
                       className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors"
                     >
-                      Próxima foto →
+                      {tr.nextPhoto}
                     </button>
                   ) : (
                     <button
@@ -775,7 +851,7 @@ export default function AdminTattooForm() {
                       onClick={() => setPhase('review')}
                       className="flex-1 py-3 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase transition-colors flex items-center justify-center gap-2"
                     >
-                      Revisar e salvar →
+                      {tr.reviewSave}
                     </button>
                   )}
                 </div>
