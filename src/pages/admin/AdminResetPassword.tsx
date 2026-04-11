@@ -1,9 +1,39 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    panelLabel: 'Painel Administrativo',
+    title: 'Nova Senha',
+    waitingLink: 'Aguardando validação do link... Se esta página não carregar, volte ao email e clique no link novamente.',
+    subtitle: 'Defina sua nova senha abaixo.',
+    newPasswordLabel: 'Nova senha',
+    confirmPasswordLabel: 'Confirmar senha',
+    saving: 'Salvando...', save: 'Salvar nova senha',
+    errMismatch: 'As senhas não coincidem.',
+    errTooShort: 'A senha deve ter pelo menos 6 caracteres.',
+    errUpdate: 'Erro ao atualizar a senha. Tente novamente.',
+  },
+  en: {
+    panelLabel: 'Admin Panel',
+    title: 'New Password',
+    waitingLink: 'Waiting for link validation... If this page does not load, go back to your email and click the link again.',
+    subtitle: 'Set your new password below.',
+    newPasswordLabel: 'New password',
+    confirmPasswordLabel: 'Confirm password',
+    saving: 'Saving...', save: 'Save new password',
+    errMismatch: 'Passwords do not match.',
+    errTooShort: 'Password must be at least 6 characters.',
+    errUpdate: 'Error updating password. Please try again.',
+  },
+};
 
 export default function AdminResetPassword() {
   const navigate = useNavigate();
+  const { lang } = useLang();
+  const tr = T[lang];
   const [password, setPassword] = useState('');
   const [confirm, setConfirm]   = useState('');
   const [error, setError]       = useState('');
@@ -50,18 +80,18 @@ export default function AdminResetPassword() {
     e.preventDefault();
     setError('');
     if (password !== confirm) {
-      setError('As senhas não coincidem.');
+      setError(tr.errMismatch);
       return;
     }
     if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
+      setError(tr.errTooShort);
       return;
     }
     setLoading(true);
     const { error } = await supabase!.auth.updateUser({ password });
     setLoading(false);
     if (error) {
-      setError('Erro ao atualizar a senha. Tente novamente.');
+      setError(tr.errUpdate);
     } else {
       await supabase!.auth.signOut();
       navigate('/admin/login', { replace: true });
@@ -74,21 +104,21 @@ export default function AdminResetPassword() {
         <div className="text-center mb-10">
           <img src="/logosemo-3.png" alt="El Dude" className="h-16 w-auto object-contain mx-auto mb-4" />
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">
-            Painel Administrativo
+            {tr.panelLabel}
           </p>
         </div>
 
         <div className="border border-white/10 p-8">
-          <h2 className="font-display text-3xl text-white uppercase tracking-wide mb-2">Nova Senha</h2>
+          <h2 className="font-display text-3xl text-white uppercase tracking-wide mb-2">{tr.title}</h2>
 
           {!ready ? (
             <p className="font-body text-xs text-gray-500 mt-4">
-              Aguardando validação do link... Se esta página não carregar, volte ao email e clique no link novamente.
+              {tr.waitingLink}
             </p>
           ) : (
             <>
               <p className="font-body text-xs text-gray-500 mb-8">
-                Defina sua nova senha abaixo.
+                {tr.subtitle}
               </p>
 
               {error && (
@@ -100,7 +130,7 @@ export default function AdminResetPassword() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">
-                    Nova senha
+                    {tr.newPasswordLabel}
                   </label>
                   <div className="relative">
                     <input
@@ -126,7 +156,7 @@ export default function AdminResetPassword() {
                 </div>
                 <div>
                   <label className="block font-body text-xs font-semibold tracking-widest uppercase text-gray-500 mb-2">
-                    Confirmar senha
+                    {tr.confirmPasswordLabel}
                   </label>
                   <div className="relative">
                     <input
@@ -155,7 +185,7 @@ export default function AdminResetPassword() {
                   disabled={loading}
                   className="w-full mt-3 bg-white hover:bg-gray-100 disabled:opacity-50 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors"
                 >
-                  {loading ? 'Salvando...' : 'Salvar nova senha'}
+                  {loading ? tr.saving : tr.save}
                 </button>
               </form>
             </>

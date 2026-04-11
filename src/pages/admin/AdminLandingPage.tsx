@@ -2,6 +2,68 @@ import { useState } from 'react';
 import { useStore } from '../../store';
 import type { LandingContent } from '../../store';
 import { supabase } from '../../lib/supabase';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    title: 'Landing Page',
+    subtitle: 'Edite o conteúdo da página inicial de apresentação',
+    heroSection: 'Hero',
+    heroTaglineLabel: 'Título principal (use \\n para quebra de linha)',
+    heroDescLabel: 'Subtítulo (use \\n para quebra de linha)',
+    manifestoSection: 'Manifesto',
+    title1Label: 'Título linha 1', title2Label: 'Título linha 2',
+    body1Label: 'Parágrafo 1', body2Label: 'Parágrafo 2',
+    processoSection: 'Como Funciona (Processo)',
+    titleLabel: 'Título', descLabel: 'Descrição',
+    precosSection: 'Tabela de Preços',
+    styleLabel: 'Estilo', valueLabel: 'Valor', detailLabel: 'Detalhe',
+    addRow: '+ Adicionar linha',
+    faqSection: 'Perguntas Frequentes (FAQ)',
+    questionLabel: 'Pergunta', answerLabel: 'Resposta',
+    addQuestion: '+ Adicionar pergunta',
+    estilosSection: 'Estilos (Ícone e Descrição)',
+    iconLabel: 'Ícone (caractere único)', shortDescLabel: 'Descrição curta',
+    ctaSection: 'CTA Final',
+    ctaTaglineLabel: 'Tagline (texto pequeno acima)',
+    ctaTitle1Label: 'Título linha 1', ctaTitle2Label: 'Título linha 2',
+    ctaDescLabel: 'Descrição',
+    save: 'Salvar alterações',
+    saveError: 'Erro ao salvar no servidor. Verifique sua conexão e tente novamente.',
+    savedTitle: 'Salvo com sucesso', savedMsg: 'As alterações já estão publicadas',
+    errorTitle: 'Erro ao salvar',
+    removeTitle: 'Remover',
+  },
+  en: {
+    title: 'Landing Page',
+    subtitle: 'Edit the main landing page content',
+    heroSection: 'Hero',
+    heroTaglineLabel: 'Main title (use \\n for line breaks)',
+    heroDescLabel: 'Subtitle (use \\n for line breaks)',
+    manifestoSection: 'Manifesto',
+    title1Label: 'Title line 1', title2Label: 'Title line 2',
+    body1Label: 'Paragraph 1', body2Label: 'Paragraph 2',
+    processoSection: 'How It Works (Process)',
+    titleLabel: 'Title', descLabel: 'Description',
+    precosSection: 'Pricing Table',
+    styleLabel: 'Style', valueLabel: 'Price', detailLabel: 'Detail',
+    addRow: '+ Add row',
+    faqSection: 'FAQ',
+    questionLabel: 'Question', answerLabel: 'Answer',
+    addQuestion: '+ Add question',
+    estilosSection: 'Styles (Icon & Description)',
+    iconLabel: 'Icon (single character)', shortDescLabel: 'Short description',
+    ctaSection: 'Final CTA',
+    ctaTaglineLabel: 'Tagline (small text above)',
+    ctaTitle1Label: 'Title line 1', ctaTitle2Label: 'Title line 2',
+    ctaDescLabel: 'Description',
+    save: 'Save changes',
+    saveError: 'Error saving to server. Check your connection and try again.',
+    savedTitle: 'Saved successfully', savedMsg: 'Changes are now published',
+    errorTitle: 'Save error',
+    removeTitle: 'Remove',
+  },
+};
 
 const inputCls =
   'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
@@ -10,6 +72,8 @@ const labelCls =
 const textareaCls = inputCls + ' resize-none';
 
 export default function AdminLandingPage() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const landingContent = useStore((s) => s.landingContent);
   const setLandingContent = useStore((s) => s.setLandingContent);
 
@@ -85,7 +149,7 @@ export default function AdminLandingPage() {
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('[AdminLandingPage] save failed:', err);
-      setSaveError('Erro ao salvar no servidor. Verifique sua conexão e tente novamente.');
+      setSaveError(tr.saveError);
       setTimeout(() => setSaveError(''), 6000);
     }
   }
@@ -93,8 +157,8 @@ export default function AdminLandingPage() {
   return (
     <div className="p-6 lg:p-10 max-w-5xl">
       <div className="mb-8">
-        <h1 className="font-display text-2xl uppercase tracking-wide text-white">Landing Page</h1>
-        <p className="font-body text-xs text-gray-500 mt-1">Edite o conteúdo da página inicial de apresentação</p>
+        <h1 className="font-display text-2xl uppercase tracking-wide text-white">{tr.title}</h1>
+        <p className="font-body text-xs text-gray-500 mt-1">{tr.subtitle}</p>
       </div>
 
       <div className="space-y-10">
@@ -102,11 +166,11 @@ export default function AdminLandingPage() {
         {/* ── HERO ── */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
-            Hero
+            {tr.heroSection}
           </h2>
           <div className="space-y-4">
             <div>
-              <label className={labelCls}>Título principal (use \n para quebra de linha)</label>
+              <label className={labelCls}>{tr.heroTaglineLabel}</label>
               <textarea
                 className={textareaCls}
                 rows={2}
@@ -116,7 +180,7 @@ export default function AdminLandingPage() {
               />
             </div>
             <div>
-              <label className={labelCls}>Subtítulo (use \n para quebra de linha)</label>
+              <label className={labelCls}>{tr.heroDescLabel}</label>
               <textarea
                 className={textareaCls}
                 rows={3}
@@ -132,12 +196,12 @@ export default function AdminLandingPage() {
         {/* ── MANIFESTO ── */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
-            Manifesto
+            {tr.manifestoSection}
           </h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Título linha 1</label>
+                <label className={labelCls}>{tr.title1Label}</label>
                 <input
                   className={inputCls}
                   value={form.manifesto.title1}
@@ -145,7 +209,7 @@ export default function AdminLandingPage() {
                 />
               </div>
               <div>
-                <label className={labelCls}>Título linha 2</label>
+                <label className={labelCls}>{tr.title2Label}</label>
                 <input
                   className={inputCls}
                   value={form.manifesto.title2}
@@ -154,7 +218,7 @@ export default function AdminLandingPage() {
               </div>
             </div>
             <div>
-              <label className={labelCls}>Parágrafo 1</label>
+              <label className={labelCls}>{tr.body1Label}</label>
               <textarea
                 className={textareaCls}
                 rows={3}
@@ -163,7 +227,7 @@ export default function AdminLandingPage() {
               />
             </div>
             <div>
-              <label className={labelCls}>Parágrafo 2</label>
+              <label className={labelCls}>{tr.body2Label}</label>
               <textarea
                 className={textareaCls}
                 rows={3}
@@ -179,14 +243,14 @@ export default function AdminLandingPage() {
         ══════════════════════════════════════════════════ */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
-            Como Funciona (Processo)
+            {tr.processoSection}
           </h2>
           <div className="space-y-4">
             {form.processo.map((step, i) => (
               <div key={step.n} className="border border-white/10 p-4 space-y-3">
                 <p className="font-display text-white/30 text-sm uppercase">{step.n}</p>
                 <div>
-                  <label className={labelCls}>Título</label>
+                  <label className={labelCls}>{tr.titleLabel}</label>
                   <input
                     className={inputCls}
                     value={step.title}
@@ -194,7 +258,7 @@ export default function AdminLandingPage() {
                   />
                 </div>
                 <div>
-                  <label className={labelCls}>Descrição</label>
+                  <label className={labelCls}>{tr.descLabel}</label>
                   <textarea
                     className={textareaCls}
                     rows={2}
@@ -212,14 +276,14 @@ export default function AdminLandingPage() {
         {/* ── PREÇOS ── */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
-            Tabela de Preços
+            {tr.precosSection}
           </h2>
           <div className="space-y-3">
             {form.precos.map((preco, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="flex-1 grid grid-cols-3 gap-3">
                   <div>
-                    <label className={labelCls}>Estilo</label>
+                    <label className={labelCls}>{tr.styleLabel}</label>
                     <input
                       className={inputCls}
                       placeholder="Minimalista"
@@ -228,7 +292,7 @@ export default function AdminLandingPage() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>Valor</label>
+                    <label className={labelCls}>{tr.valueLabel}</label>
                     <input
                       className={inputCls}
                       placeholder="R$ 250 – R$ 500"
@@ -237,7 +301,7 @@ export default function AdminLandingPage() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>Detalhe</label>
+                    <label className={labelCls}>{tr.detailLabel}</label>
                     <input
                       className={inputCls}
                       placeholder="Peças pequenas"
@@ -249,7 +313,7 @@ export default function AdminLandingPage() {
                 <button
                   onClick={() => removePreco(i)}
                   className="mt-6 text-gray-600 hover:text-red-400 transition-colors shrink-0"
-                  title="Remover"
+                  title={tr.removeTitle}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -261,7 +325,7 @@ export default function AdminLandingPage() {
               onClick={addPreco}
               className="mt-2 font-body text-xs tracking-widest uppercase text-gray-500 hover:text-white border border-white/10 hover:border-white/30 px-4 py-2 transition-colors"
             >
-              + Adicionar linha
+              {tr.addRow}
             </button>
           </div>
         </section>
@@ -271,7 +335,7 @@ export default function AdminLandingPage() {
         {/* ── FAQ ── */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
-            Perguntas Frequentes (FAQ)
+            {tr.faqSection}
           </h2>
           <div className="space-y-4">
             {form.faq.map((item, i) => (
@@ -279,7 +343,7 @@ export default function AdminLandingPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 space-y-3">
                     <div>
-                      <label className={labelCls}>Pergunta</label>
+                      <label className={labelCls}>{tr.questionLabel}</label>
                       <input
                         className={inputCls}
                         value={item.q}
@@ -287,7 +351,7 @@ export default function AdminLandingPage() {
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Resposta</label>
+                      <label className={labelCls}>{tr.answerLabel}</label>
                       <textarea
                         className={textareaCls}
                         rows={2}
@@ -299,7 +363,7 @@ export default function AdminLandingPage() {
                   <button
                     onClick={() => removeFaq(i)}
                     className="mt-6 text-gray-600 hover:text-red-400 transition-colors shrink-0"
-                    title="Remover"
+                    title={tr.removeTitle}
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -312,7 +376,7 @@ export default function AdminLandingPage() {
               onClick={addFaq}
               className="mt-2 font-body text-xs tracking-widest uppercase text-gray-500 hover:text-white border border-white/10 hover:border-white/30 px-4 py-2 transition-colors"
             >
-              + Adicionar pergunta
+              {tr.addQuestion}
             </button>
           </div>
         </section>
@@ -322,7 +386,7 @@ export default function AdminLandingPage() {
         {/* ── ESTILOS ── */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
-            Estilos (Ícone e Descrição)
+            {tr.estilosSection}
           </h2>
           <div className="space-y-3">
             {Object.entries(form.estilos ?? {}).map(([style, info]) => (
@@ -330,7 +394,7 @@ export default function AdminLandingPage() {
                 <p className="font-display text-sm text-white/50 uppercase mb-3">{style}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>Ícone (caractere único)</label>
+                    <label className={labelCls}>{tr.iconLabel}</label>
                     <input
                       className={inputCls}
                       value={info.icon}
@@ -342,7 +406,7 @@ export default function AdminLandingPage() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>Descrição curta</label>
+                    <label className={labelCls}>{tr.shortDescLabel}</label>
                     <input
                       className={inputCls}
                       value={info.desc}
@@ -363,11 +427,11 @@ export default function AdminLandingPage() {
         {/* ── CTA FINAL ── */}
         <section>
           <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-ink-500 mb-5">
-            CTA Final
+            {tr.ctaSection}
           </h2>
           <div className="space-y-4">
             <div>
-              <label className={labelCls}>Tagline (texto pequeno acima)</label>
+              <label className={labelCls}>{tr.ctaTaglineLabel}</label>
               <input
                 className={inputCls}
                 value={form.cta.tagline}
@@ -376,7 +440,7 @@ export default function AdminLandingPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Título linha 1</label>
+                <label className={labelCls}>{tr.ctaTitle1Label}</label>
                 <input
                   className={inputCls}
                   value={form.cta.title1}
@@ -384,7 +448,7 @@ export default function AdminLandingPage() {
                 />
               </div>
               <div>
-                <label className={labelCls}>Título linha 2</label>
+                <label className={labelCls}>{tr.ctaTitle2Label}</label>
                 <input
                   className={inputCls}
                   value={form.cta.title2}
@@ -393,7 +457,7 @@ export default function AdminLandingPage() {
               </div>
             </div>
             <div>
-              <label className={labelCls}>Descrição</label>
+              <label className={labelCls}>{tr.ctaDescLabel}</label>
               <textarea
                 className={textareaCls}
                 rows={2}
@@ -412,7 +476,7 @@ export default function AdminLandingPage() {
           onClick={handleSave}
           className="px-8 py-3 bg-white text-black font-body text-xs font-semibold tracking-widest uppercase hover:bg-gray-200 transition-colors"
         >
-          Salvar alterações
+          {tr.save}
         </button>
       </div>
 
@@ -422,8 +486,8 @@ export default function AdminLandingPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
           <div>
-            <p className="font-body text-xs font-semibold tracking-widest uppercase text-green-400">Salvo com sucesso</p>
-            <p className="font-body text-[10px] text-gray-500 mt-0.5">As alterações já estão publicadas</p>
+            <p className="font-body text-xs font-semibold tracking-widest uppercase text-green-400">{tr.savedTitle}</p>
+            <p className="font-body text-[10px] text-gray-500 mt-0.5">{tr.savedMsg}</p>
           </div>
         </div>
       )}
@@ -434,7 +498,7 @@ export default function AdminLandingPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
           <div>
-            <p className="font-body text-xs font-semibold tracking-widest uppercase text-red-400">Erro ao salvar</p>
+            <p className="font-body text-xs font-semibold tracking-widest uppercase text-red-400">{tr.errorTitle}</p>
             <p className="font-body text-[10px] text-gray-400 mt-0.5">{saveError}</p>
           </div>
         </div>

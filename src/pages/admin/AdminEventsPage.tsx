@@ -3,6 +3,58 @@ import { useStore } from '../../store';
 import type { EventsContent, EventItem } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
 import { supabase } from '../../lib/supabase';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Conteúdo', title: 'Events',
+    discard: 'Descartar', saved: '✓ Salvo', save: 'Salvar',
+    unsavedChanges: 'Alterações não salvas',
+    heroSection: 'Hero', taglineLabel: 'Tagline',
+    titleLabel: 'Título grande', titleHint: '(use Enter para quebrar linha)',
+    descLabel: 'Descrição',
+    heroBgLabel: 'Imagem de fundo do Hero',
+    uploading: 'Enviando...', changeImage: 'Trocar imagem', selectImage: 'Selecionar imagem',
+    eventsSection: (n: number) => `Eventos (${n})`,
+    eventLabel: (n: number) => `Evento ${n}`,
+    showEvent: 'Mostrar evento', hideEvent: 'Ocultar evento',
+    moveUp: 'Mover para cima', moveDown: 'Mover para baixo',
+    removeEvent: 'Remover evento',
+    removeEventConfirm: 'Remover este evento?',
+    dateLabel: 'Data', timeLabel: 'Horário / Tipo', iconLabel: 'Ícone',
+    eventTitleLabel: 'Título', eventDescLabel: 'Descrição',
+    ctaLabelField: 'Texto do botão', ctaUrlField: 'Link do botão (URL)',
+    eventPhotoLabel: 'Foto do evento',
+    changePhoto: 'Trocar foto', selectPhoto: 'Selecionar foto',
+    addEvent: 'Adicionar evento',
+    saveError: 'Erro ao salvar no servidor. Verifique sua conexão e tente novamente.',
+    errorTitle: 'Erro ao salvar',
+  },
+  en: {
+    label: 'Content', title: 'Events',
+    discard: 'Discard', saved: '✓ Saved', save: 'Save',
+    unsavedChanges: 'Unsaved changes',
+    heroSection: 'Hero', taglineLabel: 'Tagline',
+    titleLabel: 'Large title', titleHint: '(press Enter for line breaks)',
+    descLabel: 'Description',
+    heroBgLabel: 'Hero background image',
+    uploading: 'Uploading...', changeImage: 'Change image', selectImage: 'Select image',
+    eventsSection: (n: number) => `Events (${n})`,
+    eventLabel: (n: number) => `Event ${n}`,
+    showEvent: 'Show event', hideEvent: 'Hide event',
+    moveUp: 'Move up', moveDown: 'Move down',
+    removeEvent: 'Remove event',
+    removeEventConfirm: 'Remove this event?',
+    dateLabel: 'Date', timeLabel: 'Time / Type', iconLabel: 'Icon',
+    eventTitleLabel: 'Title', eventDescLabel: 'Description',
+    ctaLabelField: 'Button text', ctaUrlField: 'Button link (URL)',
+    eventPhotoLabel: 'Event photo',
+    changePhoto: 'Change photo', selectPhoto: 'Select photo',
+    addEvent: 'Add event',
+    saveError: 'Error saving to server. Check your connection and try again.',
+    errorTitle: 'Save error',
+  },
+};
 
 /* ── field helpers ─────────────────────────────────────────────────── */
 const base =
@@ -51,6 +103,8 @@ const EVENT_TYPES = [
 
 /* ── main component ─────────────────────────────────────────────────── */
 export default function AdminEventsPage() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const eventsContent = useStore((s) => s.eventsContent);
   const setEventsContent = useStore((s) => s.setEventsContent);
 
@@ -104,7 +158,7 @@ export default function AdminEventsPage() {
   }
 
   function removeEvent(id: string) {
-    if (!confirm('Remover este evento?')) return;
+    if (!confirm(tr.removeEventConfirm)) return;
     setDraft((p) => ({ ...p, events: p.events.filter((e) => e.id !== id) }));
     setSaved(false);
   }
@@ -165,7 +219,7 @@ export default function AdminEventsPage() {
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error('[AdminEventsPage] save failed:', err);
-      setSaveError('Erro ao salvar no servidor. Verifique sua conexão e tente novamente.');
+      setSaveError(tr.saveError);
       setTimeout(() => setSaveError(''), 6000);
     }
   }
@@ -176,23 +230,23 @@ export default function AdminEventsPage() {
       {/* Header */}
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Conteúdo</p>
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
           <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">
-            Events
+            {tr.title}
           </h1>
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-4">
           {isDirty && (
             <button type="button" onClick={() => { setDraft(eventsContent); setSaved(false); }}
               className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-              Descartar
+              {tr.discard}
             </button>
           )}
           <button type="button" onClick={handleSave} disabled={!isDirty}
             className={`font-body text-[10px] font-bold tracking-widest uppercase px-5 py-2.5 transition-all ${
               isDirty ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white/30 cursor-not-allowed'
             }`}>
-            {saved ? '✓ Salvo' : 'Salvar'}
+            {saved ? tr.saved : tr.save}
           </button>
         </div>
       </div>
@@ -200,23 +254,23 @@ export default function AdminEventsPage() {
       <div className="space-y-6">
 
         {/* ── HERO ── */}
-        <SectionCard title="Hero">
-          <Field label="Tagline" value={draft.hero.tagline}
+        <SectionCard title={tr.heroSection}>
+          <Field label={tr.taglineLabel} value={draft.hero.tagline}
             onChange={(v) => patchHero('tagline', v)} placeholder="UPCOMING EXPERIENCES" />
           <div>
-            <label className={labelCls}>Título grande <span className="text-gray-700 normal-case font-normal">(use Enter para quebrar linha)</span></label>
+            <label className={labelCls}>{tr.titleLabel} <span className="text-gray-700 normal-case font-normal">{tr.titleHint}</span></label>
             <textarea rows={3} value={draft.hero.title}
               onChange={(e) => patchHero('title', e.target.value)}
               placeholder={'CULTURE &\nPERMANENCE'}
               className={`${base} resize-none`} />
           </div>
-          <Field label="Descrição" value={draft.hero.description}
+          <Field label={tr.descLabel} value={draft.hero.description}
             onChange={(v) => patchHero('description', v)} multiline
             placeholder="We don't just ink; we curate moments..." />
 
           {/* Hero image */}
           <div>
-            <label className={labelCls}>Imagem de fundo do Hero</label>
+            <label className={labelCls}>{tr.heroBgLabel}</label>
             <div className="flex gap-3 items-start">
               {draft.hero.heroImage ? (
                 <div className="relative w-40 h-28 shrink-0">
@@ -237,7 +291,7 @@ export default function AdminEventsPage() {
               )}
               <button type="button" onClick={() => heroImgRef.current?.click()} disabled={uploadingHero}
                 className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40">
-                {uploadingHero ? 'Enviando...' : draft.hero.heroImage ? 'Trocar imagem' : 'Selecionar imagem'}
+                {uploadingHero ? tr.uploading : draft.hero.heroImage ? tr.changeImage : tr.selectImage}
               </button>
               <input ref={heroImgRef} type="file" accept="image/*" className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleHeroImage(f); e.target.value = ''; }} />
@@ -246,19 +300,19 @@ export default function AdminEventsPage() {
         </SectionCard>
 
         {/* ── EVENTS ── */}
-        <SectionCard title={`Eventos (${draft.events.length})`}>
+        <SectionCard title={tr.eventsSection(draft.events.length)}>
           <div className="space-y-6">
             {draft.events.map((event, idx) => (
               <div key={event.id} className="border border-white/8 bg-zinc-900 p-4 space-y-4">
                 {/* Event header */}
                 <div className="flex items-center justify-between">
                   <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">
-                    Evento {idx + 1}
+                    {tr.eventLabel(idx + 1)}
                   </p>
                   <div className="flex items-center gap-2">
                     <button type="button" onClick={() => patchEvent(event.id, { hidden: !event.hidden })}
                       className={`p-1 transition-colors ${event.hidden ? 'text-yellow-400' : 'text-gray-700 hover:text-white'}`}
-                      title={event.hidden ? 'Mostrar evento' : 'Ocultar evento'}>
+                      title={event.hidden ? tr.showEvent : tr.hideEvent}>
                       {event.hidden ? (
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
@@ -271,19 +325,19 @@ export default function AdminEventsPage() {
                       )}
                     </button>
                     <button type="button" onClick={() => moveEvent(event.id, -1)} disabled={idx === 0}
-                      className="p-1 text-gray-700 hover:text-white disabled:opacity-20 transition-colors" title="Mover para cima">
+                      className="p-1 text-gray-700 hover:text-white disabled:opacity-20 transition-colors" title={tr.moveUp}>
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                       </svg>
                     </button>
                     <button type="button" onClick={() => moveEvent(event.id, 1)} disabled={idx === draft.events.length - 1}
-                      className="p-1 text-gray-700 hover:text-white disabled:opacity-20 transition-colors" title="Mover para baixo">
+                      className="p-1 text-gray-700 hover:text-white disabled:opacity-20 transition-colors" title={tr.moveDown}>
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
                     <button type="button" onClick={() => removeEvent(event.id)}
-                      className="p-1 text-gray-700 hover:text-red-400 transition-colors" title="Remover evento">
+                      className="p-1 text-gray-700 hover:text-red-400 transition-colors" title={tr.removeEvent}>
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -293,12 +347,12 @@ export default function AdminEventsPage() {
 
                 {/* Date + time + type */}
                 <div className="grid grid-cols-3 gap-3">
-                  <Field label="Data" value={event.date}
+                  <Field label={tr.dateLabel} value={event.date}
                     onChange={(v) => patchEvent(event.id, { date: v })} placeholder="OUT 31" />
-                  <Field label="Horário / Tipo" value={event.timeLabel}
+                  <Field label={tr.timeLabel} value={event.timeLabel}
                     onChange={(v) => patchEvent(event.id, { timeLabel: v })} placeholder="20:00 - LATE" />
                   <div>
-                    <label className={labelCls}>Ícone</label>
+                    <label className={labelCls}>{tr.iconLabel}</label>
                     <select value={event.type}
                       onChange={(e) => patchEvent(event.id, { type: e.target.value })}
                       className={base}>
@@ -310,23 +364,23 @@ export default function AdminEventsPage() {
                 </div>
 
                 {/* Title + description */}
-                <Field label="Título" value={event.title}
+                <Field label={tr.eventTitleLabel} value={event.title}
                   onChange={(v) => patchEvent(event.id, { title: v })} placeholder="FLASH DAY: NEON NIGHTS" />
-                <Field label="Descrição" value={event.description}
+                <Field label={tr.eventDescLabel} value={event.description}
                   onChange={(v) => patchEvent(event.id, { description: v })} multiline
                   placeholder="Descreva o evento..." />
 
                 {/* CTA */}
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label="Texto do botão" value={event.ctaLabel}
+                  <Field label={tr.ctaLabelField} value={event.ctaLabel}
                     onChange={(v) => patchEvent(event.id, { ctaLabel: v })} placeholder="SAIBA MAIS" />
-                  <Field label="Link do botão (URL)" value={event.ctaUrl}
+                  <Field label={tr.ctaUrlField} value={event.ctaUrl}
                     onChange={(v) => patchEvent(event.id, { ctaUrl: v })} placeholder="https://..." />
                 </div>
 
                 {/* Event image */}
                 <div>
-                  <label className={labelCls}>Foto do evento</label>
+                  <label className={labelCls}>{tr.eventPhotoLabel}</label>
                   <div className="flex gap-3 items-start">
                     {event.image ? (
                       <div className="relative w-32 h-24 shrink-0">
@@ -346,7 +400,7 @@ export default function AdminEventsPage() {
                       onClick={() => eventImgRefs.current[event.id]?.click()}
                       disabled={uploadingEvent === event.id}
                       className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40">
-                      {uploadingEvent === event.id ? 'Enviando...' : event.image ? 'Trocar foto' : 'Selecionar foto'}
+                      {uploadingEvent === event.id ? tr.uploading : event.image ? tr.changePhoto : tr.selectPhoto}
                     </button>
                     <input
                       ref={(el) => { eventImgRefs.current[event.id] = el; }}
@@ -362,7 +416,7 @@ export default function AdminEventsPage() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              Adicionar evento
+              {tr.addEvent}
             </button>
           </div>
         </SectionCard>
@@ -372,14 +426,14 @@ export default function AdminEventsPage() {
       {/* Sticky save bar */}
       {isDirty && (
         <div className="fixed bottom-6 right-6 flex items-center gap-3 bg-zinc-900 border border-white/10 px-5 py-3 shadow-2xl z-50">
-          <span className="font-body text-xs text-white/50">Alterações não salvas</span>
+          <span className="font-body text-xs text-white/50">{tr.unsavedChanges}</span>
           <button type="button" onClick={() => { setDraft(eventsContent); setSaved(false); }}
             className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-            Descartar
+            {tr.discard}
           </button>
           <button type="button" onClick={handleSave}
             className="font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black px-4 py-2 hover:bg-white/90 transition-colors">
-            Salvar
+            {tr.save}
           </button>
         </div>
       )}
@@ -391,7 +445,7 @@ export default function AdminEventsPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
           <div>
-            <p className="font-body text-xs font-semibold tracking-widest uppercase text-red-400">Erro ao salvar</p>
+            <p className="font-body text-xs font-semibold tracking-widest uppercase text-red-400">{tr.errorTitle}</p>
             <p className="font-body text-[10px] text-gray-400 mt-0.5">{saveError}</p>
           </div>
         </div>

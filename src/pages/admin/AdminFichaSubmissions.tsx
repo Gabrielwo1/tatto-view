@@ -2,12 +2,50 @@ import { useState, useEffect } from 'react';
 import { useStore } from '../../store';
 import type { FichaSubmission } from '../../store';
 import { downloadFichaPdf } from '../../lib/fichaPdf';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Admin', title: 'Fichas',
+    countLabel: (n: number) => `${n} ficha${n !== 1 ? 's' : ''}`,
+    fetchTitle: 'Buscar fichas do servidor',
+    refreshing: 'Buscando...', refresh: 'Atualizar',
+    exportCSV: 'CSV',
+    syncedAt: (time: string) => `Sincronizado às ${time}`,
+    searchPlaceholder: 'Buscar por nome, email ou tatuador...',
+    noResults: 'Nenhuma ficha encontrada.',
+    noData: 'Nenhuma ficha preenchida ainda.',
+    noDataHint: 'As fichas enviadas pelos clientes aparecerão aqui.',
+    back: 'Voltar',
+    deleteBtn: 'Excluir',
+    deleteConfirm: 'Excluir esta ficha permanentemente?',
+    selectHint: 'Selecione uma ficha',
+  },
+  en: {
+    label: 'Admin', title: 'Forms',
+    countLabel: (n: number) => `${n} form${n !== 1 ? 's' : ''}`,
+    fetchTitle: 'Fetch forms from server',
+    refreshing: 'Fetching...', refresh: 'Refresh',
+    exportCSV: 'CSV',
+    syncedAt: (time: string) => `Synced at ${time}`,
+    searchPlaceholder: 'Search by name, email or artist...',
+    noResults: 'No forms found.',
+    noData: 'No forms submitted yet.',
+    noDataHint: 'Forms submitted by clients will appear here.',
+    back: 'Back',
+    deleteBtn: 'Delete',
+    deleteConfirm: 'Permanently delete this form?',
+    selectHint: 'Select a form',
+  },
+};
 
 export default function AdminFichaSubmissions() {
   const submissions = useStore((s) => s.fichaSubmissions);
   const deleteFichaSubmission = useStore((s) => s.deleteFichaSubmission);
   const loadData = useStore((s) => s.loadData);
   const isAdmin = useStore((s) => s.isAdmin);
+  const { lang } = useLang();
+  const tr = T[lang];
   const [selected, setSelected] = useState<FichaSubmission | null>(null);
   const [search, setSearch] = useState('');
   const [downloading, setDownloading] = useState(false);
@@ -45,7 +83,7 @@ export default function AdminFichaSubmissions() {
   }
 
   function handleDelete(id: string) {
-    if (confirm('Excluir esta ficha permanentemente?')) {
+    if (confirm(tr.deleteConfirm)) {
       deleteFichaSubmission(id);
       if (selected?.id === id) setSelected(null);
     }
@@ -98,23 +136,23 @@ export default function AdminFichaSubmissions() {
 
         {/* Header */}
         <div className="px-6 pt-8 pb-4 border-b border-white/10">
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
           <div className="flex items-end justify-between gap-4">
             <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">
-              Fichas
+              {tr.title}
             </h1>
             <div className="flex items-center gap-2 pb-0.5">
-              <span className="font-body text-xs text-gray-600">{submissions.length} ficha(s)</span>
+              <span className="font-body text-xs text-gray-600">{tr.countLabel(submissions.length)}</span>
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                title="Buscar fichas do servidor"
+                title={tr.fetchTitle}
                 className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors font-body text-[10px] font-semibold tracking-widest uppercase disabled:opacity-40"
               >
                 <svg className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                {refreshing ? 'Buscando...' : 'Atualizar'}
+                {refreshing ? tr.refreshing : tr.refresh}
               </button>
               {submissions.length > 0 && (
                 <button
@@ -125,7 +163,7 @@ export default function AdminFichaSubmissions() {
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  CSV
+                  {tr.exportCSV}
                 </button>
               )}
             </div>
@@ -133,14 +171,14 @@ export default function AdminFichaSubmissions() {
 
           {lastRefresh && (
             <p className="font-body text-[10px] text-gray-700 mt-1.5">
-              Sincronizado às {lastRefresh.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              {tr.syncedAt(lastRefresh.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))}
             </p>
           )}
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nome, email ou tatuador..."
+            placeholder={tr.searchPlaceholder}
             className="mt-4 w-full bg-white/5 border border-white/10 text-white text-sm px-3 py-2 outline-none focus:border-white/30 placeholder:text-gray-700"
           />
         </div>
@@ -153,10 +191,10 @@ export default function AdminFichaSubmissions() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
               <p className="font-body text-sm text-gray-600">
-                {search ? 'Nenhuma ficha encontrada.' : 'Nenhuma ficha preenchida ainda.'}
+                {search ? tr.noResults : tr.noData}
               </p>
               <p className="font-body text-xs text-gray-700 mt-1">
-                As fichas enviadas pelos clientes aparecerão aqui.
+                {tr.noDataHint}
               </p>
             </div>
           ) : (
@@ -199,7 +237,7 @@ export default function AdminFichaSubmissions() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Voltar
+              {tr.back}
             </button>
             <span className="font-mono text-xs text-gray-600">{formatDate(selected.submittedAt)}</span>
             <div className="flex items-center gap-3">
@@ -227,7 +265,7 @@ export default function AdminFichaSubmissions() {
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Excluir
+                  {tr.deleteBtn}
                 </button>
               )}
             </div>
@@ -298,7 +336,7 @@ export default function AdminFichaSubmissions() {
             <svg className="w-16 h-16 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={0.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <p className="font-body text-sm tracking-widest uppercase">Selecione uma ficha</p>
+            <p className="font-body text-sm tracking-widest uppercase">{tr.selectHint}</p>
           </div>
         </div>
       )}
