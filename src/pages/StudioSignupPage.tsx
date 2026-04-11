@@ -1,5 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+const PRICES = {
+  BRL: { id: 'price_1THVoi1DbauQaCosZKmpzwcn', symbol: 'R$', amount: '39', label: 'R$ 39/mês' },
+  USD: { id: 'price_1TKq4j1DbauQaCosGucUXHLZ', symbol: 'US$', amount: '20', label: 'US$ 20/mo' },
+  EUR: { id: 'price_1TKq5Z1DbauQaCos5zmmtJ35', symbol: '€', amount: '20', label: '€20/mo' },
+} as const;
+
+type Currency = keyof typeof PRICES;
+
+const ALLOWED_PRICE_IDS = new Set(Object.values(PRICES).map((p) => p.id));
+
+function detectCurrency(): Currency {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+  const lang = navigator.language ?? '';
+  const brTimezones = [
+    'America/Sao_Paulo', 'America/Fortaleza', 'America/Recife',
+    'America/Belem', 'America/Manaus', 'America/Cuiaba', 'America/Porto_Velho',
+    'America/Boa_Vista', 'America/Santarem', 'America/Maceio', 'America/Bahia',
+  ];
+  if (brTimezones.includes(tz) || lang === 'pt-BR') return 'BRL';
+  if (tz.startsWith('Europe/')) return 'EUR';
+  return 'USD';
+}
 
 export default function StudioSignupPage() {
   const [studioName, setStudioName] = useState('');
@@ -7,14 +30,21 @@ export default function StudioSignupPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<Currency>('BRL');
+
+  useEffect(() => {
+    setCurrency(detectCurrency());
+  }, []);
+
+  const price = PRICES[currency];
 
   function handleSubdomainInput(value: string) {
-    // Auto-format: lowercase, only a-z 0-9 and hyphens
     setSubdomain(value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!ALLOWED_PRICE_IDS.has(price.id)) return;
     setError(null);
     setLoading(true);
 
@@ -22,7 +52,7 @@ export default function StudioSignupPage() {
       const res = await fetch('/api/create-studio-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studioName, subdomain, email }),
+        body: JSON.stringify({ studioName, subdomain, email, priceId: price.id }),
       });
 
       const data = await res.json();
@@ -32,7 +62,6 @@ export default function StudioSignupPage() {
         return;
       }
 
-      // Redirect to Stripe checkout
       window.location.href = data.url;
     } catch {
       setError('Erro de conexão. Tente novamente.');
@@ -46,7 +75,7 @@ export default function StudioSignupPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link to="/" className="flex justify-center mb-10">
-          <img src="/logosemo-3.png" alt="Vitrink" className="h-12 object-contain" />
+          <img src="/vitrinklogo.png" alt="Vitrink" className="h-12 object-contain" />
         </Link>
 
         <div className="border border-white/10 bg-black/40 p-8">
@@ -56,6 +85,24 @@ export default function StudioSignupPage() {
           <p className="font-body text-xs text-gray-500 tracking-widest uppercase mb-6">
             15 dias grátis · Sem cobrança imediata
           </p>
+
+          {/* Currency selector */}
+          <div className="flex gap-2 mb-6">
+            {(Object.keys(PRICES) as Currency[]).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCurrency(c)}
+                className={`flex-1 py-1.5 text-[10px] font-body font-bold tracking-widest uppercase border transition-colors ${
+                  currency === c
+                    ? 'border-white/50 text-white bg-white/10'
+                    : 'border-white/15 text-gray-500 hover:border-white/30 hover:text-gray-300'
+                }`}
+              >
+                {c} · {PRICES[c].symbol}{PRICES[c].amount}
+              </button>
+            ))}
+          </div>
 
           {error && (
             <div className="mb-5 px-4 py-3 border border-red-500/30 bg-red-500/10">

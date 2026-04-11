@@ -43,6 +43,19 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuração de pagamento ausente.' });
   }
 
+  const ALLOWED_PRICE_IDS = new Set([
+    process.env.STRIPE_PRICE_ID,                  // BRL (default)
+    'price_1TKq4j1DbauQaCosGucUXHLZ',             // USD
+    'price_1TKq5Z1DbauQaCos5zmmtJ35',             // EUR
+  ].filter(Boolean));
+
+  const { priceId } = req.body ?? {};
+  const resolvedPriceId = ALLOWED_PRICE_IDS.has(priceId) ? priceId : process.env.STRIPE_PRICE_ID;
+
+  if (!resolvedPriceId) {
+    return res.status(500).json({ error: 'Preço não configurado.' });
+  }
+
   const origin = req.headers.origin || 'https://vitrink.app';
 
   try {
@@ -52,7 +65,7 @@ export default async function handler(req, res) {
       payment_method_types: ['card'],
       mode: 'subscription',
       customer_email: email,
-      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
         trial_period_days: 15,
         metadata: {
