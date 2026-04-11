@@ -46,6 +46,7 @@ import WishlistPage from './pages/WishlistPage';
 import CartPage from './pages/CartPage';
 import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
 import StudioSignupPage from './pages/StudioSignupPage';
+import LangToggle from './components/LangToggle';
 
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
@@ -213,6 +214,7 @@ export default function App() {
           <Route path="/checkout/studio-sucesso" element={<StudioSuccessPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <LangToggle />
       </BrowserRouter>
     );
   }
@@ -372,6 +374,7 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <LangToggle />
     </BrowserRouter>
   </ErrorBoundary>
   );
