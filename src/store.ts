@@ -810,7 +810,7 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert(sc('customSecondary', secondary), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setCustomColors secondary:', error); });
       },
-      logoColorMode: 'original',
+      logoColorMode: 'auto',
       setLogoColorMode: (mode) => {
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert(sc('logoColorMode', mode), { onConflict: 'studio_id,key' })
