@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { useStore } from '../store';
 import TattooCard from '../components/TattooCard';
 import ArtistHero from '../components/ArtistHero';
@@ -7,6 +7,32 @@ import { useLightbox } from '../hooks/useLightbox';
 import { TATTOO_STYLES } from '../types';
 import { interleaveByArtist } from '../utils';
 
+const ITEMS_PER_PAGE = 24; // Load 24 items initially, then load more on scroll
+
+// Memoized filter button to prevent re-renders
+const FilterButton = memo(({ 
+  style, 
+  isSelected, 
+  onClick 
+}: { 
+  style: string; 
+  isSelected: boolean; 
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={`px-4 py-1.5 text-xs font-body font-semibold tracking-widest uppercase transition-all border ${
+      isSelected
+        ? 'bg-ink-500 text-black border-ink-500'
+        : 'bg-transparent text-gray-500 border-gray-700 hover:border-ink-500 hover:text-ink-400'
+    }`}
+  >
+    {style}
+  </button>
+));
+
+FilterButton.displayName = 'FilterButton';
+
 /* ── Main page ─────────────────────────────────────────────────────────────── */
 export default function ShowcasePage() {
   const tattoos = useStore((s) => s.tattoos);
@@ -14,30 +40,81 @@ export default function ShowcasePage() {
   const hiddenStyles = useStore((s) => s.hiddenStyles);
   const customStyles = useStore((s) => s.customStyles);
   const [selectedStyle, setSelectedStyle] = useState<string>('Todos');
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const { entry: lightbox, mounted: lightboxMounted, open: openLightbox, close: closeLightbox } = useLightbox();
 
-  const available = tattoos.filter((t) => t.status === 'available' && !hiddenStyles.includes(t.style));
+  // Memoized available tattoos
+  const available = useMemo(
+    () => tattoos.filter((t) => t.status === 'available' && !hiddenStyles.includes(t.style)),
+    [tattoos, hiddenStyles]
+  );
 
-  // Show styles that are not hidden by admin (admin config is the source of truth)
+  // Memoized active styles
   const activeStyles = useMemo(
     () => [...TATTOO_STYLES, ...customStyles].filter(s => !hiddenStyles.includes(s)),
     [hiddenStyles, customStyles]
   );
 
+  // Memoized filtered and interleaved tattoos
   const filtered = useMemo(() => {
     const pool =
       selectedStyle === 'Todos'
         ? available
         : available.filter((t) => t.style === selectedStyle);
-    return interleaveByArtist(pool).slice(0, 64);
+    return interleaveByArtist(pool);
   }, [available, selectedStyle]);
+
+  // Paginated results for virtualization
+  const paginatedTattoos = useMemo(
+    () => filtered.slice(0, visibleCount),
+    [filtered, visibleCount]
+  );
+
+  // Reset visible count when filter changes
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [selectedStyle]);
+
+  // Infinite scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000 &&
+        visibleCount < filtered.length
+      ) {
+        setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, filtered.length));
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [visibleCount, filtered.length]);
 
   // If the currently selected style was hidden, reset to "Todos"
   useEffect(() => {
     if (selectedStyle !== 'Todos' && hiddenStyles.includes(selectedStyle)) {
-      setTimeout(() => setSelectedStyle('Todos'), 0);
+      // Use requestAnimationFrame to avoid synchronous setState warning
+      requestAnimationFrame(() => setSelectedStyle('Todos'));
     }
   }, [hiddenStyles, selectedStyle]);
+
+  // Memoized callbacks
+  const handleStyleClick = useCallback((style: string) => {
+    setSelectedStyle(style);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleTattooClick = useCallback((tattoo: typeof tattoos[0], artist: typeof artists[0] | undefined) => {
+    openLightbox(tattoo, artist);
+  }, [openLightbox]);
+
+  // Memoized artist lookup
+  const artistMap = useMemo(() => {
+    const map = new Map(artists.map(a => [a.id, a]));
+    return map;
+  }, [artists]);
+
+  const hasMore = visibleCount < filtered.length;
 
   return (
     <div>
@@ -58,39 +135,48 @@ export default function ShowcasePage() {
         {/* Style filters */}
         <div className="flex flex-wrap gap-2 mb-10">
           {['Todos', ...activeStyles].map((style) => (
-            <button
+            <FilterButton
               key={style}
-              onClick={() => setSelectedStyle(style)}
-              className={`px-4 py-1.5 text-xs font-body font-semibold tracking-widest uppercase transition-all border ${
-                selectedStyle === style
-                  ? 'bg-ink-500 text-black border-ink-500'
-                  : 'bg-transparent text-gray-500 border-gray-700 hover:border-ink-500 hover:text-ink-400'
-              }`}
-            >
-              {style}
-            </button>
+              style={style}
+              isSelected={selectedStyle === style}
+              onClick={() => handleStyleClick(style)}
+            />
           ))}
         </div>
 
-        {filtered.length === 0 ? (
+        {paginatedTattoos.length === 0 ? (
           <div className="text-center py-20 text-gray-600">
             <p className="font-display text-3xl tracking-widest uppercase">Nenhuma tatuagem encontrada</p>
           </div>
         ) : (
-          /* ── Grid 4:5 (Instagram 1080×1350) ── */
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-            {filtered.map((tattoo) => {
-              const artist = artists.find((a) => a.id === tattoo.artistId);
-              return (
-                <TattooCard
-                  key={tattoo.id}
-                  tattoo={tattoo}
-                  artist={artist}
-                  onClick={() => openLightbox(tattoo, artist)}
-                />
-              );
-            })}
-          </div>
+          <>
+            {/* ── Grid 4:5 (Instagram 1080×1350) ── */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+              {paginatedTattoos.map((tattoo, index) => {
+                const artist = artistMap.get(tattoo.artistId ?? '');
+                return (
+                  <TattooCard
+                    key={tattoo.id}
+                    tattoo={tattoo}
+                    artist={artist}
+                    onClick={() => handleTattooClick(tattoo, artist)}
+                    index={index % 8} // Stagger animation resets every 8 items
+                  />
+                );
+              })}
+            </div>
+
+            {/* Load more indicator */}
+            {hasMore && (
+              <div className="flex justify-center mt-12">
+                <div className="flex items-center gap-3 text-white/40">
+                  <div className="w-2 h-2 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

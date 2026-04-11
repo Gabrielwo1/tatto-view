@@ -1,50 +1,63 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { trackPageView } from './lib/analytics';
 import { useStore } from './store';
 import { applyTheme, applyCustomColors, getThemeForHostname, THEMES } from './lib/themes';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
-import ShowcasePage from './pages/ShowcasePage';
-import ArchivedPage from './pages/ArchivedPage';
-import ArtistsPage from './pages/ArtistsPage';
-import ArtistDetailPage from './pages/ArtistDetailPage';
-import ArtistGuestTripPage from './pages/ArtistGuestTripPage';
-import AddressPage from './pages/AddressPage';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminResetPassword from './pages/admin/AdminResetPassword';
-import AdminLayout from './layouts/AdminLayout';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminTattoos from './pages/admin/AdminTattoos';
-import AdminTattooForm from './pages/admin/AdminTattooForm';
-import AdminArtists from './pages/admin/AdminArtists';
-import AdminArtistForm from './pages/admin/AdminArtistForm';
-import AdminSettings from './pages/admin/AdminSettings';
-import AdminMerchs from './pages/admin/AdminMerchs';
-import AdminGuestPage from './pages/admin/AdminGuestPage';
-import AdminEventsPage from './pages/admin/AdminEventsPage';
-import GuestsPage from './pages/GuestsPage';
-import EventsPage from './pages/EventsPage';
-import MerchsPage from './pages/MerchsPage';
-import LandingPage from './pages/LandingPage';
-import AftercarePage from './pages/AftercarePage';
-
-import AdminAftercare from './pages/admin/AdminAftercare';
-import AdminLandingPage from './pages/admin/AdminLandingPage';
-import AdminFichaAnamnese from './pages/admin/AdminFichaAnamnese';
-import AdminFichaSubmissions from './pages/admin/AdminFichaSubmissions';
-import AdminMyProfile from './pages/admin/AdminMyProfile';
-import AdminFinanceiro from './pages/admin/AdminFinanceiro';
-import BillingPage from './pages/admin/BillingPage';
 import SiteFooter from './components/SiteFooter';
 import WhatsAppButton from './components/WhatsAppButton';
-import VitrinLandingPage from './pages/VitrinLandingPage';
-import FichaAnamnesePage from './pages/FichaAnamnesePage';
 
-import LoginPage from './pages/LoginPage';
-import WishlistPage from './pages/WishlistPage';
-import CartPage from './pages/CartPage';
-import CheckoutSuccessPage from './pages/CheckoutSuccessPage';
+// Eagerly loaded - critical pages
+import ShowcasePage from './pages/ShowcasePage';
+import VitrinLandingPage from './pages/VitrinLandingPage';
+
+// Lazy loaded - non-critical pages
+const ArchivedPage = lazy(() => import('./pages/ArchivedPage'));
+const ArtistsPage = lazy(() => import('./pages/ArtistsPage'));
+const ArtistDetailPage = lazy(() => import('./pages/ArtistDetailPage'));
+const ArtistGuestTripPage = lazy(() => import('./pages/ArtistGuestTripPage'));
+const AddressPage = lazy(() => import('./pages/AddressPage'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminResetPassword = lazy(() => import('./pages/admin/AdminResetPassword'));
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminTattoos = lazy(() => import('./pages/admin/AdminTattoos'));
+const AdminTattooForm = lazy(() => import('./pages/admin/AdminTattooForm'));
+const AdminArtists = lazy(() => import('./pages/admin/AdminArtists'));
+const AdminArtistForm = lazy(() => import('./pages/admin/AdminArtistForm'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminMerchs = lazy(() => import('./pages/admin/AdminMerchs'));
+const AdminGuestPage = lazy(() => import('./pages/admin/AdminGuestPage'));
+const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsPage'));
+const GuestsPage = lazy(() => import('./pages/GuestsPage'));
+const EventsPage = lazy(() => import('./pages/EventsPage'));
+const MerchsPage = lazy(() => import('./pages/MerchsPage'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const AftercarePage = lazy(() => import('./pages/AftercarePage'));
+const AdminAftercare = lazy(() => import('./pages/admin/AdminAftercare'));
+const AdminLandingPage = lazy(() => import('./pages/admin/AdminLandingPage'));
+const AdminFichaAnamnese = lazy(() => import('./pages/admin/AdminFichaAnamnese'));
+const AdminFichaSubmissions = lazy(() => import('./pages/admin/AdminFichaSubmissions'));
+const AdminMyProfile = lazy(() => import('./pages/admin/AdminMyProfile'));
+const AdminFinanceiro = lazy(() => import('./pages/admin/AdminFinanceiro'));
+const BillingPage = lazy(() => import('./pages/admin/BillingPage'));
+const FichaAnamnesePage = lazy(() => import('./pages/FichaAnamnesePage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const CheckoutSuccessPage = lazy(() => import('./pages/CheckoutSuccessPage'));
+
+// Loading fallback
+const PageLoader = () => (
+  <div className="min-h-screen bg-zinc-900 flex items-center justify-center">
+    <div className="flex items-center gap-3">
+      <div className="w-3 h-3 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+      <div className="w-3 h-3 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+      <div className="w-3 h-3 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+    </div>
+  </div>
+);
 
 // Returns true when the current hostname is the root vitrink.app marketing domain.
 function isMarketingDomain() {
@@ -68,7 +81,7 @@ function RecoveryRedirect() {
 function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const authChecked = useStore((state) => state.authChecked);
-  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
+  if (!authChecked) return <PageLoader />;
   if (!isAdmin) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
@@ -79,7 +92,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isArtist = useStore((state) => state.isArtist);
   const isMerchManager = useStore((state) => state.isMerchManager);
   const authChecked = useStore((state) => state.authChecked);
-  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
+  if (!authChecked) return <PageLoader />;
   if (!isAdmin && !isArtist && !isMerchManager) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
@@ -89,7 +102,7 @@ function ProtectedFinanceiroRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((s) => s.isAdmin);
   const showFinanceiro = useStore((s) => s.showFinanceiro);
   const authChecked = useStore((s) => s.authChecked);
-  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
+  if (!authChecked) return <PageLoader />;
   if (!isAdmin && !showFinanceiro) return <Navigate to="/admin/dashboard" replace />;
   return <>{children}</>;
 }
@@ -99,7 +112,7 @@ function ProtectedMerchRoute({ children }: { children: React.ReactNode }) {
   const isAdmin = useStore((state) => state.isAdmin);
   const isMerchManager = useStore((state) => state.isMerchManager);
   const authChecked = useStore((state) => state.authChecked);
-  if (!authChecked) return <div className="min-h-screen bg-zinc-950" />;
+  if (!authChecked) return <PageLoader />;
   if (!isAdmin && !isMerchManager) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
@@ -130,6 +143,23 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <SiteFooter />
       <WhatsAppButton />
     </div>
+  );
+}
+
+// Lazy layout wrapper
+function LazyPublicLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <PublicLayout>
+      <Suspense fallback={<div className="min-h-[50vh] flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-3 h-3 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-3 h-3 bg-ink-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+      </div>}>
+        {children}
+      </Suspense>
+    </PublicLayout>
   );
 }
 
@@ -184,7 +214,7 @@ export default function App() {
         <RecoveryRedirect />
         <PageTracker />
         <Routes>
-        {/* Public routes */}
+        {/* Public routes - Critical (eagerly loaded) */}
         <Route
           path="/"
           element={
@@ -193,141 +223,170 @@ export default function App() {
             </PublicLayout>
           }
         />
+
+        {/* Public routes - Non-critical (lazy loaded) */}
         <Route
           path="/arquivadas"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <ArchivedPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/artistas"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <ArtistsPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/artistas/:slug"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <ArtistDetailPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/artistas/:slug/guest-trip"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <ArtistGuestTripPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/guests"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <GuestsPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/events"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <EventsPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/loja"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <MerchsPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/aftercare"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <AftercarePage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
         <Route
           path="/endereco"
           element={
-            <PublicLayout>
+            <LazyPublicLayout>
               <AddressPage />
-            </PublicLayout>
+            </LazyPublicLayout>
           }
         />
 
         {/* Public user auth */}
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<Suspense fallback={<PageLoader />}><LoginPage /></Suspense>} />
 
         {/* Wishlist & Cart */}
-        <Route path="/lista-de-desejos" element={<PublicLayout><WishlistPage /></PublicLayout>} />
-        <Route path="/carrinho" element={<PublicLayout><CartPage /></PublicLayout>} />
-        <Route path="/checkout/sucesso" element={<CheckoutSuccessPage />} />
-
-
+        <Route path="/lista-de-desejos" element={<LazyPublicLayout><WishlistPage /></LazyPublicLayout>} />
+        <Route path="/carrinho" element={<LazyPublicLayout><CartPage /></LazyPublicLayout>} />
+        <Route path="/checkout/sucesso" element={<Suspense fallback={<PageLoader />}><CheckoutSuccessPage /></Suspense>} />
 
         {/* Landing page */}
         <Route path="/landingpage" element={
-          <PublicLayout>
+          <LazyPublicLayout>
             <LandingPage />
-          </PublicLayout>
+          </LazyPublicLayout>
         } />
 
-{/* Ficha de Anamnese */}
+        {/* Ficha de Anamnese */}
         <Route path="/ficha-anamnese" element={
-          <PublicLayout>
+          <LazyPublicLayout>
             <FichaAnamnesePage />
-          </PublicLayout>
+          </LazyPublicLayout>
         } />
 
         {/* Admin routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+        <Route path="/admin/login" element={<Suspense fallback={<PageLoader />}><AdminLogin /></Suspense>} />
+        <Route path="/admin/reset-password" element={<Suspense fallback={<PageLoader />}><AdminResetPassword /></Suspense>} />
+        
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
+            <Suspense fallback={<PageLoader />}>
+              <ProtectedRoute>
+                <AdminLayout />
+              </ProtectedRoute>
+            </Suspense>
           }
         >
           {/* Artist users land on /admin/tatuagens; admin lands on /admin/dashboard */}
-          <Route index element={<AdminIndexRedirect />} />
+          <Route index element={<Suspense fallback={<div />}><AdminIndexRedirect /></Suspense>} />
 
           {/* ── Available to both admin and artist ── */}
-          <Route path="tatuagens" element={<AdminTattoos />} />
-          <Route path="tatuagens/nova" element={<AdminTattooForm />} />
-          <Route path="tatuagens/:id/editar" element={<AdminTattooForm />} />
-          <Route path="meu-perfil" element={<AdminMyProfile />} />
+          <Route path="tatuagens" element={<Suspense fallback={<div />}><AdminTattoos /></Suspense>} />
+          <Route path="tatuagens/nova" element={<Suspense fallback={<div />}><AdminTattooForm /></Suspense>} />
+          <Route path="tatuagens/:id/editar" element={<Suspense fallback={<div />}><AdminTattooForm /></Suspense>} />
+          <Route path="meu-perfil" element={<Suspense fallback={<div />}><AdminMyProfile /></Suspense>} />
 
           {/* ── Admin and merch manager ── */}
-          <Route path="merchs" element={<ProtectedMerchRoute><AdminMerchs /></ProtectedMerchRoute>} />
+          <Route path="merchs" element={<Suspense fallback={<div />}>
+            <ProtectedMerchRoute><AdminMerchs /></ProtectedMerchRoute>
+          </Suspense>} />
 
           {/* ── Admin only ── */}
-          <Route path="dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-          <Route path="artistas" element={<ProtectedAdminRoute><AdminArtists /></ProtectedAdminRoute>} />
-          <Route path="artistas/novo" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
-          <Route path="artistas/:id/editar" element={<ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>} />
-          <Route path="guests" element={<ProtectedAdminRoute><AdminGuestPage /></ProtectedAdminRoute>} />
-          <Route path="events" element={<ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>} />
-          <Route path="aftercare" element={<ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>} />
+          <Route path="dashboard" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="artistas" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminArtists /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="artistas/novo" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="artistas/:id/editar" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminArtistForm /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="guests" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminGuestPage /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="events" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminEventsPage /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="aftercare" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminAftercare /></ProtectedAdminRoute>
+          </Suspense>} />
 
-          <Route path="landing" element={<ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>} />
-          <Route path="ficha-anamnese" element={<ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>} />
-          <Route path="fichas" element={<ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>} />
-          <Route path="configuracoes" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
-          <Route path="financeiro" element={<ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>} />
-          <Route path="billing" element={<BillingPage />} />
+          <Route path="landing" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminLandingPage /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="ficha-anamnese" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminFichaAnamnese /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="fichas" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminFichaSubmissions /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="configuracoes" element={<Suspense fallback={<div />}>
+            <ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>
+          </Suspense>} />
+          <Route path="financeiro" element={<Suspense fallback={<div />}>
+            <ProtectedFinanceiroRoute><AdminFinanceiro /></ProtectedFinanceiroRoute>
+          </Suspense>} />
+          <Route path="billing" element={<Suspense fallback={<div />}><BillingPage /></Suspense>} />
         </Route>
 
         {/* Fallback */}
