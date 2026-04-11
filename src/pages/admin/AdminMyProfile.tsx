@@ -6,11 +6,57 @@ import { useImageCrop } from '../../hooks/useImageCrop';
 import type { GuestTrip } from '../../types';
 import ImageUpload from '../../components/ImageUpload';
 import { uploadArtistPhoto } from '../../lib/storage';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    adminNote1: 'Esta página é exclusiva para artistas. Como admin, use a seção ',
+    adminNote2: ' para editar perfis.',
+    artistsWord: 'Artistas',
+    notFound: 'Perfil não encontrado. Entre em contato com o administrador.',
+    label: 'Artista', title: 'Meu Perfil',
+    nameField: 'Nome', namePlaceholder: 'Seu nome artístico',
+    bioField: 'Bio', bioPlaceholder: 'Fale sobre você e seu estilo...',
+    specialtiesField: 'Especialidades (separe por vírgula)', specialtiesPlaceholder: 'Realismo, Blackwork, Old School',
+    guestTripTitle: 'Guest Trip', guestTripSubtitle: 'Configurações de viagem ou guest artist',
+    active: 'Ativo', inactive: 'Inativo',
+    taglineLabel: 'Tagline (ex: GUEST ARTIST)', titleLabel: 'Título (ex: ABRIL!!!)',
+    subtitleLabel: 'Subtítulo (ex: ARTISTA CONVIDADO)', guestNameLabel: 'Nome do Convidado/Evento',
+    periodLabel: 'Período (ex: do dia 24 de Abril a 10 de Maio)', instagramLabel: 'Instagram (@handle)',
+    bannerLabel: 'Imagem Principal / Banner', galleryLabel: 'Galeria (4 imagens)',
+    photoLabel: (n: number) => `Foto ${n}`,
+    photoField: 'Foto', changePhoto: 'Alterar Foto',
+    saveError: (msg: string) => `Erro ao salvar: ${msg}`,
+    saving: 'Salvando...', saveProfile: 'Salvar Perfil', savedBadge: 'Salvo!',
+  },
+  en: {
+    adminNote1: 'This page is for artists only. As admin, use the ',
+    adminNote2: ' section to edit profiles.',
+    artistsWord: 'Artists',
+    notFound: 'Profile not found. Please contact the administrator.',
+    label: 'Artist', title: 'My Profile',
+    nameField: 'Name', namePlaceholder: 'Your artist name',
+    bioField: 'Bio', bioPlaceholder: 'Tell us about you and your style...',
+    specialtiesField: 'Specialties (separated by comma)', specialtiesPlaceholder: 'Realism, Blackwork, Old School',
+    guestTripTitle: 'Guest Trip', guestTripSubtitle: 'Trip or guest artist settings',
+    active: 'Active', inactive: 'Inactive',
+    taglineLabel: 'Tagline (e.g.: GUEST ARTIST)', titleLabel: 'Title (e.g.: APRIL!!!)',
+    subtitleLabel: 'Subtitle (e.g.: GUEST ARTIST)', guestNameLabel: 'Guest/Event Name',
+    periodLabel: 'Period (e.g.: from April 24 to May 10)', instagramLabel: 'Instagram (@handle)',
+    bannerLabel: 'Main Image / Banner', galleryLabel: 'Gallery (4 images)',
+    photoLabel: (n: number) => `Photo ${n}`,
+    photoField: 'Photo', changePhoto: 'Change Photo',
+    saveError: (msg: string) => `Error saving: ${msg}`,
+    saving: 'Saving...', saveProfile: 'Save Profile', savedBadge: 'Saved!',
+  },
+};
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
 
 export default function AdminMyProfile() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const artists         = useStore((s) => s.artists);
   const currentArtistId = useStore((s) => s.currentArtistId);
   const isAdmin         = useStore((s) => s.isAdmin);
@@ -47,7 +93,7 @@ export default function AdminMyProfile() {
   if (isAdmin) {
     return (
       <div className="p-8 text-gray-500 font-body text-sm">
-        Esta página é exclusiva para artistas. Como admin, use a seção <strong className="text-white">Artistas</strong> para editar perfis.
+        {tr.adminNote1}<strong className="text-white">{tr.artistsWord}</strong>{tr.adminNote2}
       </div>
     );
   }
@@ -55,7 +101,7 @@ export default function AdminMyProfile() {
   if (!artist) {
     return (
       <div className="p-8 text-gray-500 font-body text-sm">
-        Perfil não encontrado. Entre em contato com o administrador.
+        {tr.notFound}
       </div>
     );
   }
@@ -104,7 +150,7 @@ export default function AdminMyProfile() {
       });
       setSaved(true);
     } catch (err) {
-      alert('Erro ao salvar: ' + (err as Error).message);
+      alert(tr.saveError((err as Error).message));
     } finally {
       setUploading(false);
     }
@@ -122,9 +168,9 @@ export default function AdminMyProfile() {
 
       {/* Header */}
       <div className="mb-8">
-        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Artista</p>
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
         <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">
-          Meu Perfil
+          {tr.title}
         </h1>
       </div>
 
@@ -136,20 +182,20 @@ export default function AdminMyProfile() {
             <div className="border border-white/10 p-6 space-y-6">
               {/* Name */}
               <div>
-                <label className={labelCls}>Nome</label>
-                <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder="Seu nome artístico" />
+                <label className={labelCls}>{tr.nameField}</label>
+                <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder={tr.namePlaceholder} />
               </div>
 
               {/* Bio */}
               <div>
-                <label className={labelCls}>Bio</label>
-                <textarea name="bio" value={form.bio} onChange={handleChange} rows={6} className={`${inputCls} resize-none`} placeholder="Fale sobre você e seu estilo..." />
+                <label className={labelCls}>{tr.bioField}</label>
+                <textarea name="bio" value={form.bio} onChange={handleChange} rows={6} className={`${inputCls} resize-none`} placeholder={tr.bioPlaceholder} />
               </div>
 
               {/* Specialties */}
               <div>
-                <label className={labelCls}>Especialidades (separe por vírgula)</label>
-                <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls} placeholder="Realismo, Blackwork, Old School" />
+                <label className={labelCls}>{tr.specialtiesField}</label>
+                <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls} placeholder={tr.specialtiesPlaceholder} />
               </div>
             </div>
 
@@ -157,8 +203,8 @@ export default function AdminMyProfile() {
             <div className="border border-white/10 p-6 space-y-6 bg-white/[0.02]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display text-xl uppercase tracking-wide text-white">Guest Trip</h2>
-                  <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest mt-1">Configurações de viagem ou guest artist</p>
+                  <h2 className="font-display text-xl uppercase tracking-wide text-white">{tr.guestTripTitle}</h2>
+                  <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest mt-1">{tr.guestTripSubtitle}</p>
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <div className="relative flex items-center">
@@ -171,7 +217,7 @@ export default function AdminMyProfile() {
                     <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
                   </div>
                   <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
-                    {form.guestTrip.active ? 'Ativo' : 'Inativo'}
+                    {form.guestTrip.active ? tr.active : tr.inactive}
                   </span>
                 </label>
               </div>
@@ -180,7 +226,7 @@ export default function AdminMyProfile() {
                 <div className="space-y-5 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelCls}>Tagline (ex: GUEST ARTIST)</label>
+                      <label className={labelCls}>{tr.taglineLabel}</label>
                       <input 
                         value={form.guestTrip.tagline} 
                         onChange={(e) => handleGuestTripChange('tagline', e.target.value)} 
@@ -188,7 +234,7 @@ export default function AdminMyProfile() {
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Título (ex: ABRIL!!!)</label>
+                      <label className={labelCls}>{tr.titleLabel}</label>
                       <input 
                         value={form.guestTrip.title} 
                         onChange={(e) => handleGuestTripChange('title', e.target.value)} 
@@ -199,7 +245,7 @@ export default function AdminMyProfile() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelCls}>Subtítulo (ex: ARTISTA CONVIDADO)</label>
+                      <label className={labelCls}>{tr.subtitleLabel}</label>
                       <input 
                         value={form.guestTrip.subtitle} 
                         onChange={(e) => handleGuestTripChange('subtitle', e.target.value)} 
@@ -207,7 +253,7 @@ export default function AdminMyProfile() {
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Nome do Convidado/Evento</label>
+                      <label className={labelCls}>{tr.guestNameLabel}</label>
                       <input 
                         value={form.guestTrip.guestName} 
                         onChange={(e) => handleGuestTripChange('guestName', e.target.value)} 
@@ -218,7 +264,7 @@ export default function AdminMyProfile() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelCls}>Período (ex: do dia 24 de Abril a 10 de Maio)</label>
+                      <label className={labelCls}>{tr.periodLabel}</label>
                       <input 
                         value={form.guestTrip.period} 
                         onChange={(e) => handleGuestTripChange('period', e.target.value)} 
@@ -226,7 +272,7 @@ export default function AdminMyProfile() {
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Instagram (@handle)</label>
+                      <label className={labelCls}>{tr.instagramLabel}</label>
                       <input 
                         value={form.guestTrip.instagram} 
                         onChange={(e) => handleGuestTripChange('instagram', e.target.value)} 
@@ -236,7 +282,7 @@ export default function AdminMyProfile() {
                   </div>
 
                   <div>
-                    <label className={labelCls}>Imagem Principal / Banner</label>
+                    <label className={labelCls}>{tr.bannerLabel}</label>
                     <ImageUpload 
                       label="" 
                       initialUrl={form.guestTrip.bannerUrl} 
@@ -246,11 +292,11 @@ export default function AdminMyProfile() {
                   </div>
 
                   <div>
-                    <label className={labelCls}>Galeria (4 imagens)</label>
+                    <label className={labelCls}>{tr.galleryLabel}</label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
                       {form.guestTrip.galleryImages.map((img, i) => (
                         <div key={i} className="flex flex-col gap-2">
-                          <p className="text-[8px] text-gray-600 tracking-widest uppercase">Foto {i+1}</p>
+                          <p className="text-[8px] text-gray-600 tracking-widest uppercase">{tr.photoLabel(i + 1)}</p>
                           <ImageUpload 
                             label="" 
                             initialUrl={img} 
@@ -270,7 +316,7 @@ export default function AdminMyProfile() {
           <div className="space-y-5">
             {/* Photo */}
             <div className="border border-white/10 p-6 space-y-4">
-              <label className={labelCls}>Foto</label>
+              <label className={labelCls}>{tr.photoField}</label>
               <div className="w-full aspect-square overflow-hidden border border-white/10 bg-zinc-900 flex items-center justify-center">
                 {form.photoUrl ? (
                   <img src={form.photoUrl} alt={form.name} className="w-full h-full object-cover" />
@@ -284,7 +330,7 @@ export default function AdminMyProfile() {
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Alterar Foto
+                {tr.changePhoto}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
               </label>
             </div>
@@ -310,10 +356,10 @@ export default function AdminMyProfile() {
             disabled={uploading}
             className="bg-white hover:bg-gray-100 disabled:opacity-50 text-black font-body font-bold text-xs tracking-widest uppercase px-8 py-3 transition-colors"
           >
-            {uploading ? 'Salvando...' : 'Salvar Perfil'}
+            {uploading ? tr.saving : tr.saveProfile}
           </button>
           {saved && (
-            <span className="font-body text-xs text-green-400 tracking-widest uppercase">Salvo!</span>
+            <span className="font-body text-xs text-green-400 tracking-widest uppercase">{tr.savedBadge}</span>
           )}
         </div>
       </form>
