@@ -1012,9 +1012,21 @@ export const useStore = create<AppState>()(
           const configs: Record<string, unknown> = {};
           configRows?.forEach((c) => { configs[c.key] = c.value; });
 
+          const loadedArtists = artistRows ? artistRows.map(toArtist) : [];
+          const artistOrder = configs.artistOrder as string[] | undefined;
+          const orderedArtists = artistOrder?.length
+            ? [...loadedArtists].sort((a, b) => {
+                const ai = artistOrder.indexOf(a.id);
+                const bi = artistOrder.indexOf(b.id);
+                if (ai === -1) return 1;
+                if (bi === -1) return -1;
+                return ai - bi;
+              })
+            : loadedArtists;
+
           set({
             tattoos: tattooRows ? tattooRows.map(toTattoo) : [],
-            artists: artistRows ? artistRows.map(toArtist) : [],
+            artists: orderedArtists,
             merchs: merchRows ? merchRows.map(toMerch) : [],
             tatuadoPosts: tatuadoRows 
               ? tatuadoRows.map((r) => ({
@@ -1073,7 +1085,7 @@ export const useStore = create<AppState>()(
             themeId: (configs.themeId as ThemeId) || null,
             customPrimary: (configs.customPrimary as string) || null,
             customSecondary: (configs.customSecondary as string) || null,
-            logoColorMode: (configs.logoColorMode as LogoColorMode) || 'original',
+            logoColorMode: (configs.logoColorMode as LogoColorMode) || 'auto',
             hiddenStyles: (configs.hiddenStyles as string[]) || [],
             customStyles: (configs.customStyles as string[]) || [],
             customLogo: (configs.customLogo as string) || null,
@@ -1182,13 +1194,14 @@ export const useStore = create<AppState>()(
         get().tattoos.forEach(t => tempMap.set(t.id, t));
         const newArray = orderedIds.map(id => tempMap.get(id)).filter(Boolean);
         set({ tattoos: newArray });
-        // NOTE: In a real DB we'd need a 'position' column to persist order correctly.
       },
       reorderArtists: (orderedIds) => {
         const tempMap = new Map();
         get().artists.forEach(a => tempMap.set(a.id, a));
         const newArray = orderedIds.map(id => tempMap.get(id)).filter(Boolean);
         set({ artists: newArray });
+        supabase?.from('site_config').upsert(sc('artistOrder', orderedIds), { onConflict: 'studio_id,key' })
+          .then(({ error }) => { if (error) console.error('[store] reorderArtists:', error); });
       },
       addArtist: async (data) => {
         const artist: Artist = {
