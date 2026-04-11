@@ -4,12 +4,66 @@ import { useStore } from '../../store';
 import { TATTOO_STYLES, type Tattoo } from '../../types';
 import ImageCropper from '../../components/ImageCropper';
 import { uploadImage } from '../../lib/uploadImage';
+import { useLang } from '../../lib/useLang';
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-3 py-2 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white/60 transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-1.5';
 
+const T = {
+  pt: {
+    label: 'Admin', title: 'Tatuagens', newArt: 'Nova Arte',
+    select: 'Selecionar', cancel: 'Cancelar', selectAll: 'Selecionar todas',
+    selected: (n: number) => `${n} selecionada${n !== 1 ? 's' : ''}`,
+    filterAll: 'Todas', filterAvailable: 'Disponíveis', filterArchived: 'Arquivadas',
+    allStyles: 'Todos',
+    noneFound: 'Nenhuma encontrada',
+    titleArchive: 'Arquivar', titleUnarchive: 'Disponibilizar', titleEdit: 'Editar informações', titleDelete: 'Excluir',
+    archive: 'Arquivar', delete: 'Excluir',
+    archiveSelectedTitle: 'Arquivar selecionadas',
+    archiveConfirm: (n: number) => `Arquivar ${n} tatuagem${n !== 1 ? 's' : ''}?`,
+    archiveCanRestore: 'Você pode reativar depois.',
+    deleteTitle: 'Confirmar exclusão',
+    deleteConfirm: (n: number) => `Você está prestes a excluir ${n} tatuagem${n !== 1 ? 's' : ''}.`,
+    deleteIrreversible: 'Esta ação não pode ser desfeita.',
+    deleteSingleConfirm: (title: string) => `Excluir "${title}"? Esta ação não pode ser desfeita.`,
+    saveError: 'Erro ao salvar imagem. Tente novamente.',
+    // InlineEditModal
+    cropBtn: 'Recortar', statusAvailable: 'Disponível', statusArchived: 'Arquivada',
+    editArt: 'Editar arte', titleField: 'Título', titlePlaceholder: 'Ex: Leão Realista',
+    descriptionField: 'Descrição', descriptionPlaceholder: 'Descreva a tatuagem...',
+    styleField: 'Estilo', priceField: 'Preço', artistField: 'Artista',
+    youLabel: 'Você', studioOption: 'Estúdio', statusField: 'Status',
+    saving: 'Enviando…', save: 'Salvar',
+  },
+  en: {
+    label: 'Admin', title: 'Tattoos', newArt: 'New Art',
+    select: 'Select', cancel: 'Cancel', selectAll: 'Select all',
+    selected: (n: number) => `${n} selected`,
+    filterAll: 'All', filterAvailable: 'Available', filterArchived: 'Archived',
+    allStyles: 'All',
+    noneFound: 'None found',
+    titleArchive: 'Archive', titleUnarchive: 'Unarchive', titleEdit: 'Edit info', titleDelete: 'Delete',
+    archive: 'Archive', delete: 'Delete',
+    archiveSelectedTitle: 'Archive selected',
+    archiveConfirm: (n: number) => `Archive ${n} tattoo${n !== 1 ? 's' : ''}?`,
+    archiveCanRestore: 'You can restore them later.',
+    deleteTitle: 'Confirm deletion',
+    deleteConfirm: (n: number) => `You are about to delete ${n} tattoo${n !== 1 ? 's' : ''}.`,
+    deleteIrreversible: 'This action cannot be undone.',
+    deleteSingleConfirm: (title: string) => `Delete "${title}"? This action cannot be undone.`,
+    saveError: 'Error saving image. Please try again.',
+    // InlineEditModal
+    cropBtn: 'Crop', statusAvailable: 'Available', statusArchived: 'Archived',
+    editArt: 'Edit art', titleField: 'Title', titlePlaceholder: 'E.g.: Realistic Lion',
+    descriptionField: 'Description', descriptionPlaceholder: 'Describe the tattoo...',
+    styleField: 'Style', priceField: 'Price', artistField: 'Artist',
+    youLabel: 'You', studioOption: 'Studio', statusField: 'Status',
+    saving: 'Saving…', save: 'Save',
+  },
+};
+
 // ── Inline edit modal ────────────────────────────────────────────────────────
-function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => void }) {
+function InlineEditModal({ tattoo, onClose, tr }: { tattoo: Tattoo; onClose: () => void; tr: typeof T['pt'] }) {
   const artists = useStore((s) => s.artists);
   const updateTattoo = useStore((s) => s.updateTattoo);
   const isArtist = useStore((s) => s.isArtist);
@@ -44,7 +98,7 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
       onClose();
     } catch (err) {
       console.error('Failed to save tattoo:', err);
-      alert('Erro ao salvar imagem. Tente novamente.');
+      alert(tr.saveError);
     } finally {
       setUploading(false);
     }
@@ -83,21 +137,21 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                 </svg>
-                Recortar
+                {tr.cropBtn}
               </button>
             </>
           )}
           <div className={`absolute top-2 right-2 px-2 py-0.5 text-[9px] font-body font-bold tracking-widest uppercase ${
             form.status === 'available' ? 'bg-white text-black' : 'bg-white/20 text-white/60'
           }`}>
-            {form.status === 'available' ? 'Disponível' : 'Arquivada'}
+            {form.status === 'available' ? tr.statusAvailable : tr.statusArchived}
           </div>
         </div>
 
         {/* Right: form */}
         <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-4">
           <div className="flex items-start justify-between">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Editar arte</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">{tr.editArt}</p>
             <button onClick={onClose} className="text-gray-600 hover:text-white transition-colors p-1">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -106,49 +160,49 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
           </div>
 
           <div>
-            <label className={labelCls}>Título</label>
-            <input name="title" value={form.title} onChange={handleChange} className={inputCls} placeholder="Ex: Leão Realista" />
+            <label className={labelCls}>{tr.titleField}</label>
+            <input name="title" value={form.title} onChange={handleChange} className={inputCls} placeholder={tr.titlePlaceholder} />
           </div>
 
           <div>
-            <label className={labelCls}>Descrição</label>
-            <textarea name="description" value={form.description} onChange={handleChange} rows={3} className={`${inputCls} resize-none`} placeholder="Descreva a tatuagem..." />
+            <label className={labelCls}>{tr.descriptionField}</label>
+            <textarea name="description" value={form.description} onChange={handleChange} rows={3} className={`${inputCls} resize-none`} placeholder={tr.descriptionPlaceholder} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Estilo</label>
+              <label className={labelCls}>{tr.styleField}</label>
               <select name="style" value={form.style} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
                 {TATTOO_STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Preço</label>
+              <label className={labelCls}>{tr.priceField}</label>
               <input name="price" value={form.price} onChange={handleChange} className={inputCls} placeholder="R$ 500" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Artista</label>
+              <label className={labelCls}>{tr.artistField}</label>
               {isArtist ? (
                 <input
-                  value={artists.find((a) => a.id === form.artistId)?.name ?? 'Você'}
+                  value={artists.find((a) => a.id === form.artistId)?.name ?? tr.youLabel}
                   disabled
                   className={`${inputCls} opacity-50 cursor-not-allowed`}
                 />
               ) : (
                 <select name="artistId" value={form.artistId} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
-                  <option value="">Estúdio</option>
+                  <option value="">{tr.studioOption}</option>
                   {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               )}
             </div>
             <div>
-              <label className={labelCls}>Status</label>
+              <label className={labelCls}>{tr.statusField}</label>
               <select name="status" value={form.status} onChange={handleChange} className={`${inputCls} bg-zinc-950`}>
-                <option value="available">Disponível</option>
-                <option value="archived">Arquivada</option>
+                <option value="available">{tr.statusAvailable}</option>
+                <option value="archived">{tr.statusArchived}</option>
               </select>
             </div>
           </div>
@@ -159,13 +213,13 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
               disabled={uploading}
               className="flex-1 py-2.5 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase transition-colors"
             >
-              {uploading ? 'Enviando…' : 'Salvar'}
+              {uploading ? tr.saving : tr.save}
             </button>
             <button
               onClick={onClose}
               className="px-5 py-2.5 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors"
             >
-              Cancelar
+              {tr.cancel}
             </button>
           </div>
         </div>
@@ -176,6 +230,8 @@ function InlineEditModal({ tattoo, onClose }: { tattoo: Tattoo; onClose: () => v
 
 // ── Main page ────────────────────────────────────────────────────────────────
 export default function AdminTattoos() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const allTattoos = useStore((s) => s.tattoos);
   const isArtist = useStore((s) => s.isArtist);
   const currentArtistId = useStore((s) => s.currentArtistId);
@@ -183,7 +239,7 @@ export default function AdminTattoos() {
   const archiveTattoo = useStore((s) => s.archiveTattoo);
   const reorderTattoos = useStore((s) => s.reorderTattoos);
   const [filter, setFilter] = useState<'all' | 'available' | 'archived'>('all');
-  const [styleFilter, setStyleFilter] = useState('Todos');
+  const [styleFilter, setStyleFilter] = useState('all');
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -202,12 +258,12 @@ export default function AdminTattoos() {
   const filtered = tattoos
     .filter((t) => !pendingDeleteIds.has(t.id))
     .filter((t) => filter === 'all' || t.status === filter)
-    .filter((t) => styleFilter === 'Todos' || t.style === styleFilter);
+    .filter((t) => styleFilter === 'all' || t.style === styleFilter);
 
   const editingTattoo = editingId ? tattoos.find((t) => t.id === editingId) ?? null : null;
 
   async function handleDelete(id: string, title: string) {
-    if (confirm(`Excluir "${title}"? Esta ação não pode ser desfeita.`)) {
+    if (confirm(tr.deleteSingleConfirm(title))) {
       setPendingDeleteIds((prev) => { const n = new Set(prev); n.add(id); return n; });
       deleteTattoo(id);
     }
@@ -278,8 +334,8 @@ export default function AdminTattoos() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 md:mb-8">
         <div>
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
-          <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">Tatuagens</h1>
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
+          <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">{tr.title}</h1>
         </div>
         <div className="flex items-center gap-2">
           {selecting ? (
@@ -287,7 +343,7 @@ export default function AdminTattoos() {
               onClick={exitSelecting}
               className="flex items-center gap-2 bg-transparent border border-white/30 hover:border-white text-white/70 hover:text-white font-body font-bold text-xs tracking-widest uppercase px-5 py-3 transition-colors"
             >
-              Cancelar
+              {tr.cancel}
             </button>
           ) : (
             <button
@@ -297,7 +353,7 @@ export default function AdminTattoos() {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              Selecionar
+              {tr.select}
             </button>
           )}
           <Link
@@ -307,7 +363,7 @@ export default function AdminTattoos() {
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            Nova Arte
+            {tr.newArt}
           </Link>
         </div>
       </div>
@@ -328,10 +384,10 @@ export default function AdminTattoos() {
                 </svg>
               )}
             </div>
-            Selecionar todas
+            {tr.selectAll}
           </button>
           <span className="text-xs font-body text-gray-500">
-            {selected.size} selecionada{selected.size !== 1 ? 's' : ''}
+            {tr.selected(selected.size)}
           </span>
         </div>
       )}
@@ -346,20 +402,20 @@ export default function AdminTattoos() {
               filter === s ? 'bg-white text-black border-white' : 'bg-transparent text-gray-500 border-gray-700 hover:border-white hover:text-white'
             }`}
           >
-            {s === 'all' ? 'Todas' : s === 'available' ? 'Disponíveis' : 'Arquivadas'}
+            {s === 'all' ? tr.filterAll : s === 'available' ? tr.filterAvailable : tr.filterArchived}
           </button>
         ))}
       </div>
       <div className="flex flex-wrap gap-1.5 mb-6 md:mb-8">
-        {['Todos', ...TATTOO_STYLES].map((s) => (
+        {[{ value: 'all', label: tr.allStyles }, ...TATTOO_STYLES.map((s) => ({ value: s, label: s }))].map(({ value, label }) => (
           <button
-            key={s}
-            onClick={() => setStyleFilter(s)}
+            key={value}
+            onClick={() => setStyleFilter(value)}
             className={`px-3 py-1 text-[10px] font-body font-semibold tracking-widest uppercase transition-all border ${
-              styleFilter === s ? 'bg-white/20 text-white border-white/40' : 'bg-transparent text-gray-600 border-gray-800 hover:border-gray-600 hover:text-gray-400'
+              styleFilter === value ? 'bg-white/20 text-white border-white/40' : 'bg-transparent text-gray-600 border-gray-800 hover:border-gray-600 hover:text-gray-400'
             }`}
           >
-            {s}
+            {label}
           </button>
         ))}
       </div>
@@ -367,7 +423,7 @@ export default function AdminTattoos() {
       {/* Grid */}
       {filtered.length === 0 ? (
         <div className="border border-white/10 py-20 text-center">
-          <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma encontrada</p>
+          <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">{tr.noneFound}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 md:gap-2">
@@ -432,7 +488,7 @@ export default function AdminTattoos() {
                     {/* Archive / Unarchive */}
                     <button
                       onClick={() => archiveTattoo(t.id)}
-                      title={t.status === 'available' ? 'Arquivar' : 'Disponibilizar'}
+                      title={t.status === 'available' ? tr.titleArchive : tr.titleUnarchive}
                       className="p-2 text-white/30 hover:text-white transition-colors border-l border-white/8"
                     >
                       {t.status === 'available' ? (
@@ -451,7 +507,7 @@ export default function AdminTattoos() {
                     {/* Edit */}
                     <button
                       onClick={() => setEditingId(t.id)}
-                      title="Editar informações"
+                      title={tr.titleEdit}
                       className="p-2 text-white/30 hover:text-white transition-colors border-l border-white/8"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -461,7 +517,7 @@ export default function AdminTattoos() {
                     {/* Delete */}
                     <button
                       onClick={() => handleDelete(t.id, t.title)}
-                      title="Excluir"
+                      title={tr.titleDelete}
                       className="p-2 text-white/20 hover:text-red-400 transition-colors border-l border-white/8"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -480,7 +536,7 @@ export default function AdminTattoos() {
       {selecting && selected.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-zinc-900 border border-white/20 px-6 py-3 shadow-2xl">
           <span className="font-body text-sm text-white/70">
-            <span className="text-white font-bold">{selected.size}</span> selecionada{selected.size !== 1 ? 's' : ''}
+            {tr.selected(selected.size)}
           </span>
           <div className="w-px h-5 bg-white/20" />
           {/* Archive selected */}
@@ -491,7 +547,7 @@ export default function AdminTattoos() {
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
             </svg>
-            Arquivar
+            {tr.archive}
           </button>
           {/* Delete selected */}
           <button
@@ -501,7 +557,7 @@ export default function AdminTattoos() {
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Excluir
+            {tr.delete}
           </button>
         </div>
       )}
@@ -510,18 +566,17 @@ export default function AdminTattoos() {
       {confirmArchiveOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="bg-zinc-900 border border-white/20 p-8 max-w-sm w-full mx-4">
-            <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-2">Arquivar selecionadas</h2>
+            <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-2">{tr.archiveSelectedTitle}</h2>
             <p className="font-body text-sm text-gray-400 mb-6">
-              Arquivar{' '}
-              <span className="text-white font-bold">{selected.size} tatuagem{selected.size !== 1 ? 's' : ''}</span>?
-              Você pode reativar depois.
+              <span className="text-white font-bold">{tr.archiveConfirm(selected.size)}</span>
+              {' '}{tr.archiveCanRestore}
             </p>
             <div className="flex gap-3">
               <button onClick={() => setConfirmArchiveOpen(false)} className="flex-1 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
-                Cancelar
+                {tr.cancel}
               </button>
               <button onClick={confirmArchiveSelected} className="flex-1 py-3 bg-zinc-600 hover:bg-zinc-500 text-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
-                Arquivar
+                {tr.archive}
               </button>
             </div>
           </div>
@@ -532,18 +587,17 @@ export default function AdminTattoos() {
       {confirmDeleteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="bg-zinc-900 border border-white/20 p-8 max-w-sm w-full mx-4">
-            <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-2">Confirmar exclusão</h2>
+            <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-2">{tr.deleteTitle}</h2>
             <p className="font-body text-sm text-gray-400 mb-6">
-              Você está prestes a excluir{' '}
-              <span className="text-white font-bold">{selected.size} tatuagem{selected.size !== 1 ? 's' : ''}</span>.
-              Esta ação não pode ser desfeita.
+              <span className="text-white font-bold">{tr.deleteConfirm(selected.size)}</span>
+              {' '}{tr.deleteIrreversible}
             </p>
             <div className="flex gap-3">
               <button onClick={() => setConfirmDeleteOpen(false)} className="flex-1 py-3 border border-white/20 text-white/70 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
-                Cancelar
+                {tr.cancel}
               </button>
               <button onClick={confirmDeleteSelected} className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
-                Excluir
+                {tr.delete}
               </button>
             </div>
           </div>
@@ -552,7 +606,7 @@ export default function AdminTattoos() {
 
       {/* Inline edit modal */}
       {editingTattoo && (
-        <InlineEditModal tattoo={editingTattoo} onClose={() => setEditingId(null)} />
+        <InlineEditModal tattoo={editingTattoo} onClose={() => setEditingId(null)} tr={tr} />
       )}
     </div>
   );

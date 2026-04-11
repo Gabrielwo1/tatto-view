@@ -9,11 +9,81 @@ import { toSlug } from '../../utils';
 import ImageUpload from '../../components/ImageUpload';
 import ImageUploadWithCrop from '../../components/ImageUploadWithCrop';
 import { uploadArtistPhoto } from '../../lib/storage';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    backLink: '← Artistas', editTitle: 'Editar Artista', newTitle: 'Novo Artista',
+    nameField: 'Nome *', namePlaceholder: 'Ex: Rafael Mendes',
+    bioField: 'Biografia', bioPlaceholder: 'Sobre o artista...',
+    specialtiesField: 'Especialidades', specialtiesNote: '(separadas por vírgula)',
+    specialtiesPlaceholder: 'Realismo, Blackwork, Aquarela',
+    hideHero: 'Ocultar este artista da página inicial (Hero Slider)',
+    guestTripTitle: 'Guest Trip', guestTripSubtitle: 'Configurações de viagem ou guest artist',
+    active: 'Ativo', inactive: 'Inativo',
+    taglineLabel: 'Tagline (ex: GUEST ARTIST)',
+    titleLabel: 'Título (ex: ABRIL!!!)',
+    subtitleLabel: 'Subtítulo (ex: ARTISTA CONVIDADO)',
+    guestNameLabel: 'Nome do Convidado/Evento',
+    periodLabel: 'Período (ex: do dia 24 de Abril a 10 de Maio)',
+    instagramLabel: 'Instagram (@handle)',
+    bannerLabel: 'Imagem Principal / Banner',
+    galleryLabel: 'Galeria (4 imagens)',
+    photoLabel: (n: number) => `Foto ${n}`,
+    artistPhotoLabel: 'Foto do Artista',
+    changePhoto: 'Trocar foto', selectPhoto: 'Selecionar foto',
+    preferredContact: 'Contato Preferencial',
+    saveError: (msg: string) => `Erro ao salvar artista: ${msg}`,
+    saving: 'Enviando…', save: 'Salvar', createArtist: 'Criar Artista', cancel: 'Cancelar',
+    viewProfile: 'Ver Perfil',
+    tattoosSection: (name: string) => `Tatuagens — ${name}`,
+    noTattoos: 'Nenhuma tatuagem cadastrada',
+    editCaption: 'Editar Legenda',
+    captionModalTitle: 'Editar Legenda',
+    titleField: 'Título', titlePlaceholder: 'Título da tatuagem',
+    captionField: 'Descrição / Legenda', captionPlaceholder: 'Descrição da arte...',
+    priceField: 'Preço', pricePlaceholder: 'Ex: R$ 800',
+  },
+  en: {
+    backLink: '← Artists', editTitle: 'Edit Artist', newTitle: 'New Artist',
+    nameField: 'Name *', namePlaceholder: 'E.g.: Rafael Mendes',
+    bioField: 'Biography', bioPlaceholder: 'About the artist...',
+    specialtiesField: 'Specialties', specialtiesNote: '(separated by comma)',
+    specialtiesPlaceholder: 'Realism, Blackwork, Watercolor',
+    hideHero: 'Hide this artist from the homepage (Hero Slider)',
+    guestTripTitle: 'Guest Trip', guestTripSubtitle: 'Trip or guest artist settings',
+    active: 'Active', inactive: 'Inactive',
+    taglineLabel: 'Tagline (e.g.: GUEST ARTIST)',
+    titleLabel: 'Title (e.g.: APRIL!!!)',
+    subtitleLabel: 'Subtitle (e.g.: GUEST ARTIST)',
+    guestNameLabel: 'Guest/Event Name',
+    periodLabel: 'Period (e.g.: from April 24 to May 10)',
+    instagramLabel: 'Instagram (@handle)',
+    bannerLabel: 'Main Image / Banner',
+    galleryLabel: 'Gallery (4 images)',
+    photoLabel: (n: number) => `Photo ${n}`,
+    artistPhotoLabel: 'Artist Photo',
+    changePhoto: 'Change photo', selectPhoto: 'Select photo',
+    preferredContact: 'Preferred Contact',
+    saveError: (msg: string) => `Error saving artist: ${msg}`,
+    saving: 'Saving…', save: 'Save', createArtist: 'Create Artist', cancel: 'Cancel',
+    viewProfile: 'View Profile',
+    tattoosSection: (name: string) => `Tattoos — ${name}`,
+    noTattoos: 'No tattoos registered',
+    editCaption: 'Edit Caption',
+    captionModalTitle: 'Edit Caption',
+    titleField: 'Title', titlePlaceholder: 'Tattoo title',
+    captionField: 'Description / Caption', captionPlaceholder: 'Art description...',
+    priceField: 'Price', pricePlaceholder: 'E.g.: R$ 800',
+  },
+};
 
 const inputCls = 'w-full bg-transparent border border-white/15 px-4 py-2.5 text-white text-sm font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors';
 const labelCls = 'block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2';
 
 export default function AdminArtistForm() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const artists = useStore((s) => s.artists);
@@ -120,7 +190,7 @@ export default function AdminArtistForm() {
       }
       navigate('/admin/artistas');
     } catch (err) {
-      alert('Erro ao salvar artista: ' + (err as Error).message);
+      alert(tr.saveError((err as Error).message));
     } finally {
       setUploading(false);
     }
@@ -134,10 +204,10 @@ export default function AdminArtistForm() {
           to="/admin/artistas"
           className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors inline-flex items-center gap-2 mb-4"
         >
-          ← Artistas
+          {tr.backLink}
         </Link>
         <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">
-          {existing ? 'Editar Artista' : 'Novo Artista'}
+          {existing ? tr.editTitle : tr.newTitle}
         </h1>
       </div>
 
@@ -148,23 +218,23 @@ export default function AdminArtistForm() {
           <div className="lg:col-span-2 space-y-6">
             <div className="border border-white/10 p-6 space-y-5">
               <div>
-                <label className={labelCls}>Nome *</label>
-                <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder="Ex: Rafael Mendes" />
+                <label className={labelCls}>{tr.nameField}</label>
+                <input name="name" value={form.name} onChange={handleChange} required className={inputCls} placeholder={tr.namePlaceholder} />
               </div>
 
               <div>
-                <label className={labelCls}>Biografia</label>
+                <label className={labelCls}>{tr.bioField}</label>
                 <textarea name="bio" value={form.bio} onChange={handleChange} rows={6}
-                  className={`${inputCls} resize-none`} placeholder="Sobre o artista..." />
+                  className={`${inputCls} resize-none`} placeholder={tr.bioPlaceholder} />
               </div>
 
               <div>
                 <label className={labelCls}>
-                  Especialidades
-                  <span className="text-gray-700 ml-1 normal-case tracking-normal font-normal">(separadas por vírgula)</span>
+                  {tr.specialtiesField}
+                  <span className="text-gray-700 ml-1 normal-case tracking-normal font-normal">{tr.specialtiesNote}</span>
                 </label>
                 <input name="specialties" value={form.specialties} onChange={handleChange} className={inputCls}
-                  placeholder="Realismo, Blackwork, Aquarela" />
+                  placeholder={tr.specialtiesPlaceholder} />
               </div>
 
               <div>
@@ -180,7 +250,7 @@ export default function AdminArtistForm() {
                     <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
                   </div>
                   <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
-                    Ocultar este artista da página inicial (Hero Slider)
+                    {tr.hideHero}
                   </span>
                 </label>
               </div>
@@ -190,8 +260,8 @@ export default function AdminArtistForm() {
             <div className="border border-white/10 p-6 space-y-6 bg-white/[0.02]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display text-xl uppercase tracking-wide text-white">Guest Trip</h2>
-                  <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest mt-1">Configurações de viagem ou guest artist</p>
+                  <h2 className="font-display text-xl uppercase tracking-wide text-white">{tr.guestTripTitle}</h2>
+                  <p className="font-body text-[10px] text-gray-500 uppercase tracking-widest mt-1">{tr.guestTripSubtitle}</p>
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <div className="relative flex items-center">
@@ -204,7 +274,7 @@ export default function AdminArtistForm() {
                     <div className="w-10 h-5 bg-zinc-900 border border-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-white/30 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-ink-500 transition-colors"></div>
                   </div>
                   <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400 group-hover:text-white transition-colors">
-                    {form.guestTrip.active ? 'Ativo' : 'Inativo'}
+                    {form.guestTrip.active ? tr.active : tr.inactive}
                   </span>
                 </label>
               </div>
@@ -213,7 +283,7 @@ export default function AdminArtistForm() {
                 <div className="space-y-5 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2 duration-500">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelCls}>Tagline (ex: GUEST ARTIST)</label>
+                      <label className={labelCls}>{tr.taglineLabel}</label>
                       <input 
                         value={form.guestTrip.tagline} 
                         onChange={(e) => handleGuestTripChange('tagline', e.target.value)} 
@@ -221,7 +291,7 @@ export default function AdminArtistForm() {
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Título (ex: ABRIL!!!)</label>
+                      <label className={labelCls}>{tr.titleLabel}</label>
                       <input 
                         value={form.guestTrip.title} 
                         onChange={(e) => handleGuestTripChange('title', e.target.value)} 
@@ -232,7 +302,7 @@ export default function AdminArtistForm() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelCls}>Subtítulo (ex: ARTISTA CONVIDADO)</label>
+                      <label className={labelCls}>{tr.subtitleLabel}</label>
                       <input 
                         value={form.guestTrip.subtitle} 
                         onChange={(e) => handleGuestTripChange('subtitle', e.target.value)} 
@@ -240,7 +310,7 @@ export default function AdminArtistForm() {
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Nome do Convidado/Evento</label>
+                      <label className={labelCls}>{tr.guestNameLabel}</label>
                       <input 
                         value={form.guestTrip.guestName} 
                         onChange={(e) => handleGuestTripChange('guestName', e.target.value)} 
@@ -251,7 +321,7 @@ export default function AdminArtistForm() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className={labelCls}>Período (ex: do dia 24 de Abril a 10 de Maio)</label>
+                      <label className={labelCls}>{tr.periodLabel}</label>
                       <input 
                         value={form.guestTrip.period} 
                         onChange={(e) => handleGuestTripChange('period', e.target.value)} 
@@ -259,7 +329,7 @@ export default function AdminArtistForm() {
                       />
                     </div>
                     <div>
-                      <label className={labelCls}>Instagram (@handle)</label>
+                      <label className={labelCls}>{tr.instagramLabel}</label>
                       <input 
                         value={form.guestTrip.instagram} 
                         onChange={(e) => handleGuestTripChange('instagram', e.target.value)} 
@@ -269,7 +339,7 @@ export default function AdminArtistForm() {
                   </div>
 
                   <div>
-                    <label className={labelCls}>Imagem Principal / Banner</label>
+                    <label className={labelCls}>{tr.bannerLabel}</label>
                     <ImageUploadWithCrop 
                       label="" 
                       initialUrl={form.guestTrip.bannerUrl} 
@@ -279,11 +349,11 @@ export default function AdminArtistForm() {
                   </div>
 
                   <div>
-                    <label className={labelCls}>Galeria (4 imagens)</label>
+                    <label className={labelCls}>{tr.galleryLabel}</label>
                     <div className="grid grid-cols-2 gap-4 mt-3">
                       {form.guestTrip.galleryImages.map((img, i) => (
                         <div key={i} className="bg-white/5 border border-white/10 p-4 rounded-sm">
-                          <p className="text-[10px] text-gray-500 tracking-widest uppercase mb-3 font-semibold">Foto {i+1}</p>
+                          <p className="text-[10px] text-gray-500 tracking-widest uppercase mb-3 font-semibold">{tr.photoLabel(i + 1)}</p>
                           <ImageUploadWithCrop 
                             label="" 
                             initialUrl={img} 
@@ -302,7 +372,7 @@ export default function AdminArtistForm() {
           {/* ── Coluna direita: foto + links ── */}
           <div className="space-y-5">
             <div className="border border-white/10 p-6 space-y-4">
-              <label className={labelCls}>Foto do Artista</label>
+              <label className={labelCls}>{tr.artistPhotoLabel}</label>
 
               {cropSrc ? (
                 <ImageCropper src={cropSrc} onConfirm={handleCropConfirm} onCancel={handleCropCancel} />
@@ -331,7 +401,7 @@ export default function AdminArtistForm() {
                       </button>
                       <button type="button" onClick={openFilePicker}
                         className="mt-2 w-full py-2 border border-dashed border-white/15 hover:border-white/40 text-gray-600 hover:text-gray-400 font-body text-[10px] tracking-widest uppercase transition-colors">
-                        Trocar foto
+                        {tr.changePhoto}
                       </button>
                     </div>
                   ) : (
@@ -340,7 +410,7 @@ export default function AdminArtistForm() {
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                       </svg>
-                      <span className="font-body text-xs font-semibold tracking-widest uppercase">Selecionar foto</span>
+                      <span className="font-body text-xs font-semibold tracking-widest uppercase">{tr.selectPhoto}</span>
                     </button>
                   )}
                 </>
@@ -348,7 +418,7 @@ export default function AdminArtistForm() {
             </div>
 
             <div className="border border-white/10 p-6 space-y-4">
-              <label className={labelCls}>Contato Preferencial</label>
+              <label className={labelCls}>{tr.preferredContact}</label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -407,11 +477,11 @@ export default function AdminArtistForm() {
         <div className="flex gap-3 pt-6">
           <button type="submit" disabled={uploading}
             className="flex-1 lg:flex-none lg:px-12 bg-white hover:bg-gray-100 disabled:opacity-60 disabled:cursor-wait text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
-            {uploading ? 'Enviando…' : existing ? 'Salvar' : 'Criar Artista'}
+            {uploading ? tr.saving : existing ? tr.save : tr.createArtist}
           </button>
           <Link to="/admin/artistas"
             className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors text-center">
-            Cancelar
+            {tr.cancel}
           </Link>
           {existing && (
             <Link
@@ -422,7 +492,7 @@ export default function AdminArtistForm() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              Ver Perfil
+              {tr.viewProfile}
             </Link>
           )}
         </div>
@@ -432,12 +502,12 @@ export default function AdminArtistForm() {
       {existing && (
         <div className="mt-10">
           <h2 className="font-display text-2xl text-white uppercase tracking-wide mb-5">
-            Tatuagens — {existing.name}
+            {tr.tattoosSection(existing.name)}
           </h2>
 
           {artistTattoos.length === 0 ? (
             <div className="border border-white/10 py-12 text-center">
-              <p className="font-body text-xs text-gray-600 uppercase tracking-widest">Nenhuma tatuagem cadastrada</p>
+              <p className="font-body text-xs text-gray-600 uppercase tracking-widest">{tr.noTattoos}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -476,7 +546,7 @@ export default function AdminArtistForm() {
                     onClick={() => openTattooEdit(t)}
                     className="w-full py-2 border-t border-white/10 font-body text-[10px] font-bold tracking-widest uppercase text-gray-600 hover:text-white hover:bg-white/5 transition-colors"
                   >
-                    Editar Legenda
+                    {tr.editCaption}
                   </button>
                 </div>
               ))}
@@ -489,7 +559,7 @@ export default function AdminArtistForm() {
       {editingTattoo && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
           <div className="w-full max-w-md border border-white/15 bg-zinc-950 p-6">
-            <h3 className="font-display text-2xl text-white uppercase tracking-wide mb-5">Editar Legenda</h3>
+            <h3 className="font-display text-2xl text-white uppercase tracking-wide mb-5">{tr.captionModalTitle}</h3>
 
             {editingTattoo.imageUrl && (
               <img src={editingTattoo.imageUrl} alt={editingTattoo.title}
@@ -499,31 +569,31 @@ export default function AdminArtistForm() {
 
             <div className="space-y-4">
               <div>
-                <label className={labelCls}>Título</label>
+                <label className={labelCls}>{tr.titleField}</label>
                 <input value={tattooCaption.title} onChange={(e) => setTattooCaption((c) => ({ ...c, title: e.target.value }))}
-                  className={inputCls} placeholder="Título da tatuagem" />
+                  className={inputCls} placeholder={tr.titlePlaceholder} />
               </div>
               <div>
-                <label className={labelCls}>Descrição / Legenda</label>
+                <label className={labelCls}>{tr.captionField}</label>
                 <textarea value={tattooCaption.description} rows={4}
                   onChange={(e) => setTattooCaption((c) => ({ ...c, description: e.target.value }))}
-                  className={`${inputCls} resize-none`} placeholder="Descrição da arte..." />
+                  className={`${inputCls} resize-none`} placeholder={tr.captionPlaceholder} />
               </div>
               <div>
-                <label className={labelCls}>Preço</label>
+                <label className={labelCls}>{tr.priceField}</label>
                 <input value={tattooCaption.price} onChange={(e) => setTattooCaption((c) => ({ ...c, price: e.target.value }))}
-                  className={inputCls} placeholder="Ex: R$ 800" />
+                  className={inputCls} placeholder={tr.pricePlaceholder} />
               </div>
             </div>
 
             <div className="flex gap-3 mt-6">
               <button type="button" onClick={saveTattooCaption}
                 className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors">
-                Salvar
+                {tr.save}
               </button>
               <button type="button" onClick={() => setEditingTattoo(null)}
                 className="px-6 py-3 border border-white/15 hover:border-white text-gray-500 hover:text-white font-body font-bold text-xs tracking-widest uppercase transition-colors">
-                Cancelar
+                {tr.cancel}
               </button>
             </div>
           </div>

@@ -1,6 +1,38 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { supabase } from '../../lib/supabase';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Admin', title: 'Lista de Desejos',
+    subtitle: 'Itens mais salvos pelos clientes.',
+    loading: 'Carregando...',
+    noDataTitle: 'Nenhum dado ainda',
+    noDataHint: 'Quando clientes salvarem itens, aparecerá aqui.',
+    totalSaves: 'Total de saves',
+    tattoosSaved: 'Tatuagens salvas',
+    productsSaved: 'Produtos salvos',
+    topTattoosLabel: 'Tatuagens mais desejadas',
+    noTattoos: 'Nenhuma tatuagem salva ainda.',
+    topMerchsLabel: 'Produtos mais desejados',
+    noMerchs: 'Nenhum produto salvo ainda.',
+  },
+  en: {
+    label: 'Admin', title: 'Wishlist',
+    subtitle: 'Most saved items by clients.',
+    loading: 'Loading...',
+    noDataTitle: 'No data yet',
+    noDataHint: 'When clients save items, they will appear here.',
+    totalSaves: 'Total saves',
+    tattoosSaved: 'Tattoos saved',
+    productsSaved: 'Products saved',
+    topTattoosLabel: 'Most wished tattoos',
+    noTattoos: 'No tattoos saved yet.',
+    topMerchsLabel: 'Most wished products',
+    noMerchs: 'No products saved yet.',
+  },
+};
 
 interface WishlistRow {
   item_type: 'tattoo' | 'merch';
@@ -8,6 +40,8 @@ interface WishlistRow {
 }
 
 export default function AdminWishlist() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const tattoos = useStore((s) => s.tattoos);
   const merchs  = useStore((s) => s.merchs);
   const artists = useStore((s) => s.artists);
@@ -72,30 +106,30 @@ export default function AdminWishlist() {
     <div className="p-4 md:p-8 max-w-5xl">
       {/* Header */}
       <div className="mb-8">
-        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
         <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">
-          Lista de Desejos
+          {tr.title}
         </h1>
         <p className="font-body text-xs text-gray-500 mt-2">
-          Itens mais salvos pelos clientes.
+          {tr.subtitle}
         </p>
       </div>
 
       {loading ? (
-        <div className="text-gray-600 font-body text-sm">Carregando...</div>
+        <div className="text-gray-600 font-body text-sm">{tr.loading}</div>
       ) : rows.length === 0 ? (
         <div className="text-center py-24 text-gray-600">
-          <p className="font-display text-3xl tracking-widest uppercase">Nenhum dado ainda</p>
-          <p className="font-body text-sm mt-2">Quando clientes salvarem itens, aparecerá aqui.</p>
+          <p className="font-display text-3xl tracking-widest uppercase">{tr.noDataTitle}</p>
+          <p className="font-body text-sm mt-2">{tr.noDataHint}</p>
         </div>
       ) : (
         <>
           {/* KPI cards */}
           <div className="grid grid-cols-3 gap-3 mb-10">
             {[
-              { label: 'Total de saves',     value: totalWishlists },
-              { label: 'Tatuagens salvas',   value: topTattoos.reduce((s, x) => s + x.count, 0) },
-              { label: 'Produtos salvos',    value: topMerchs.reduce((s, x) => s + x.count, 0) },
+              { label: tr.totalSaves,     value: totalWishlists },
+              { label: tr.tattoosSaved,   value: topTattoos.reduce((s, x) => s + x.count, 0) },
+              { label: tr.productsSaved,  value: topMerchs.reduce((s, x) => s + x.count, 0) },
             ].map(({ label, value }) => (
               <div key={label} className="bg-zinc-900 border border-white/10 p-4">
                 <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">{label}</p>
@@ -108,10 +142,10 @@ export default function AdminWishlist() {
             {/* Top tattoos */}
             <section>
               <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">
-                Tatuagens mais desejadas
+                {tr.topTattoosLabel}
               </p>
               {topTattoos.length === 0 ? (
-                <p className="font-body text-xs text-gray-700">Nenhuma tatuagem salva ainda.</p>
+                <p className="font-body text-xs text-gray-700">{tr.noTattoos}</p>
               ) : (
                 <div className="space-y-2">
                   {topTattoos.map(({ tattoo, count }) => {
@@ -156,10 +190,10 @@ export default function AdminWishlist() {
             {/* Top merchs */}
             <section>
               <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">
-                Produtos mais desejados
+                {tr.topMerchsLabel}
               </p>
               {topMerchs.length === 0 ? (
-                <p className="font-body text-xs text-gray-700">Nenhum produto salvo ainda.</p>
+                <p className="font-body text-xs text-gray-700">{tr.noMerchs}</p>
               ) : (
                 <div className="space-y-2">
                   {topMerchs.map(({ merch, count }) => (

@@ -1,7 +1,39 @@
 import { useState } from 'react';
 import { useStore } from '../../store';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Admin', title: 'Ficha de Anamnese',
+    subtitle: 'Configure os tatuadores e condições de saúde exibidos na ficha.',
+    citySection: 'Cidade padrão da assinatura',
+    cityDesc: (city: string) => `Aparece no campo "${city || 'CIDADE'}, DATA *" no final da ficha.`,
+    tattooersSection: 'Tatuadores',
+    conditionsSection: 'Condições de saúde',
+    editTitle: 'Clique para editar',
+    moveUpTitle: 'Mover para cima', moveDownTitle: 'Mover para baixo', removeTitle: 'Remover',
+    tattooerPlaceholder: 'Nome do tatuador',
+    conditionPlaceholder: 'Nome da condição',
+    add: 'Adicionar', save: 'Salvar alterações', saved: 'Salvo!',
+  },
+  en: {
+    label: 'Admin', title: 'Consent Form',
+    subtitle: 'Configure the tattoo artists and health conditions shown on the form.',
+    citySection: 'Default signature city',
+    cityDesc: (city: string) => `Shown in the "${city || 'CITY'}, DATE *" field at the end of the form.`,
+    tattooersSection: 'Tattoo artists',
+    conditionsSection: 'Health conditions',
+    editTitle: 'Click to edit',
+    moveUpTitle: 'Move up', moveDownTitle: 'Move down', removeTitle: 'Remove',
+    tattooerPlaceholder: 'Artist name',
+    conditionPlaceholder: 'Condition name',
+    add: 'Add', save: 'Save changes', saved: 'Saved!',
+  },
+};
 
 export default function AdminFichaAnamnese() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const fichaConfig = useStore((s) => s.fichaConfig);
   const setFichaConfig = useStore((s) => s.setFichaConfig);
 
@@ -70,19 +102,19 @@ export default function AdminFichaAnamnese() {
     <div className="p-4 md:p-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
         <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">
-          Ficha de Anamnese
+          {tr.title}
         </h1>
-        <p className="text-xs text-gray-500 mt-2">Configure os tatuadores e condições de saúde exibidos na ficha.</p>
+        <p className="text-xs text-gray-500 mt-2">{tr.subtitle}</p>
       </div>
 
       {/* Cidade */}
       <section className="mb-10">
         <h2 className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400 mb-4 flex items-center gap-2">
-          <span className="text-red-500">00.</span> Cidade padrão da assinatura
+          <span className="text-red-500">00.</span> {tr.citySection}
         </h2>
-        <p className="text-xs text-gray-600 mb-3">Aparece no campo "{cidade || 'CIDADE'}, DATA *" no final da ficha.</p>
+        <p className="text-xs text-gray-600 mb-3">{tr.cityDesc(cidade)}</p>
         <input
           type="text"
           value={cidade}
@@ -95,7 +127,7 @@ export default function AdminFichaAnamnese() {
       {/* Tatuadores */}
       <section className="mb-10">
         <h2 className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400 mb-4 flex items-center gap-2">
-          <span className="text-red-500">01.</span> Tatuadores
+          <span className="text-red-500">01.</span> {tr.tattooersSection}
         </h2>
 
         <div className="flex flex-col gap-1 mb-4">
@@ -117,26 +149,26 @@ export default function AdminFichaAnamnese() {
                   type="button"
                   onClick={() => setEditingTatuador(i)}
                   className="flex-1 text-sm text-white text-left hover:text-white/70 transition-colors"
-                  title="Clique para editar"
+                  title={tr.editTitle}
                 >
                   {t}
                 </button>
               )}
               <div className="flex gap-1 flex-shrink-0">
                 <button onClick={() => moveUp(tatuadores, i, setTatuadores)} disabled={i === 0}
-                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title="Mover para cima">
+                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title={tr.moveUpTitle}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                   </svg>
                 </button>
                 <button onClick={() => moveDown(tatuadores, i, setTatuadores)} disabled={i === tatuadores.length - 1}
-                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title="Mover para baixo">
+                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title={tr.moveDownTitle}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 <button onClick={() => removeTatuador(i)}
-                  className="p-1 text-gray-600 hover:text-red-400 transition-colors" title="Remover">
+                  className="p-1 text-gray-600 hover:text-red-400 transition-colors" title={tr.removeTitle}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -149,11 +181,11 @@ export default function AdminFichaAnamnese() {
         <div className="flex gap-2">
           <input type="text" value={newTatuador} onChange={(e) => setNewTatuador(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTatuador())}
-            placeholder="Nome do tatuador"
+            placeholder={tr.tattooerPlaceholder}
             className="flex-1 bg-transparent border border-white/20 text-white text-sm px-3 py-2 outline-none focus:border-white/50 placeholder:text-gray-600" />
           <button type="button" onClick={addTatuador}
             className="px-4 py-2 bg-white text-black text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors">
-            Adicionar
+            {tr.add}
           </button>
         </div>
       </section>
@@ -161,7 +193,7 @@ export default function AdminFichaAnamnese() {
       {/* Condições */}
       <section className="mb-10">
         <h2 className="font-body text-xs font-semibold tracking-widest uppercase text-gray-400 mb-4 flex items-center gap-2">
-          <span className="text-red-500">02.</span> Condições de saúde
+          <span className="text-red-500">02.</span> {tr.conditionsSection}
         </h2>
 
         <div className="flex flex-col gap-1 mb-4">
@@ -183,26 +215,26 @@ export default function AdminFichaAnamnese() {
                   type="button"
                   onClick={() => setEditingCondition(i)}
                   className="flex-1 text-sm text-white text-left hover:text-white/70 transition-colors"
-                  title="Clique para editar"
+                  title={tr.editTitle}
                 >
                   {c}
                 </button>
               )}
               <div className="flex gap-1 flex-shrink-0">
                 <button onClick={() => moveUp(conditions, i, setConditions)} disabled={i === 0}
-                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title="Mover para cima">
+                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title={tr.moveUpTitle}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                   </svg>
                 </button>
                 <button onClick={() => moveDown(conditions, i, setConditions)} disabled={i === conditions.length - 1}
-                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title="Mover para baixo">
+                  className="p-1 text-gray-600 hover:text-white disabled:opacity-20 transition-colors" title={tr.moveDownTitle}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 <button onClick={() => removeCondition(i)}
-                  className="p-1 text-gray-600 hover:text-red-400 transition-colors" title="Remover">
+                  className="p-1 text-gray-600 hover:text-red-400 transition-colors" title={tr.removeTitle}>
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -215,11 +247,11 @@ export default function AdminFichaAnamnese() {
         <div className="flex gap-2">
           <input type="text" value={newCondition} onChange={(e) => setNewCondition(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCondition())}
-            placeholder="Nome da condição"
+            placeholder={tr.conditionPlaceholder}
             className="flex-1 bg-transparent border border-white/20 text-white text-sm px-3 py-2 outline-none focus:border-white/50 placeholder:text-gray-600" />
           <button type="button" onClick={addCondition}
             className="px-4 py-2 bg-white text-black text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors">
-            Adicionar
+            {tr.add}
           </button>
         </div>
       </section>
@@ -232,10 +264,10 @@ export default function AdminFichaAnamnese() {
             <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            Salvo!
+            {tr.saved}
           </>
         ) : (
-          'Salvar alterações'
+          tr.save
         )}
       </button>
     </div>

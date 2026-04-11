@@ -4,11 +4,71 @@ import { applyCustomColors, generateShades } from '../../lib/themes';
 import { uploadImage } from '../../lib/uploadImage';
 import { TATTOO_STYLES } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    sectionLabel: 'Estúdio', title: 'Configurações',
+    customColors: 'Cores personalizadas', primary: 'Primária', secondary: 'Secundária',
+    invertColors: 'Inverter Cores', apply: 'Aplicar',
+    siteImages: 'Imagens do site', mainLogo: 'Logo Principal',
+    uploading: 'Enviando...', upload: '↑ Upload', reset: '✕ Reset',
+    favicon: 'Favicon (Ícone da Aba)',
+    showcaseStyles: 'Estilos da vitrine',
+    stylesTitle: 'Estilos da Vitrine',
+    stylesSubtitle: 'Estilos marcados ficam visíveis no filtro público. Clique para ocultar/mostrar.',
+    removeStyle: 'Remover estilo',
+    newStylePlaceholder: 'Novo estilo...',
+    addStyle: '+ Adicionar',
+    stylesHint: 'Estilos personalizados aparecem com borda colorida e têm botão × para remover.',
+    addressSection: 'Endereço e Estúdio',
+    studioTitle: 'Título do Estúdio', street: 'Rua e Número',
+    city: 'Cidade — UF', zip: 'CEP', mapLabel: 'Bairro / Label do Mapa',
+    hoursSection: 'Horários de Funcionamento',
+    daysPlaceholder: 'Dias', timePlaceholder: 'Horário',
+    highlight: 'Destaque (fechado/especial)',
+    compressTitle: 'Comprimir Fotos Antigas',
+    compressSubtitle: 'Recomprime todas as imagens do Storage para máx 1440px / JPEG 82%. Reduz o egress do Supabase.',
+    compressStart: 'Iniciar compressão', compressStop: 'Parar', compressRestart: 'Reiniciar',
+    scanning: 'Listando arquivos...', savedSoFar: 'Economizado até agora:',
+    done: (count: number) => `Concluído — ${count} arquivos processados.`,
+    totalSaved: (saved: string, recompressed: number, skipped: number) => `Total economizado: ${saved} (${recompressed} recomprimidas, ${skipped} ignoradas)`,
+    nothingToCompress: 'Nenhuma imagem precisava de compressão.',
+  },
+  en: {
+    sectionLabel: 'Studio', title: 'Settings',
+    customColors: 'Custom Colors', primary: 'Primary', secondary: 'Secondary',
+    invertColors: 'Invert Colors', apply: 'Apply',
+    siteImages: 'Site Images', mainLogo: 'Main Logo',
+    uploading: 'Uploading...', upload: '↑ Upload', reset: '✕ Reset',
+    favicon: 'Favicon (Tab Icon)',
+    showcaseStyles: 'Showcase Styles',
+    stylesTitle: 'Showcase Styles',
+    stylesSubtitle: 'Checked styles are visible in the public filter. Click to hide/show.',
+    removeStyle: 'Remove style',
+    newStylePlaceholder: 'New style...',
+    addStyle: '+ Add',
+    stylesHint: 'Custom styles appear with a colored border and have a × button to remove.',
+    addressSection: 'Address & Studio',
+    studioTitle: 'Studio Title', street: 'Street & Number',
+    city: 'City — State', zip: 'ZIP Code', mapLabel: 'Neighborhood / Map Label',
+    hoursSection: 'Business Hours',
+    daysPlaceholder: 'Days', timePlaceholder: 'Hours',
+    highlight: 'Highlight (closed/special)',
+    compressTitle: 'Compress Old Photos',
+    compressSubtitle: 'Recompresses all Storage images to max 1440px / JPEG 82%. Reduces Supabase egress.',
+    compressStart: 'Start compression', compressStop: 'Stop', compressRestart: 'Restart',
+    scanning: 'Listing files...', savedSoFar: 'Saved so far:',
+    done: (count: number) => `Done — ${count} files processed.`,
+    totalSaved: (saved: string, recompressed: number, skipped: number) => `Total saved: ${saved} (${recompressed} recompressed, ${skipped} skipped)`,
+    nothingToCompress: 'No images needed compression.',
+  },
+};
 
 /* ── Compress old Storage images ──────────────────────────────────────────── */
 type CompressState = 'idle' | 'scanning' | 'running' | 'done' | 'error';
 
-function CompressStorageSection() {
+function CompressStorageSection({ tr }: { tr: typeof T['pt'] }) {
   const [state, setState]         = useState<CompressState>('idle');
   const [total, setTotal]         = useState(0);
   const [done, setDone]           = useState(0);
@@ -120,24 +180,24 @@ function CompressStorageSection() {
     <section className="border border-white/10 bg-black/20 p-4">
       <div className="mb-3">
         <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-0.5">
-          Comprimir Fotos Antigas
+          {tr.compressTitle}
         </h2>
         <p className="font-body text-xs text-gray-500">
-          Recomprime todas as imagens do Storage para máx 1440px / JPEG 82%. Reduz o egress do Supabase.
+          {tr.compressSubtitle}
         </p>
       </div>
 
       {state === 'idle' && (
         <button type="button" onClick={run}
           className="font-body text-xs font-bold tracking-widest uppercase px-5 py-2.5 bg-ink-500 text-black hover:bg-ink-400 transition-colors">
-          Iniciar compressão
+          {tr.compressStart}
         </button>
       )}
 
       {(state === 'scanning' || state === 'running') && (
         <div className="space-y-2">
           {state === 'scanning' && (
-            <p className="font-body text-xs text-gray-400">Listando arquivos...</p>
+            <p className="font-body text-xs text-gray-400">{tr.scanning}</p>
           )}
           {state === 'running' && (
             <>
@@ -150,11 +210,11 @@ function CompressStorageSection() {
               </div>
               <p className="font-body text-[10px] text-gray-600 truncate">↳ {current}</p>
               {savedBytes > 0 && (
-                <p className="font-body text-xs text-ink-500">Economizado até agora: {saved}</p>
+                <p className="font-body text-xs text-ink-500">{tr.savedSoFar} {saved}</p>
               )}
               <button type="button" onClick={stop}
                 className="font-body text-[10px] tracking-widest uppercase px-3 py-1 border border-white/20 text-gray-500 hover:text-white transition-colors">
-                Parar
+                {tr.compressStop}
               </button>
             </>
           )}
@@ -163,16 +223,16 @@ function CompressStorageSection() {
 
       {state === 'done' && (
         <div className="space-y-1">
-          <p className="font-body text-xs text-green-400">Concluído — {done} arquivos processados.</p>
+          <p className="font-body text-xs text-green-400">{tr.done(done)}</p>
           {savedBytes > 0 && (
-            <p className="font-body text-xs text-ink-500">Total economizado: {saved} ({total - skipped} recomprimidas, {skipped} ignoradas)</p>
+            <p className="font-body text-xs text-ink-500">{tr.totalSaved(saved, total - skipped, skipped)}</p>
           )}
           {savedBytes === 0 && (
-            <p className="font-body text-xs text-gray-500">Nenhuma imagem precisava de compressão.</p>
+            <p className="font-body text-xs text-gray-500">{tr.nothingToCompress}</p>
           )}
           <button type="button" onClick={() => { setState('idle'); setDone(0); setSkipped(0); setSavedBytes(0); }}
             className="font-body text-[10px] tracking-widest uppercase px-3 py-1 border border-white/20 text-gray-500 hover:text-white transition-colors mt-2">
-            Reiniciar
+            {tr.compressRestart}
           </button>
         </div>
       )}
@@ -180,7 +240,7 @@ function CompressStorageSection() {
   );
 }
 
-function StyleVisibilitySection() {
+function StyleVisibilitySection({ tr }: { tr: typeof T['pt'] }) {
   const hiddenStyles    = useStore((s) => s.hiddenStyles);
   const setHiddenStyles = useStore((s) => s.setHiddenStyles);
   const customStyles    = useStore((s) => s.customStyles);
@@ -213,10 +273,10 @@ function StyleVisibilitySection() {
     <section>
       <div className="mb-5">
         <h2 className="font-display text-xl uppercase tracking-wide text-white leading-none mb-1">
-          Estilos da Vitrine
+          {tr.stylesTitle}
         </h2>
         <p className="font-body text-xs text-gray-500">
-          Estilos marcados ficam visíveis no filtro público. Clique para ocultar/mostrar.
+          {tr.stylesSubtitle}
         </p>
       </div>
 
@@ -256,7 +316,7 @@ function StyleVisibilitySection() {
               <button
                 type="button"
                 onClick={() => removeCustomStyle(style)}
-                title="Remover estilo"
+                title={tr.removeStyle}
                 className="absolute right-1.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-red-400 transition-colors text-xs leading-none"
               >
                 ×
@@ -273,7 +333,7 @@ function StyleVisibilitySection() {
           value={newStyle}
           onChange={(e) => setNewStyle(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addStyle(); } }}
-          placeholder="Novo estilo..."
+          placeholder={tr.newStylePlaceholder}
           className="bg-transparent border border-white/15 px-3 py-2 text-white text-xs font-body placeholder-gray-700 focus:outline-none focus:border-white transition-colors w-40"
         />
         <button
@@ -282,11 +342,11 @@ function StyleVisibilitySection() {
           disabled={!newStyle.trim()}
           className="px-4 py-2 border border-white/20 text-white font-body text-xs font-semibold tracking-widest uppercase hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          + Adicionar
+          {tr.addStyle}
         </button>
       </div>
       <p className="font-body text-[10px] text-gray-700 mt-2">
-        Estilos personalizados aparecem com borda colorida e têm botão × para remover.
+        {tr.stylesHint}
       </p>
     </section>
   );
@@ -315,6 +375,8 @@ function ShadeStrip({ hex, prefix = '--ink' }: { hex: string; prefix?: string })
 }
 
 export default function AdminSettings() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const c = useStore((s) => s.sobreNosContent);
   const setSobreNosContent = useStore((s) => s.setSobreNosContent);
   const { studio } = c;
@@ -400,8 +462,8 @@ export default function AdminSettings() {
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">Estúdio</p>
-        <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">Configurações</h1>
+        <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-0.5">{tr.sectionLabel}</p>
+        <h1 className="font-display text-4xl text-white uppercase tracking-wide leading-none">{tr.title}</h1>
       </div>
 
       {/* ══ CONFIGURAÇÕES EM GRID ══════════════════════ */}
@@ -410,11 +472,11 @@ export default function AdminSettings() {
         {/* ── COLUNA 1: Identidade e Cores ── */}
         <div className="space-y-6">
           <div className="border border-white/10 bg-black/20 p-5">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Cores personalizadas</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">{tr.customColors}</p>
             <div className="space-y-3 mb-4">
               <div className="border border-white/10 bg-black/30 p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Primária</label>
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">{tr.primary}</label>
                   <input type="color" value={draftPrimary} onChange={(e) => setDraftPrimary(e.target.value)}
                     className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" style={{ appearance: 'none' }} />
                   <span className="font-mono text-[10px] text-gray-500 uppercase">{draftPrimary}</span>
@@ -428,7 +490,7 @@ export default function AdminSettings() {
               </div>
               <div className="border border-white/10 bg-black/30 p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">Secundária</label>
+                  <label className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 w-16 shrink-0">{tr.secondary}</label>
                   <input type="color" value={draftSecondary} onChange={(e) => setDraftSecondary(e.target.value)}
                     className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0 shrink-0" />
                   <span className="font-mono text-[10px] text-gray-500 uppercase">{draftSecondary}</span>
@@ -443,7 +505,7 @@ export default function AdminSettings() {
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={handleInvert}
-                title="Inverter Cores"
+                title={tr.invertColors}
                 className="w-12 shrink-0 flex items-center justify-center bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors border border-white/10">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -451,24 +513,24 @@ export default function AdminSettings() {
               </button>
               <button type="button" onClick={handleApplyColors}
                 className="flex-1 font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black py-2 hover:bg-white/90 transition-colors">
-                Aplicar
+                {tr.apply}
               </button>
             </div>
           </div>
 
           <div className="border border-white/10 bg-black/20 p-5">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Imagens do site</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">{tr.siteImages}</p>
             <div className="space-y-5">
               <div className="flex items-center gap-4">
                 <div className="w-20 h-12 border border-white/10 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
                   <img src={customLogo ?? '/logosemo-3.png'} alt="Logo" className="max-h-full max-w-full object-contain" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Logo Principal</p>
+                  <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">{tr.mainLogo}</p>
                   <div className="flex gap-2">
                     <button type="button" disabled={logoUploading} onClick={() => logoFileRef.current?.click()}
                       className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors">
-                      {logoUploading ? 'Enviando...' : '↑ Upload'}
+                      {logoUploading ? tr.uploading : tr.upload}
                     </button>
                     {customLogo && (
                       <button type="button" onClick={() => { setCustomLogo(null); setLogoFileName(''); }}
@@ -486,11 +548,11 @@ export default function AdminSettings() {
                   <img src={customFavicon ?? '/dudeicone.png'} alt="Favicon" className="max-h-full max-w-full object-contain" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Favicon (Ícone da Aba)</p>
+                  <p className="font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">{tr.favicon}</p>
                   <div className="flex gap-2">
                     <button type="button" disabled={faviconUploading} onClick={() => faviconFileRef.current?.click()}
                       className="font-body text-[9px] font-semibold tracking-widest uppercase px-3 py-1.5 border border-white/20 text-white/60 hover:text-white hover:border-white/50 transition-colors">
-                      {faviconUploading ? 'Enviando...' : '↑ Upload'}
+                      {faviconUploading ? tr.uploading : tr.upload}
                     </button>
                     {customFavicon && (
                       <button type="button" onClick={() => { setCustomFavicon(null); setFaviconFileName(''); }}
@@ -509,40 +571,40 @@ export default function AdminSettings() {
         {/* ── COLUNA 2: Vitrine e Estilos ── */}
         <div className="space-y-6">
           <div className="border border-white/10 bg-black/20 p-5">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Estilos da vitrine</p>
-            <StyleVisibilitySection />
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">{tr.showcaseStyles}</p>
+            <StyleVisibilitySection tr={tr} />
           </div>
         </div>
 
         {/* ── COLUNA 3: Endereço e Horários ── */}
         <div className="space-y-6">
           <div className="border border-white/10 bg-black/20 p-5">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Endereço e Estúdio</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">{tr.addressSection}</p>
             <div className="space-y-4">
               <div>
-                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Título do Estúdio</label>
+                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">{tr.studioTitle}</label>
                 <input type="text" value={studio.title} onChange={(e) => handleStudioChange('title', e.target.value)}
                   className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
               </div>
               <div>
-                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Rua e Número</label>
+                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">{tr.street}</label>
                 <input type="text" value={studio.street} onChange={(e) => handleStudioChange('street', e.target.value)}
                   className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Cidade — UF</label>
+                  <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">{tr.city}</label>
                   <input type="text" value={studio.city} onChange={(e) => handleStudioChange('city', e.target.value)}
                     className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
                 </div>
                 <div>
-                  <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">CEP</label>
+                  <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">{tr.zip}</label>
                   <input type="text" value={studio.cep} onChange={(e) => handleStudioChange('cep', e.target.value)}
                     className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
                 </div>
               </div>
               <div>
-                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">Bairro / Label do Mapa</label>
+                <label className="block font-body text-[9px] text-gray-600 tracking-widest uppercase mb-1.5">{tr.mapLabel}</label>
                 <input type="text" value={studio.mapLabel} onChange={(e) => handleStudioChange('mapLabel', e.target.value)}
                   className="w-full bg-transparent border border-white/10 px-3 py-2 text-white text-xs font-body focus:outline-none focus:border-white/30 transition-colors" />
               </div>
@@ -550,20 +612,20 @@ export default function AdminSettings() {
           </div>
 
           <div className="border border-white/10 bg-black/20 p-5">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Horários de Funcionamento</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">{tr.hoursSection}</p>
             <div className="space-y-4">
               {studio.hours.map((h, i) => (
                 <div key={i} className="space-y-2 pb-4 border-b border-white/5 last:border-0 last:pb-0">
                   <div className="flex gap-2">
                     <input type="text" value={h.days} onChange={(e) => handleHourChange(i, 'days', e.target.value)}
-                      className="flex-1 bg-transparent border border-white/10 px-2 py-1.5 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors" placeholder="Dias" />
+                      className="flex-1 bg-transparent border border-white/10 px-2 py-1.5 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors" placeholder={tr.daysPlaceholder} />
                     <input type="text" value={h.time} onChange={(e) => handleHourChange(i, 'time', e.target.value)}
-                      className="flex-1 bg-transparent border border-white/10 px-2 py-1.5 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors" placeholder="Horário" />
+                      className="flex-1 bg-transparent border border-white/10 px-2 py-1.5 text-white text-[10px] font-body focus:outline-none focus:border-white/30 transition-colors" placeholder={tr.timePlaceholder} />
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={h.closed} onChange={(e) => handleHourChange(i, 'closed', e.target.checked)}
                       className="rounded border-white/10 bg-transparent text-ink-500 focus:ring-offset-0 focus:ring-ink-500" />
-                    <span className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Destaque (fechado/especial)</span>
+                    <span className="font-body text-[9px] text-gray-600 uppercase tracking-widest">{tr.highlight}</span>
                   </label>
                 </div>
               ))}

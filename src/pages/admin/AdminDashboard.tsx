@@ -1,5 +1,25 @@
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Admin', title: 'Dashboard',
+    total: 'Total', available: 'Disponíveis', archived: 'Arquivadas', artists: 'Artistas',
+    newArt: 'Nova Arte', newArtist: 'Novo Artista',
+    allArts: 'Todas as Artes', manage: 'Gerenciar →',
+    empty: 'Nenhuma arte cadastrada',
+    statusAvailable: 'Disponível', statusArchived: 'Arquivada',
+  },
+  en: {
+    label: 'Admin', title: 'Dashboard',
+    total: 'Total', available: 'Available', archived: 'Archived', artists: 'Artists',
+    newArt: 'New Art', newArtist: 'New Artist',
+    allArts: 'All Art', manage: 'Manage →',
+    empty: 'No art registered yet',
+    statusAvailable: 'Available', statusArchived: 'Archived',
+  },
+};
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
@@ -11,6 +31,8 @@ function StatCard({ label, value }: { label: string; value: number }) {
 }
 
 export default function AdminDashboard() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const tattoos = useStore((s) => s.tattoos);
   const artists = useStore((s) => s.artists);
 
@@ -24,16 +46,16 @@ export default function AdminDashboard() {
     <div className="p-4 md:p-8">
       {/* Header */}
       <div className="mb-6 md:mb-10">
-        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
-        <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">Dashboard</h1>
+        <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
+        <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">{tr.title}</h1>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-6 md:mb-10">
-        <StatCard label="Total" value={tattoos.length} />
-        <StatCard label="Disponíveis" value={available} />
-        <StatCard label="Arquivadas" value={archived} />
-        <StatCard label="Artistas" value={artists.length} />
+        <StatCard label={tr.total} value={tattoos.length} />
+        <StatCard label={tr.available} value={available} />
+        <StatCard label={tr.archived} value={archived} />
+        <StatCard label={tr.artists} value={artists.length} />
       </div>
 
       {/* Quick actions */}
@@ -45,7 +67,7 @@ export default function AdminDashboard() {
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
-          Nova Arte
+          {tr.newArt}
         </Link>
         <Link
           to="/admin/artistas/novo"
@@ -54,23 +76,23 @@ export default function AdminDashboard() {
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>
-          Novo Artista
+          {tr.newArtist}
         </Link>
       </div>
 
       {/* Recent tattoos grid */}
       <div className="mb-4 flex items-baseline justify-between">
         <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-500">
-          Todas as Artes <span className="text-gray-700 ml-2">{tattoos.length}</span>
+          {tr.allArts} <span className="text-gray-700 ml-2">{tattoos.length}</span>
         </p>
         <Link to="/admin/tatuagens" className="font-body text-xs tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-          Gerenciar →
+          {tr.manage}
         </Link>
       </div>
 
       {allSorted.length === 0 ? (
         <div className="border border-white/10 py-16 text-center">
-          <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhuma arte cadastrada</p>
+          <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">{tr.empty}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 md:gap-2">
@@ -84,7 +106,7 @@ export default function AdminDashboard() {
               >
                 <img
                   src={t.imageUrl}
-                  alt={t.title}
+                  alt={tr.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${t.id}/400/400`;
@@ -92,14 +114,14 @@ export default function AdminDashboard() {
                 />
                 {/* Overlay on hover */}
                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
-                  <p className="font-display text-sm text-white uppercase tracking-wide leading-tight truncate">{t.title}</p>
+                  <p className="font-display text-sm text-white uppercase tracking-wide leading-tight truncate">{tr.title}</p>
                   <p className="font-body text-xs text-gray-400 mt-0.5">{artist?.name ?? 'Estúdio'}</p>
                   <div className="flex items-center justify-between mt-2">
                     {t.price && <span className="text-white text-xs font-body">{t.price}</span>}
                     <span className={`text-[10px] font-body font-semibold tracking-widest uppercase px-1.5 py-0.5 ${
                       t.status === 'available' ? 'bg-white text-black' : 'bg-white/20 text-white/60'
                     }`}>
-                      {t.status === 'available' ? 'Disponível' : 'Arquivada'}
+                      {t.status === 'available' ? tr.statusAvailable : tr.statusArchived}
                     </span>
                   </div>
                 </div>

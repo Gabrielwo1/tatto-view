@@ -2,8 +2,32 @@ import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { toSlug } from '../../utils';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Admin', title: 'Artistas', newArtist: 'Novo Artista',
+    noArtists: 'Nenhum artista',
+    colArtist: 'Artista', colSpecialties: 'Especialidades', colWorks: 'Artes', colActions: 'Ações',
+    showInHero: 'Mostrar no hero', hideFromHero: 'Ocultar do hero',
+    viewPortfolio: 'Ver vitrine',
+    dragToReorder: 'Arraste as linhas para reordenar',
+    deleteConfirm: (name: string) => `Excluir artista "${name}"? Esta ação não pode ser desfeita.`,
+  },
+  en: {
+    label: 'Admin', title: 'Artists', newArtist: 'New Artist',
+    noArtists: 'No artists',
+    colArtist: 'Artist', colSpecialties: 'Specialties', colWorks: 'Works', colActions: 'Actions',
+    showInHero: 'Show in hero', hideFromHero: 'Hide from hero',
+    viewPortfolio: 'View portfolio',
+    dragToReorder: 'Drag rows to reorder',
+    deleteConfirm: (name: string) => `Delete artist "${name}"? This action cannot be undone.`,
+  },
+};
 
 export default function AdminArtists() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
   const isAdmin = useStore((s) => s.isAdmin);
@@ -24,7 +48,7 @@ export default function AdminArtists() {
   const sorted = order.map((id) => artistMap.get(id)).filter(Boolean) as typeof artists;
 
   async function handleDelete(id: string, name: string) {
-    if (confirm(`Excluir artista "${name}"? Esta ação não pode ser desfeita.`)) {
+    if (confirm(tr.deleteConfirm(name))) {
       await deleteArtist(id);
     }
   }
@@ -59,8 +83,8 @@ export default function AdminArtists() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 md:mb-10">
         <div>
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Admin</p>
-          <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">Artistas</h1>
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
+          <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">{tr.title}</h1>
         </div>
         <Link
           to="/admin/artistas/novo"
@@ -69,23 +93,23 @@ export default function AdminArtists() {
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
-          Novo Artista
+          {tr.newArtist}
         </Link>
       </div>
 
       {sorted.length === 0 ? (
         <div className="border border-white/10 py-20 text-center">
-          <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">Nenhum artista</p>
+          <p className="font-display text-2xl text-gray-700 uppercase tracking-widest">{tr.noArtists}</p>
         </div>
       ) : (
         <div className="space-y-px">
           {/* Table header */}
           <div className="grid grid-cols-12 px-4 py-2 border-b border-white/10">
             <span className="col-span-1 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hidden md:block" />
-            <span className="col-span-5 md:col-span-4 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">Artista</span>
-            <span className="col-span-4 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hidden md:block">Especialidades</span>
-            <span className="col-span-1 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hidden lg:block">Artes</span>
-            <span className="col-span-2 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 text-right">Ações</span>
+            <span className="col-span-5 md:col-span-4 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600">{tr.colArtist}</span>
+            <span className="col-span-4 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hidden md:block">{tr.colSpecialties}</span>
+            <span className="col-span-1 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hidden lg:block">{tr.colWorks}</span>
+            <span className="col-span-2 font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 text-right">{tr.colActions}</span>
           </div>
 
           {sorted.map((artist) => {
@@ -153,7 +177,7 @@ export default function AdminArtists() {
                   {/* Toggle hero visibility — admin only */}
                   {isAdmin && (
                     <button
-                      title={artist.hiddenFromHero ? 'Mostrar no hero' : 'Ocultar do hero'}
+                      title={artist.hiddenFromHero ? tr.showInHero : tr.hideFromHero}
                       onClick={(e) => { e.stopPropagation(); updateArtist(artist.id, { hiddenFromHero: !artist.hiddenFromHero }); }}
                       className={`p-1.5 transition-all hover:bg-white/5 ${artist.hiddenFromHero ? 'text-red-500 hover:text-red-400' : 'text-gray-600 hover:text-white'}`}
                       draggable={false}
@@ -173,7 +197,7 @@ export default function AdminArtists() {
                   <Link
                     to={`/artistas/${toSlug(artist.name)}`}
                     target="_blank"
-                    title="Ver vitrine"
+                    title={tr.viewPortfolio}
                     onClick={(e) => e.stopPropagation()}
                     className="p-1.5 text-gray-600 hover:text-white hover:bg-white/5 transition-all"
                     draggable={false}
@@ -209,7 +233,7 @@ export default function AdminArtists() {
       )}
 
       <p className="mt-4 font-body text-[10px] tracking-widest uppercase text-gray-700">
-        Arraste as linhas para reordenar
+        {tr.dragToReorder}
       </p>
     </div>
   );

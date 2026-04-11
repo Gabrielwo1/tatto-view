@@ -4,6 +4,34 @@ import type { GuestContent } from '../../store';
 import { uploadImage } from '../../lib/uploadImage';
 import { supabase } from '../../lib/supabase';
 import GeneralLightbox from '../../components/GeneralLightbox';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Conteúdo', title: 'Página Guests',
+    discard: 'Descartar', saved: '✓ Salvo', save: 'Salvar',
+    unsavedChanges: 'Alterações não salvas',
+    saveError: 'Erro ao salvar no servidor. Verifique sua conexão e tente novamente.',
+    uploading: 'Enviando...', changePhoto: 'Trocar foto', selectPhoto: 'Selecionar foto',
+    addItem: '+ Adicionar item',
+    portfolioLabel: 'Portfólio de trabalhos (4 fotos)',
+    portfolioHint: 'Clique em cada célula para adicionar uma foto de trabalho do artista.',
+    guestPortfolioHint: 'Clique em cada célula para adicionar uma foto de trabalho do guest.',
+    artistPhotoLabel: 'Foto do artista', guestPhotoLabel: 'Foto do artista',
+  },
+  en: {
+    label: 'Content', title: 'Guests Page',
+    discard: 'Discard', saved: '✓ Saved', save: 'Save',
+    unsavedChanges: 'Unsaved changes',
+    saveError: 'Error saving to server. Check your connection and try again.',
+    uploading: 'Uploading...', changePhoto: 'Change photo', selectPhoto: 'Select photo',
+    addItem: '+ Add item',
+    portfolioLabel: 'Portfolio images (4 photos)',
+    portfolioHint: 'Click each cell to add a work photo for the artist.',
+    guestPortfolioHint: 'Click each cell to add a work photo for the guest.',
+    artistPhotoLabel: 'Artist photo', guestPhotoLabel: 'Artist photo',
+  },
+};
 
 /* ── small reusable field components ─────────────────────────────────────── */
 function Field({
@@ -60,6 +88,8 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 /* ── main page ──────────────────────────────────────────────────────────── */
 export default function AdminGuestPage() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const guestContent = useStore((s) => s.guestContent);
   const setGuestContent = useStore((s) => s.setGuestContent);
 
@@ -90,7 +120,7 @@ export default function AdminGuestPage() {
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error('[AdminGuestPage] save failed:', err);
-      alert('Erro ao salvar no servidor. Verifique sua conexão e tente novamente.');
+      alert(tr.saveError);
     }
   }
 
@@ -212,9 +242,9 @@ export default function AdminGuestPage() {
       {/* Header */}
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Conteúdo</p>
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
           <h1 className="font-display text-4xl md:text-5xl text-white uppercase tracking-wide leading-none">
-            Página Guests
+            {tr.title}
           </h1>
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-4">
@@ -224,7 +254,7 @@ export default function AdminGuestPage() {
               onClick={handleReset}
               className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors"
             >
-              Descartar
+              {tr.discard}
             </button>
           )}
           <button
@@ -237,7 +267,7 @@ export default function AdminGuestPage() {
                 : 'bg-white/10 text-white/30 cursor-not-allowed'
             }`}
           >
-            {saved ? '✓ Salvo' : 'Salvar'}
+            {saved ? tr.saved : tr.save}
           </button>
         </div>
       </div>
@@ -337,7 +367,7 @@ export default function AdminGuestPage() {
               <div className="flex-1">
                 <button type="button" onClick={() => showcaseHeroRef.current?.click()}
                   className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors">
-                  {draft.showcase?.heroImage ? 'Trocar foto' : 'Selecionar foto'}
+                  {draft.showcase?.heroImage ? tr.changePhoto : tr.selectPhoto}
                 </button>
                 <input ref={showcaseHeroRef} type="file" accept="image/*" className="hidden"
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) handleShowcaseHero(f); e.target.value = ''; }} />
@@ -363,7 +393,7 @@ export default function AdminGuestPage() {
           {/* 4 fotos do portfólio */}
           <div>
             <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
-              Portfólio de trabalhos (4 fotos)
+              {tr.portfolioLabel}
             </label>
             <div className="grid grid-cols-4 gap-2">
               {([0,1,2,3] as const).map((idx) => {
@@ -397,7 +427,7 @@ export default function AdminGuestPage() {
               })}
             </div>
             <p className="font-body text-[10px] text-gray-700 mt-2">
-              Clique em cada célula para adicionar uma foto de trabalho do artista.
+              {tr.portfolioHint}
             </p>
           </div>
         </SectionCard>
@@ -464,7 +494,7 @@ export default function AdminGuestPage() {
                 onClick={addIncludedItem}
                 className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors mt-1"
               >
-                + Adicionar item
+                {tr.addItem}
               </button>
             </div>
           </div>
@@ -628,7 +658,7 @@ export default function AdminGuestPage() {
           {/* Foto do guest */}
           <div>
             <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
-              Foto do artista
+              {tr.guestPhotoLabel}
             </label>
             <div className="flex gap-3 items-start">
               {draft.nextGuest?.guestImage ? (
@@ -661,7 +691,7 @@ export default function AdminGuestPage() {
                   onClick={() => guestImageRef.current?.click()}
                   className="font-body text-[10px] font-semibold tracking-widest uppercase px-4 py-2 border border-white/10 text-gray-500 hover:text-white hover:border-white/30 transition-colors"
                 >
-                  {draft.nextGuest?.guestImage ? 'Trocar foto' : 'Selecionar foto'}
+                  {draft.nextGuest?.guestImage ? tr.changePhoto : tr.selectPhoto}
                 </button>
                 <input
                   ref={guestImageRef}
@@ -692,7 +722,7 @@ export default function AdminGuestPage() {
           {/* Portfolio de trabalhos */}
           <div>
             <label className="block font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
-              Portfólio de trabalhos (4 fotos)
+              {tr.portfolioLabel}
             </label>
             <div className="grid grid-cols-4 gap-2">
               {(draft.nextGuest?.portfolioImages ?? ['','','','']).map((img, idx) => (
@@ -733,7 +763,7 @@ export default function AdminGuestPage() {
               ))}
             </div>
             <p className="font-body text-[10px] text-gray-700 mt-2">
-              Clique em cada célula para adicionar uma foto de trabalho do guest.
+              {tr.guestPortfolioHint}
             </p>
           </div>
         </SectionCard>
@@ -782,20 +812,20 @@ export default function AdminGuestPage() {
       {/* Sticky save bar */}
       {isDirty && (
         <div className="fixed bottom-6 right-6 flex items-center gap-3 bg-zinc-900 border border-white/10 px-5 py-3 shadow-2xl">
-          <span className="font-body text-xs text-white/50">Alterações não salvas</span>
+          <span className="font-body text-xs text-white/50">{tr.unsavedChanges}</span>
           <button
             type="button"
             onClick={handleReset}
             className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors"
           >
-            Descartar
+            {tr.discard}
           </button>
           <button
             type="button"
             onClick={handleSave}
             className="font-body text-[10px] font-bold tracking-widest uppercase bg-white text-black px-4 py-2 hover:bg-white/90 transition-colors"
           >
-            Salvar
+            {tr.save}
           </button>
         </div>
       )}

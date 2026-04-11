@@ -2,6 +2,70 @@ import { useState } from 'react';
 import { useStore } from '../../store';
 import type { Merch, TattooSession, ShopContent } from '../../types';
 import { uploadImage } from '../../lib/uploadImage';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    label: 'Gerenciar', title: 'Loja',
+    addSession: 'Sessão', addProduct: 'Produto',
+    statSessions: 'Sessões:', statProducts: 'Produtos:',
+    colSessions: 'Tattoo Sessions', colProducts: 'Produtos / Apparel',
+    addBtn: '+ adicionar',
+    noSessions: 'Nenhuma sessão', noProducts: 'Nenhum produto ainda',
+    editTitle: 'Editar', deleteTitle: 'Excluir', viewTitle: 'Ver produto',
+    configHeader: 'Configurar página',
+    heroSection: 'Hero', heroTitle: 'Título', heroSubtitle: 'Subtítulo',
+    labelsSection: 'Rótulos', sessionsTaglineLabel: 'Sessões — título',
+    sessionsBadgeLabel: 'Sessões — badge', productsTaglineLabel: 'Produtos — título',
+    paymentSection: 'Métodos de pagamento', addPayment: '+ adicionar método',
+    saveSaved: '✓ Salvo', saveConfig: 'Salvar Configurações',
+    newProduct: 'Novo Produto', editProduct: 'Editar Produto',
+    newSession: 'Nova Sessão', editSession: 'Editar Sessão',
+    add: 'Adicionar', save: 'Salvar', cancel: 'Cancelar',
+    deleteProductConfirm: (name: string) => `Excluir "${name}"?`,
+    deleteSessionConfirm: (title: string) => `Excluir sessão "${title}"?`,
+    // MerchFormModal
+    nameField: 'Nome *', categoryField: 'Categoria *', priceField: 'Preço *',
+    sizesField: 'Tamanhos (para Vestuário)', descField: 'Descrição',
+    imageField: 'Imagem do Produto', uploading: 'Enviando...', upload: 'Upload',
+    imageUrlPlaceholder: 'Ou cole a URL da imagem', linkField: 'Link de Compra',
+    categoryPlaceholder: 'Selecionar...',
+    // SessionFormModal
+    typeNumField: 'Nº do tipo', sessionTitleField: 'Título *',
+    sessionDescField: 'Descrição', sessionDescPlaceholder: 'Descreva esta sessão...',
+    bookingLinkField: 'Link de Agendamento',
+  },
+  en: {
+    label: 'Manage', title: 'Store',
+    addSession: 'Session', addProduct: 'Product',
+    statSessions: 'Sessions:', statProducts: 'Products:',
+    colSessions: 'Tattoo Sessions', colProducts: 'Products / Apparel',
+    addBtn: '+ add',
+    noSessions: 'No sessions', noProducts: 'No products yet',
+    editTitle: 'Edit', deleteTitle: 'Delete', viewTitle: 'View product',
+    configHeader: 'Configure page',
+    heroSection: 'Hero', heroTitle: 'Title', heroSubtitle: 'Subtitle',
+    labelsSection: 'Labels', sessionsTaglineLabel: 'Sessions — title',
+    sessionsBadgeLabel: 'Sessions — badge', productsTaglineLabel: 'Products — title',
+    paymentSection: 'Payment methods', addPayment: '+ add method',
+    saveSaved: '✓ Saved', saveConfig: 'Save Settings',
+    newProduct: 'New Product', editProduct: 'Edit Product',
+    newSession: 'New Session', editSession: 'Edit Session',
+    add: 'Add', save: 'Save', cancel: 'Cancel',
+    deleteProductConfirm: (name: string) => `Delete "${name}"?`,
+    deleteSessionConfirm: (title: string) => `Delete session "${title}"?`,
+    // MerchFormModal
+    nameField: 'Name *', categoryField: 'Category *', priceField: 'Price *',
+    sizesField: 'Sizes (for Apparel)', descField: 'Description',
+    imageField: 'Product Image', uploading: 'Uploading...', upload: 'Upload',
+    imageUrlPlaceholder: 'Or paste image URL', linkField: 'Buy Link',
+    categoryPlaceholder: 'Select...',
+    // SessionFormModal
+    typeNumField: 'Type #', sessionTitleField: 'Title *',
+    sessionDescField: 'Description', sessionDescPlaceholder: 'Describe this session...',
+    bookingLinkField: 'Booking Link',
+  },
+};
 
 const inputCls =
   'w-full bg-zinc-900 border border-white/10 focus:border-white/40 outline-none px-3 py-2.5 font-body text-sm text-white placeholder-gray-700 transition-colors';
@@ -30,6 +94,8 @@ function MerchFormModal({
   title: string;
   submitLabel: string;
 }) {
+  const { lang } = useLang();
+  const tr = T[lang];
   const [form, setForm] = useState(initial);
   const [uploading, setUploading] = useState(false);
 
@@ -71,37 +137,37 @@ function MerchFormModal({
         <form onSubmit={handleSubmit} className="px-6 py-6 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className={labelCls}>Nome *</label>
+              <label className={labelCls}>{tr.nameField}</label>
               <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={inputCls} placeholder="Ex: Camiseta El Dude" />
             </div>
             <div>
-              <label className={labelCls}>Categoria *</label>
+              <label className={labelCls}>{tr.categoryField}</label>
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className={inputCls}
               >
-                <option value="">Selecionar...</option>
+                <option value="">{tr.categoryPlaceholder}</option>
                 {MERCH_CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className={labelCls}>Preço *</label>
+              <label className={labelCls}>{tr.priceField}</label>
               <input type="text" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required className={inputCls} placeholder="R$ 89,90" />
             </div>
             <div className="col-span-2">
-              <label className={labelCls}>Tamanhos (para Vestuário)</label>
+              <label className={labelCls}>{tr.sizesField}</label>
               <input type="text" value={form.sizesRaw} onChange={(e) => setForm({ ...form, sizesRaw: e.target.value })} className={inputCls} placeholder="P, M, G, GG" />
             </div>
           </div>
           <div>
-            <label className={labelCls}>Descrição</label>
+            <label className={labelCls}>{tr.descField}</label>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className={`${inputCls} resize-none`} placeholder="Descrição do produto..." />
           </div>
           <div>
-            <label className={labelCls}>Imagem do Produto</label>
+            <label className={labelCls}>{tr.imageField}</label>
             {form.imageUrl && (
               <div className="mb-3 relative w-28 aspect-square border border-white/10 overflow-hidden">
                 <img src={form.imageUrl} alt="preview" className="w-full h-full object-cover" />
@@ -112,17 +178,17 @@ function MerchFormModal({
             )}
             <label className="flex items-center gap-2 cursor-pointer border border-white/20 hover:border-white/50 px-4 py-2 w-fit transition-colors mb-2">
               <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-              <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400">{uploading ? 'Enviando...' : 'Upload'}</span>
+              <span className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-400">{uploading ? tr.uploading : tr.upload}</span>
               <input type="file" accept="image/*" onChange={handleImageFile} disabled={uploading} className="hidden" />
             </label>
-            <input type="url" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={inputCls} placeholder="Ou cole a URL da imagem" />
+            <input type="url" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={inputCls} placeholder={tr.imageUrlPlaceholder} />
           </div>
           <div>
-            <label className={labelCls}>Link de Compra</label>
+            <label className={labelCls}>{tr.linkField}</label>
             <input type="url" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} className={inputCls} placeholder="https://..." />
           </div>
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onCancel} className="flex-1 border border-white/20 text-white/60 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase py-2.5 transition-colors">Cancelar</button>
+            <button type="button" onClick={onCancel} className="flex-1 border border-white/20 text-white/60 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase py-2.5 transition-colors">{tr.cancel}</button>
             <button type="submit" disabled={uploading} className="flex-1 bg-white hover:bg-gray-100 disabled:opacity-50 text-black font-body font-bold text-xs tracking-widest uppercase py-2.5 transition-colors">{submitLabel}</button>
           </div>
         </form>
@@ -147,6 +213,8 @@ function SessionFormModal({
   title: string;
   submitLabel: string;
 }) {
+  const { lang } = useLang();
+  const tr = T[lang];
   const [form, setForm] = useState(initial);
 
   function handleSubmit(e: React.FormEvent) {
@@ -167,28 +235,28 @@ function SessionFormModal({
         <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Nº do tipo</label>
+              <label className={labelCls}>{tr.typeNumField}</label>
               <input type="text" value={form.typeNum} onChange={(e) => setForm({ ...form, typeNum: e.target.value })} className={inputCls} placeholder="01" maxLength={2} />
             </div>
             <div>
-              <label className={labelCls}>Preço *</label>
+              <label className={labelCls}>{tr.priceField}</label>
               <input type="text" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required className={inputCls} placeholder="R$ 250" />
             </div>
           </div>
           <div>
-            <label className={labelCls}>Título *</label>
+            <label className={labelCls}>{tr.sessionTitleField}</label>
             <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required className={inputCls} placeholder="SMALL SESSION" />
           </div>
           <div>
-            <label className={labelCls}>Descrição</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className={`${inputCls} resize-none`} placeholder="Descreva esta sessão..." />
+            <label className={labelCls}>{tr.sessionDescField}</label>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className={`${inputCls} resize-none`} placeholder={tr.sessionDescPlaceholder} />
           </div>
           <div>
-            <label className={labelCls}>Link de Agendamento</label>
+            <label className={labelCls}>{tr.bookingLinkField}</label>
             <input type="text" value={form.bookingLink} onChange={(e) => setForm({ ...form, bookingLink: e.target.value })} className={inputCls} placeholder="https://wa.me/..." />
           </div>
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onCancel} className="flex-1 border border-white/20 text-white/60 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase py-2.5 transition-colors">Cancelar</button>
+            <button type="button" onClick={onCancel} className="flex-1 border border-white/20 text-white/60 hover:text-white hover:border-white font-body font-bold text-xs tracking-widest uppercase py-2.5 transition-colors">{tr.cancel}</button>
             <button type="submit" className="flex-1 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-2.5 transition-colors">{submitLabel}</button>
           </div>
         </form>
@@ -199,6 +267,8 @@ function SessionFormModal({
 
 // ── Main component ───────────────────────────────────────────────────────────
 export default function AdminMerchs() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const merchs        = useStore((s) => s.merchs);
   const addMerch      = useStore((s) => s.addMerch);
   const updateMerch   = useStore((s) => s.updateMerch);
@@ -233,7 +303,7 @@ export default function AdminMerchs() {
   }
 
   function handleDeleteMerch(id: string, name: string) {
-    if (confirm(`Excluir "${name}"?`)) deleteMerch(id);
+    if (confirm(tr.deleteProductConfirm(name))) deleteMerch(id);
   }
 
   function handleAddSession(data: typeof emptySessionForm) {
@@ -248,7 +318,7 @@ export default function AdminMerchs() {
   }
 
   function handleDeleteSession(id: string, title: string) {
-    if (confirm(`Excluir sessão "${title}"?`)) deleteSession(id);
+    if (confirm(tr.deleteSessionConfirm(title))) deleteSession(id);
   }
 
   return (
@@ -256,8 +326,8 @@ export default function AdminMerchs() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">Gerenciar</p>
-          <h1 className="font-display text-4xl uppercase tracking-wide leading-none text-white">Loja</h1>
+          <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
+          <h1 className="font-display text-4xl uppercase tracking-wide leading-none text-white">{tr.title}</h1>
         </div>
         <div className="flex gap-2">
           <button
@@ -265,14 +335,14 @@ export default function AdminMerchs() {
             className="flex items-center gap-2 border border-white/20 hover:border-white text-white/70 hover:text-white font-body font-bold text-xs tracking-widest uppercase px-4 py-2.5 transition-colors"
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-            Sessão
+            {tr.addSession}
           </button>
           <button
             onClick={() => setShowAddMerch(true)}
             className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase px-4 py-2.5 transition-colors"
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-            Produto
+            {tr.addProduct}
           </button>
         </div>
       </div>
@@ -280,11 +350,11 @@ export default function AdminMerchs() {
       {/* Stats bar */}
       <div className="grid grid-cols-2 gap-px bg-white/10 mb-6">
         <div className="bg-zinc-950 px-4 py-2.5 flex items-center gap-2">
-          <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">Sessões:</span>
+          <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">{tr.statSessions}</span>
           <span className="font-body text-sm font-bold text-white">{sessions.length}</span>
         </div>
         <div className="bg-zinc-950 px-4 py-2.5 flex items-center gap-2">
-          <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">Produtos:</span>
+          <span className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600">{tr.statProducts}</span>
           <span className="font-body text-sm font-bold text-white">{merchs.length}</span>
         </div>
       </div>
@@ -295,15 +365,15 @@ export default function AdminMerchs() {
         {/* ── COL 1: Sessions ─────────────────────────────────────────────── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">Tattoo Sessions</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">{tr.colSessions}</p>
             <button onClick={() => setShowAddSession(true)} className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-              + adicionar
+              {tr.addBtn}
             </button>
           </div>
 
           {sessions.length === 0 ? (
             <div className="border border-white/10 py-12 text-center">
-              <p className="font-body text-xs text-gray-700 uppercase tracking-widest">Nenhuma sessão</p>
+              <p className="font-body text-xs text-gray-700 uppercase tracking-widest">{tr.noSessions}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -320,14 +390,14 @@ export default function AdminMerchs() {
                       <button
                         onClick={() => setEditingSession(session)}
                         className="p-1.5 border border-white/10 text-white/30 hover:text-white hover:border-white/50 transition-colors"
-                        title="Editar"
+                        title={tr.editTitle}
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
                       <button
                         onClick={() => handleDeleteSession(session.id, session.title)}
                         className="p-1.5 border border-white/10 text-white/30 hover:text-red-400 hover:border-red-400/50 transition-colors"
-                        title="Excluir"
+                        title={tr.deleteTitle}
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
@@ -351,9 +421,9 @@ export default function AdminMerchs() {
         {/* ── COL 2: Products ─────────────────────────────────────────────── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">Produtos / Apparel</p>
+            <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">{tr.colProducts}</p>
             <button onClick={() => setShowAddMerch(true)} className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-              + adicionar
+              {tr.addBtn}
             </button>
           </div>
 
@@ -362,7 +432,7 @@ export default function AdminMerchs() {
               <svg className="w-10 h-10 text-gray-700 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
-              <p className="font-display text-xl text-gray-700 uppercase tracking-widest">Nenhum produto ainda</p>
+              <p className="font-display text-xl text-gray-700 uppercase tracking-widest">{tr.noProducts}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10">
@@ -400,21 +470,21 @@ export default function AdminMerchs() {
                       <span className="font-body text-sm font-bold text-white">{m.price}</span>
                       <div className="flex items-center gap-1">
                         {m.link && (
-                          <a href={m.link} target="_blank" rel="noopener noreferrer" className="p-1.5 border border-white/10 text-white/30 hover:text-white hover:border-white/60 transition-colors" title="Ver produto">
+                          <a href={m.link} target="_blank" rel="noopener noreferrer" className="p-1.5 border border-white/10 text-white/30 hover:text-white hover:border-white/60 transition-colors" title={tr.viewTitle}>
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                           </a>
                         )}
                         <button
                           onClick={() => setEditingMerch(m)}
                           className="p-1.5 border border-white/10 text-white/30 hover:text-white hover:border-white/60 transition-colors"
-                          title="Editar"
+                          title={tr.editTitle}
                         >
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         </button>
                         <button
                           onClick={() => handleDeleteMerch(m.id, m.name)}
                           className="p-1.5 border border-white/10 text-white/30 hover:text-red-400 hover:border-red-400/50 transition-colors"
-                          title="Excluir"
+                          title={tr.deleteTitle}
                         >
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
@@ -429,13 +499,13 @@ export default function AdminMerchs() {
 
         {/* ── COL 3: Shop Page Config ──────────────────────────────────────── */}
         <div className="space-y-3">
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Configurar página</p>
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">{tr.configHeader}</p>
 
           {/* Hero */}
           <div className="border border-white/10 bg-zinc-950 p-4 space-y-3">
-            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">Hero</p>
+            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">{tr.heroSection}</p>
             <div>
-              <label className={labelCls}>Título</label>
+              <label className={labelCls}>{tr.heroTitle}</label>
               <input
                 type="text"
                 value={shopDraft.hero.title}
@@ -445,7 +515,7 @@ export default function AdminMerchs() {
               />
             </div>
             <div>
-              <label className={labelCls}>Subtítulo</label>
+              <label className={labelCls}>{tr.heroSubtitle}</label>
               <input
                 type="text"
                 value={shopDraft.hero.subtitle}
@@ -458,9 +528,9 @@ export default function AdminMerchs() {
 
           {/* Section labels */}
           <div className="border border-white/10 bg-zinc-950 p-4 space-y-3">
-            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">Rótulos</p>
+            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">{tr.labelsSection}</p>
             <div>
-              <label className={labelCls}>Sessões — título</label>
+              <label className={labelCls}>{tr.sessionsTaglineLabel}</label>
               <input
                 type="text"
                 value={shopDraft.sessionsTagline}
@@ -470,7 +540,7 @@ export default function AdminMerchs() {
               />
             </div>
             <div>
-              <label className={labelCls}>Sessões — badge</label>
+              <label className={labelCls}>{tr.sessionsBadgeLabel}</label>
               <input
                 type="text"
                 value={shopDraft.sessionsAvailableLabel}
@@ -480,7 +550,7 @@ export default function AdminMerchs() {
               />
             </div>
             <div>
-              <label className={labelCls}>Produtos — título</label>
+              <label className={labelCls}>{tr.productsTaglineLabel}</label>
               <input
                 type="text"
                 value={shopDraft.apparelTagline}
@@ -493,7 +563,7 @@ export default function AdminMerchs() {
 
           {/* Payment methods */}
           <div className="border border-white/10 bg-zinc-950 p-4 space-y-3">
-            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">Métodos de pagamento</p>
+            <p className="font-body text-[9px] font-bold tracking-widest uppercase text-gray-600">{tr.paymentSection}</p>
             {shopDraft.paymentMethods.map((pm, i) => (
               <div key={i} className="flex gap-2 items-center">
                 <input
@@ -533,7 +603,7 @@ export default function AdminMerchs() {
                 onClick={() => setShopDraft((d) => ({ ...d, paymentMethods: [...d.paymentMethods, { label: '', sub: '' }] }))}
                 className="font-body text-[9px] font-semibold tracking-widest uppercase text-gray-600 hover:text-white transition-colors"
               >
-                + adicionar método
+                {tr.addPayment}
               </button>
             )}
           </div>
@@ -548,7 +618,7 @@ export default function AdminMerchs() {
             }}
             className="w-full bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase py-3 transition-colors"
           >
-            {shopSaved ? '✓ Salvo' : 'Salvar Configurações'}
+            {shopSaved ? tr.saveSaved : tr.saveConfig}
           </button>
         </div>
 
@@ -560,8 +630,8 @@ export default function AdminMerchs() {
           initial={emptyMerchForm}
           onSubmit={handleAddMerch}
           onCancel={() => setShowAddMerch(false)}
-          title="Novo Produto"
-          submitLabel="Adicionar"
+          title={tr.newProduct}
+          submitLabel={tr.add}
         />
       )}
       {editingMerch && (
@@ -577,8 +647,8 @@ export default function AdminMerchs() {
           }}
           onSubmit={handleEditMerch}
           onCancel={() => setEditingMerch(null)}
-          title="Editar Produto"
-          submitLabel="Salvar"
+          title={tr.editProduct}
+          submitLabel={tr.save}
         />
       )}
       {showAddSession && (
@@ -586,8 +656,8 @@ export default function AdminMerchs() {
           initial={emptySessionForm}
           onSubmit={handleAddSession}
           onCancel={() => setShowAddSession(false)}
-          title="Nova Sessão"
-          submitLabel="Adicionar"
+          title={tr.newSession}
+          submitLabel={tr.add}
         />
       )}
       {editingSession && (
@@ -601,8 +671,8 @@ export default function AdminMerchs() {
           }}
           onSubmit={handleEditSession}
           onCancel={() => setEditingSession(null)}
-          title="Editar Sessão"
-          submitLabel="Salvar"
+          title={tr.editSession}
+          submitLabel={tr.save}
         />
       )}
     </div>

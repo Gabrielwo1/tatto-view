@@ -3,6 +3,92 @@ import { useStore } from '../../store';
 import type { Expense, ExpenseCategory, FichaSubmission } from '../../types';
 import { EXPENSE_CATEGORIES } from '../../types';
 import { uploadImage } from '../../lib/uploadImage';
+import { useLang } from '../../lib/useLang';
+
+const T = {
+  pt: {
+    title: 'Financeiro',
+    tabIncome: 'Receitas', tabExpenses: 'Despesas', tabBalances: 'Saldos',
+    tabCategories: 'Categorias', tabCharts: 'Gráficos',
+    // ExpenseModal
+    newExpense: 'Nova Despesa', editExpense: 'Editar Despesa',
+    descLabel: 'Descrição', descPlaceholder: 'Ex: Gastos do studio',
+    amountLabel: 'Valor (R$)', dateLabel: 'Data',
+    paidByLabel: 'Pago por', categoryLabel: 'Categoria',
+    splitLabel: 'Dividir entre', deselectAll: 'Desmarcar todos', selectAll: 'Selecionar todos',
+    perPerson: (amt: string, n: number) => `${amt} por pessoa (${n} participante${n !== 1 ? 's' : ''})`,
+    receiptLabel: 'Comprovante (opcional)', viewReceipt: 'Ver comprovante ↗',
+    uploading: 'Enviando...', attachReceipt: '↑ Anexar foto / PDF',
+    save: 'Salvar', delete: 'Excluir',
+    // TabDespesas
+    myExpenses: 'Minhas Despesas', totalExpenses: 'Total Despesas',
+    noExpenses: 'Nenhuma despesa', clickToAdd: 'Clique em + para adicionar',
+    paidByName: (name: string) => `Pago por ${name}`,
+    splitAmong: (n: number) => ` · dividido entre ${n}`,
+    editLabel: 'Editar',
+    // TabReceitas
+    totalIncome: 'Total Receitas', fichasWithValue: 'Fichas com Valor',
+    incomePerArtist: 'Receita por artista',
+    noIncome: 'Sem receitas', noIncomeHint: 'As fichas com valor acordado aparecerão aqui',
+    fichaHistory: 'Histórico de fichas',
+    // TabSaldos
+    netPositionLabel: 'Posição líquida por artista',
+    netPositionDesc: 'Receitas de fichas menos despesas partilhadas',
+    netPosition: 'posição líquida',
+    incomeCol: 'Receitas', expenseBalance: 'Saldo despesas',
+    whoOwesWhom: 'Quem deve a quem (despesas)',
+    allSettled: 'Todos os saldos de despesas estão quites ✓',
+    // TabCategorias
+    expensesByCategory: 'Despesas por categoria',
+    noData: 'Sem dados',
+    // TabGraficos
+    revenueVsExpenses: 'Receitas vs Despesas (últimos 12 meses)',
+    incomeBarLabel: 'Receitas', expensesBarLabel: 'Despesas',
+    byArtist: 'Por artista',
+    incomeRowLabel: 'Receitas', expensesRowLabel: 'Despesas',
+  },
+  en: {
+    title: 'Financials',
+    tabIncome: 'Income', tabExpenses: 'Expenses', tabBalances: 'Balances',
+    tabCategories: 'Categories', tabCharts: 'Charts',
+    // ExpenseModal
+    newExpense: 'New Expense', editExpense: 'Edit Expense',
+    descLabel: 'Description', descPlaceholder: 'E.g. Studio costs',
+    amountLabel: 'Amount (R$)', dateLabel: 'Date',
+    paidByLabel: 'Paid by', categoryLabel: 'Category',
+    splitLabel: 'Split between', deselectAll: 'Deselect all', selectAll: 'Select all',
+    perPerson: (amt: string, n: number) => `${amt} per person (${n} participant${n !== 1 ? 's' : ''})`,
+    receiptLabel: 'Receipt (optional)', viewReceipt: 'View receipt ↗',
+    uploading: 'Uploading...', attachReceipt: '↑ Attach photo / PDF',
+    save: 'Save', delete: 'Delete',
+    // TabDespesas
+    myExpenses: 'My Expenses', totalExpenses: 'Total Expenses',
+    noExpenses: 'No expenses', clickToAdd: 'Click + to add',
+    paidByName: (name: string) => `Paid by ${name}`,
+    splitAmong: (n: number) => ` · split among ${n}`,
+    editLabel: 'Edit',
+    // TabReceitas
+    totalIncome: 'Total Income', fichasWithValue: 'Forms with Value',
+    incomePerArtist: 'Income per artist',
+    noIncome: 'No income', noIncomeHint: 'Forms with agreed values will appear here',
+    fichaHistory: 'Form history',
+    // TabSaldos
+    netPositionLabel: 'Net position per artist',
+    netPositionDesc: 'Form income minus shared expenses',
+    netPosition: 'net position',
+    incomeCol: 'Income', expenseBalance: 'Expense balance',
+    whoOwesWhom: 'Who owes whom (expenses)',
+    allSettled: 'All expense balances are settled ✓',
+    // TabCategorias
+    expensesByCategory: 'Expenses by category',
+    noData: 'No data',
+    // TabGraficos
+    revenueVsExpenses: 'Income vs Expenses (last 12 months)',
+    incomeBarLabel: 'Income', expensesBarLabel: 'Expenses',
+    byArtist: 'By artist',
+    incomeRowLabel: 'Income', expensesRowLabel: 'Expenses',
+  },
+};
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function centsToBRL(cents: number): string {
@@ -123,6 +209,8 @@ function ExpenseModal({
   onDelete?: () => void;
   onClose: () => void;
 }) {
+  const { lang } = useLang();
+  const tr = T[lang];
   const artistIds = artists.map((a) => a.id);
   const [form, setForm] = useState<FormState>(
     initial
@@ -195,7 +283,7 @@ function ExpenseModal({
       >
         <div className="flex items-center justify-between">
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500">
-            {initial ? 'Editar Despesa' : 'Nova Despesa'}
+            {initial ? tr.editExpense : tr.newExpense}
           </p>
           <button type="button" onClick={onClose} className="text-gray-600 hover:text-white transition-colors p-1">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -203,21 +291,21 @@ function ExpenseModal({
         </div>
 
         <div>
-          <label className={labelCls}>Descrição</label>
+          <label className={labelCls}>{tr.descLabel}</label>
           <input className={inputCls} value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="Ex: Gastos do studio" required />
+            placeholder={tr.descPlaceholder} required />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelCls}>Valor (R$)</label>
+            <label className={labelCls}>{tr.amountLabel}</label>
             <input className={inputCls} value={form.amountRaw}
               onChange={(e) => setForm((f) => ({ ...f, amountRaw: e.target.value }))}
               placeholder="0,00" inputMode="decimal" required />
           </div>
           <div>
-            <label className={labelCls}>Data</label>
+            <label className={labelCls}>{tr.dateLabel}</label>
             <input type="date" className={inputCls} value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))} required />
           </div>
@@ -225,14 +313,14 @@ function ExpenseModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={labelCls}>Pago por</label>
+            <label className={labelCls}>{tr.paidByLabel}</label>
             <select className={inputCls} value={form.paidBy}
               onChange={(e) => setForm((f) => ({ ...f, paidBy: e.target.value }))}>
               {artists.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
           </div>
           <div>
-            <label className={labelCls}>Categoria</label>
+            <label className={labelCls}>{tr.categoryLabel}</label>
             <select className={inputCls} value={form.category}
               onChange={(e) => setForm((f) => ({ ...f, category: e.target.value as ExpenseCategory }))}>
               {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -242,12 +330,12 @@ function ExpenseModal({
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className={labelCls.replace('mb-1.5', '')}>Dividir entre</label>
+            <label className={labelCls.replace('mb-1.5', '')}>{tr.splitLabel}</label>
             <button type="button" onClick={() => setForm((f) => ({
               ...f, participants: f.participants.length === artists.length ? [] : artistIds,
             }))}
               className="font-body text-[9px] tracking-widest uppercase text-gray-600 hover:text-white transition-colors">
-              {form.participants.length === artists.length ? 'Desmarcar todos' : 'Selecionar todos'}
+              {form.participants.length === artists.length ? tr.deselectAll : tr.selectAll}
             </button>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
@@ -274,21 +362,21 @@ function ExpenseModal({
           </div>
           {form.participants.length > 0 && parseAmountInput(form.amountRaw) > 0 && (
             <p className="mt-2 font-body text-[10px] text-gray-600 tracking-wide">
-              {perPerson} por pessoa ({form.participants.length} participantes)
+              {tr.perPerson(perPerson, form.participants.length)}
             </p>
           )}
         </div>
 
         {/* Receipt upload */}
         <div>
-          <label className={labelCls}>Comprovante (opcional)</label>
+          <label className={labelCls}>{tr.receiptLabel}</label>
           <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleReceiptUpload(f); e.target.value = ''; }} />
           {form.receiptUrl ? (
             <div className="flex items-center gap-3">
               <a href={form.receiptUrl} target="_blank" rel="noopener noreferrer"
                 className="flex-1 truncate font-body text-xs text-ink-400 hover:underline">
-                Ver comprovante ↗
+                {tr.viewReceipt}
               </a>
               <img src={form.receiptUrl} alt="comprovante" className="w-14 h-14 object-cover border border-white/10 flex-shrink-0" />
               <button type="button" onClick={() => setForm((f) => ({ ...f, receiptUrl: '' }))}
@@ -297,7 +385,7 @@ function ExpenseModal({
           ) : (
             <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
               className="w-full border border-white/15 border-dashed py-3 font-body text-xs text-gray-600 hover:text-white hover:border-white/40 transition-colors disabled:opacity-40">
-              {uploading ? 'Enviando...' : '↑ Anexar foto / PDF'}
+              {uploading ? tr.uploading : tr.attachReceipt}
             </button>
           )}
         </div>
@@ -305,12 +393,12 @@ function ExpenseModal({
         <div className="flex gap-2 pt-1">
           <button type="submit"
             className="flex-1 py-2.5 bg-white text-black font-body font-bold text-xs tracking-widest uppercase hover:bg-gray-200 transition-colors">
-            Salvar
+            {tr.save}
           </button>
           {onDelete && (
             <button type="button" onClick={() => { onDelete(); onClose(); }}
               className="px-4 py-2.5 border border-red-500/40 text-red-400 hover:bg-red-500/10 font-body text-xs tracking-widest uppercase transition-colors">
-              Excluir
+              {tr.delete}
             </button>
           )}
         </div>
@@ -321,6 +409,8 @@ function ExpenseModal({
 
 // ── Tab: Despesas ─────────────────────────────────────────────────────────────
 function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
+  const { lang } = useLang();
+  const tr = T[lang];
   const expenses      = useStore((s) => s.expenses);
   const addExpense    = useStore((s) => s.addExpense);
   const updateExpense = useStore((s) => s.updateExpense);
@@ -355,7 +445,7 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
         {currentArtistId && (
           <div className="bg-zinc-900 border border-white/10 p-4">
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">
-              Minhas Despesas
+              {tr.myExpenses}
             </p>
             <p className="font-display text-2xl text-white">{centsToBRL(myExpenses)}</p>
           </div>
@@ -363,7 +453,7 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
         <div className={`bg-zinc-900 border border-white/10 p-4 flex items-center justify-between ${!currentArtistId ? 'col-span-2' : ''}`}>
           <div>
             <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">
-              Total Despesas
+              {tr.totalExpenses}
             </p>
             <p className="font-display text-2xl text-white">{centsToBRL(allExpenses)}</p>
           </div>
@@ -380,8 +470,8 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
 
       {grouped.length === 0 ? (
         <div className="text-center py-20 text-gray-600">
-          <p className="font-display text-3xl tracking-widest uppercase">Nenhuma despesa</p>
-          <p className="font-body text-sm mt-2">Clique em + para adicionar</p>
+          <p className="font-display text-3xl tracking-widest uppercase">{tr.noExpenses}</p>
+          <p className="font-body text-sm mt-2">{tr.clickToAdd}</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -398,8 +488,8 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
                     <div className="flex-1 min-w-0">
                       <p className="font-body text-sm text-white truncate">{exp.description}</p>
                       <p className="font-body text-[10px] text-gray-600 mt-0.5">
-                        Pago por <span className="font-semibold">{artistMap.get(exp.paidBy) ?? '—'}</span>
-                        {exp.participants.length > 1 && ` · dividido entre ${exp.participants.length}`}
+                        {tr.paidByName(artistMap.get(exp.paidBy) ?? '—')}
+                        {exp.participants.length > 1 && tr.splitAmong(exp.participants.length)}
                       </p>
                     </div>
                     {exp.receiptUrl && (
@@ -408,7 +498,7 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
                     )}
                     <div className="text-right flex-shrink-0">
                       <p className="font-body text-sm font-semibold text-white">{centsToBRL(exp.amount)}</p>
-                      {isAdmin && <p className="font-body text-[9px] text-gray-700 group-hover:text-gray-500 mt-0.5 transition-colors">Editar</p>}
+                      {isAdmin && <p className="font-body text-[9px] text-gray-700 group-hover:text-gray-500 mt-0.5 transition-colors">{tr.editLabel}</p>}
                     </div>
                   </button>
                 ))}
@@ -440,6 +530,8 @@ function TabDespesas({ artists }: { artists: { id: string; name: string }[] }) {
 
 // ── Tab: Receitas ─────────────────────────────────────────────────────────────
 function TabReceitas({ artists }: { artists: { id: string; name: string }[] }) {
+  const { lang } = useLang();
+  const tr = T[lang];
   const fichas = useStore((s) => s.fichaSubmissions);
 
   const income = useMemo(() => computeIncome(fichas, artists), [fichas, artists]);
@@ -460,13 +552,13 @@ function TabReceitas({ artists }: { artists: { id: string; name: string }[] }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-zinc-900 border border-white/10 p-4">
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">
-            Total Receitas
+            {tr.totalIncome}
           </p>
           <p className="font-display text-2xl text-green-400">{centsToBRL(totalIncome)}</p>
         </div>
         <div className="bg-zinc-900 border border-white/10 p-4">
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">
-            Fichas com Valor
+            {tr.fichasWithValue}
           </p>
           <p className="font-display text-2xl text-white">{fichasWithValue.length}</p>
         </div>
@@ -476,7 +568,7 @@ function TabReceitas({ artists }: { artists: { id: string; name: string }[] }) {
       {artists.length > 0 && (
         <div>
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
-            Receita por artista
+            {tr.incomePerArtist}
           </p>
           <div className="space-y-2">
             {artists
@@ -503,13 +595,13 @@ function TabReceitas({ artists }: { artists: { id: string; name: string }[] }) {
       {/* Ficha list */}
       {fichasWithValue.length === 0 ? (
         <div className="text-center py-16 text-gray-600">
-          <p className="font-display text-2xl tracking-widest uppercase">Sem receitas</p>
-          <p className="font-body text-sm mt-2">As fichas com valor acordado aparecerão aqui</p>
+          <p className="font-display text-2xl tracking-widest uppercase">{tr.noIncome}</p>
+          <p className="font-body text-sm mt-2">{tr.noIncomeHint}</p>
         </div>
       ) : (
         <div>
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
-            Histórico de fichas
+            {tr.fichaHistory}
           </p>
           <div className="space-y-1.5">
             {fichasWithValue.map((f) => {
@@ -538,6 +630,8 @@ function TabReceitas({ artists }: { artists: { id: string; name: string }[] }) {
 
 // ── Tab: Saldos ───────────────────────────────────────────────────────────────
 function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
+  const { lang } = useLang();
+  const tr = T[lang];
   const expenses = useStore((s) => s.expenses);
   const fichas   = useStore((s) => s.fichaSubmissions);
   const artistMap = useMemo(() => new Map(artists.map((a) => [a.id, a.name])), [artists]);
@@ -551,9 +645,9 @@ function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
       {/* Net position per artist (income - expense_share) */}
       <div>
         <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">
-          Posição líquida por artista
+          {tr.netPositionLabel}
         </p>
-        <p className="font-body text-[10px] text-gray-700 mb-3">Receitas de fichas menos despesas partilhadas</p>
+        <p className="font-body text-[10px] text-gray-700 mb-3">{tr.netPositionDesc}</p>
         <div className="space-y-2">
           {artists.map((a) => {
             const expenseNet = Math.round(net[a.id] ?? 0);
@@ -570,16 +664,16 @@ function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
                     <p className={`font-body text-sm font-semibold ${netPos >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {netPos >= 0 ? '+' : ''}{centsToBRL(netPos)}
                     </p>
-                    <p className="font-body text-[9px] text-gray-600 mt-0.5">posição líquida</p>
+                    <p className="font-body text-[9px] text-gray-600 mt-0.5">{tr.netPosition}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
                   <div>
-                    <p className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Receitas</p>
+                    <p className="font-body text-[9px] text-gray-600 uppercase tracking-widest">{tr.incomeCol}</p>
                     <p className="font-body text-xs text-green-400 font-semibold">{centsToBRL(artistIncome)}</p>
                   </div>
                   <div>
-                    <p className="font-body text-[9px] text-gray-600 uppercase tracking-widest">Saldo despesas</p>
+                    <p className="font-body text-[9px] text-gray-600 uppercase tracking-widest">{tr.expenseBalance}</p>
                     <p className={`font-body text-xs font-semibold ${expenseNet >= 0 ? 'text-white' : 'text-red-400'}`}>
                       {expenseNet >= 0 ? '+' : ''}{centsToBRL(expenseNet)}
                     </p>
@@ -594,7 +688,7 @@ function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
       {/* Simplified debts */}
       {debts.length > 0 && (
         <div>
-          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">Quem deve a quem (despesas)</p>
+          <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-3">{tr.whoOwesWhom}</p>
           <div className="space-y-2">
             {debts.map((d, i) => (
               <div key={i} className="flex items-center gap-3 bg-zinc-900 border border-white/[0.07] px-4 py-3">
@@ -610,7 +704,7 @@ function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
 
       {debts.length === 0 && expenses.length > 0 && (
         <div className="text-center py-10 text-gray-600">
-          <p className="font-body text-sm">Todos os saldos de despesas estão quites ✓</p>
+          <p className="font-body text-sm">{tr.allSettled}</p>
         </div>
       )}
     </div>
@@ -619,6 +713,8 @@ function TabSaldos({ artists }: { artists: { id: string; name: string }[] }) {
 
 // ── Tab: Categorias ───────────────────────────────────────────────────────────
 function TabCategorias() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const expenses = useStore((s) => s.expenses);
 
   const byCategory = useMemo(() => {
@@ -642,7 +738,7 @@ function TabCategorias() {
   if (byCategory.length === 0) {
     return (
       <div className="text-center py-20 text-gray-600">
-        <p className="font-display text-3xl tracking-widest uppercase">Sem dados</p>
+        <p className="font-display text-3xl tracking-widest uppercase">{tr.noData}</p>
       </div>
     );
   }
@@ -650,7 +746,7 @@ function TabCategorias() {
   return (
     <div className="space-y-3">
       <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">
-        Despesas por categoria
+        {tr.expensesByCategory}
       </p>
       {byCategory.map(({ cat, total }) => {
         const pct = grandTotal > 0 ? (total / grandTotal) * 100 : 0;
@@ -678,6 +774,8 @@ function TabCategorias() {
 
 // ── Tab: Gráficos ─────────────────────────────────────────────────────────────
 function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
+  const { lang } = useLang();
+  const tr = T[lang];
   const expenses = useStore((s) => s.expenses);
   const fichas   = useStore((s) => s.fichaSubmissions);
 
@@ -718,14 +816,14 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
       {/* Monthly grouped bar chart */}
       <div>
         <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-2">
-          Receitas vs Despesas (últimos 12 meses)
+          {tr.revenueVsExpenses}
         </p>
         <div className="flex items-center gap-4 mb-4">
           <span className="flex items-center gap-1.5 font-body text-[10px] text-gray-500">
-            <span className="w-3 h-3 inline-block" style={{ backgroundColor: 'rgb(var(--ink2-500))' }} /> Receitas
+            <span className="w-3 h-3 inline-block" style={{ backgroundColor: 'rgb(var(--ink2-500))' }} /> {tr.incomeBarLabel}
           </span>
           <span className="flex items-center gap-1.5 font-body text-[10px] text-gray-500">
-            <span className="w-3 h-3 inline-block" style={{ backgroundColor: 'rgb(var(--ink-500))' }} /> Despesas
+            <span className="w-3 h-3 inline-block" style={{ backgroundColor: 'rgb(var(--ink-500))' }} /> {tr.expensesBarLabel}
           </span>
         </div>
         <div className="flex items-end gap-1 h-40">
@@ -753,7 +851,7 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
       {byArtist.some((a) => a.income > 0 || a.expense > 0) && (
         <div>
           <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">
-            Por artista
+            {tr.byArtist}
           </p>
           <div className="space-y-4">
             {byArtist.map((a) => {
@@ -763,14 +861,14 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
                   <p className="font-body text-xs text-white mb-1.5">{a.name}</p>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">Receitas</span>
+                      <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">{tr.incomeRowLabel}</span>
                       <div className="flex-1 h-2 bg-zinc-800 overflow-hidden">
                         <div className="h-full transition-all duration-500" style={{ width: `${(a.income / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink2-500))' }} />
                       </div>
                       <span className="font-body text-xs w-24 text-right shrink-0" style={{ color: 'rgb(var(--ink2-500))' }}>{centsToBRL(a.income)}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">Despesas</span>
+                      <span className="font-body text-[9px] text-gray-600 w-16 shrink-0">{tr.expensesRowLabel}</span>
                       <div className="flex-1 h-2 bg-zinc-800 overflow-hidden">
                         <div className="h-full transition-all duration-500" style={{ width: `${(a.expense / maxVal) * 100}%`, backgroundColor: 'rgb(var(--ink-500))' }} />
                       </div>
@@ -791,22 +889,24 @@ function TabGraficos({ artists }: { artists: { id: string; name: string }[] }) {
 type Tab = 'despesas' | 'receitas' | 'saldos' | 'categorias' | 'graficos';
 
 export default function AdminFinanceiro() {
+  const { lang } = useLang();
+  const tr = T[lang];
   const artists = useStore((s) => s.artists);
   const [tab, setTab] = useState<Tab>('receitas');
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'receitas',   label: 'Receitas' },
-    { id: 'despesas',   label: 'Despesas' },
-    { id: 'saldos',     label: 'Saldos' },
-    { id: 'categorias', label: 'Categorias' },
-    { id: 'graficos',   label: 'Gráficos' },
+    { id: 'receitas',   label: tr.tabIncome },
+    { id: 'despesas',   label: tr.tabExpenses },
+    { id: 'saldos',     label: tr.tabBalances },
+    { id: 'categorias', label: tr.tabCategories },
+    { id: 'graficos',   label: tr.tabCharts },
   ];
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
       <div className="mb-8">
         <p className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-600 mb-1">El Dude</p>
-        <h1 className="font-display text-4xl text-white uppercase tracking-wide">Financeiro</h1>
+        <h1 className="font-display text-4xl text-white uppercase tracking-wide">{tr.title}</h1>
       </div>
 
       {/* Tab bar */}
