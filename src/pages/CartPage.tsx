@@ -30,21 +30,40 @@ export default function CartPage() {
       const t = tattoos.find((x: Tattoo) => x.id === c.itemId);
       if (!t) return null;
       const cents = t.depositAmount ?? 15000;
-      return { ...c, name: t.title, image: t.imageUrl, priceCents: cents, priceLabel: `Sinal: ${formatPrice(cents / 100)}`, subtitle: 'Reserva de design' };
+      return {
+        ...c,
+        name: t.title,
+        image: t.imageUrl,
+        priceCents: cents,
+        priceLabel: `Sinal: ${formatPrice(cents / 100)}`,
+        subtitle: 'Reserva de design'
+      };
     } else {
       const m = merchs.find((x: Merch) => x.id === c.itemId);
       if (!m) return null;
       const cents = Math.round(parseFloat(m.price.replace(/[^0-9.,]/g, '').replace(',', '.')) * 100) || 0;
-      return { ...c, name: m.name, image: m.imageUrl, priceCents: cents, priceLabel: formatPrice(m.price), subtitle: 'Produto' };
+      return {
+        ...c,
+        name: m.name,
+        image: m.imageUrl,
+        priceCents: cents,
+        priceLabel: formatPrice(m.price),
+        subtitle: 'Produto'
+      };
     }
-  }).filter(Boolean) as { itemType: 'tattoo' | 'merch'; itemId: string; name: string; image: string; priceCents: number; priceLabel: string; subtitle: string }[];
+  }).filter(Boolean) as (CartItem & { name: string; image: string; priceCents: number; priceLabel: string; subtitle: string })[];
 
   const totalCents = items.reduce((sum, i) => sum + i.priceCents, 0);
 
   async function handleCheckout() {
-    if (!publicUser) { navigate('/login'); return; }
+    if (!publicUser) {
+      navigate('/login');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+
     try {
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
@@ -52,11 +71,20 @@ export default function CartPage() {
         body: JSON.stringify({
           userId: publicUser.id,
           email: publicUser.email,
-          items: items.map((i) => ({ itemType: i.itemType, itemId: i.itemId, name: i.name, image: i.image, priceCents: i.priceCents })),
+          items: items.map((i) => ({
+            itemType: i.itemType,
+            itemId: i.itemId,
+            name: i.name,
+            image: i.image,
+            priceCents: i.priceCents,
+            selectedSize: i.selectedSize
+          })),
         }),
       });
+
       const json = await res.json();
       if (!res.ok || !json.url) throw new Error(json.error ?? 'Erro ao criar sessão de pagamento');
+
       window.location.href = json.url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro inesperado');
@@ -82,19 +110,23 @@ export default function CartPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-8 items-start">
-            {/* Items */}
             <ul className="divide-y divide-white/5">
               {items.map((item) => (
-                <li key={`${item.itemType}-${item.itemId}`} className="flex gap-4 py-5">
+                <li key={`${item.itemType}-${item.itemId}-${item.selectedSize || 'none'}`} className="flex gap-4 py-5">
                   <div className="w-20 h-20 shrink-0 bg-zinc-900 overflow-hidden">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-0.5">{item.subtitle}</p>
                     <h3 className="font-display text-lg uppercase tracking-wide text-white truncate">{item.name}</h3>
+                    {item.selectedSize && (
+                      <p className="font-body text-[10px] text-gray-400 tracking-widest uppercase mt-1">
+                        Tamanho: <span className="text-white">{item.selectedSize}</span>
+                      </p>
+                    )}
                     <p className="font-body text-sm text-ink-500 mt-1">{item.priceLabel}</p>
                   </div>
-                  <button onClick={() => removeFromCart(item.itemType, item.itemId)} className="text-gray-700 hover:text-red-400 transition-colors self-start mt-1">
+                  <button onClick={() => removeFromCart(item.itemType, item.itemId, item.selectedSize)} className="text-gray-700 hover:text-red-400 transition-colors self-start mt-1">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -103,7 +135,6 @@ export default function CartPage() {
               ))}
             </ul>
 
-            {/* Summary */}
             <div className="border border-white/10 bg-black/20 p-6 sticky top-4">
               <h2 className="font-body text-[10px] font-semibold tracking-widest uppercase text-gray-500 mb-4">Resumo</h2>
               <div className="flex justify-between mb-2">
@@ -115,11 +146,13 @@ export default function CartPage() {
                 <span className="font-body text-xs font-bold tracking-widest uppercase text-white">Total</span>
                 <span className="font-display text-xl text-white">{formatPrice(totalCents / 100)}</span>
               </div>
+
               {error && (
                 <div className="mb-4 px-3 py-2 border border-red-500/30 bg-red-500/10">
                   <p className="font-body text-xs text-red-400">{error}</p>
                 </div>
               )}
+
               <button
                 onClick={handleCheckout}
                 disabled={loading}

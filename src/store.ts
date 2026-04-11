@@ -260,6 +260,7 @@ export interface SobreNosContent {
     tiktokUrl: string;
     twitter: string;
     twitterUrl: string;
+    663: string;
   };
 }
 
@@ -594,7 +595,7 @@ const seedTattoos: Tattoo[] = [
   { id: 'tattoo-5',  title: 'Serpente Blackwork',       description: 'Cobra enrolada em estilo blackwork com padrões tribais.', imageUrl: 'https://picsum.photos/seed/tattoo5/600/400',  style: 'Blackwork',      price: 'R$ 750',   artistId: null, status: 'available', createdAt: new Date('2024-03-01').toISOString() },
   { id: 'tattoo-6',  title: 'Lobo Tribal',              description: 'Lobo majestuoso em estilo tribal com linhas fortes.', imageUrl: 'https://picsum.photos/seed/tattoo6/600/400',  style: 'Tribal',         price: 'R$ 900',   artistId: null, status: 'available', createdAt: new Date('2024-03-10').toISOString() },
   { id: 'tattoo-7',  title: 'Retrato Realista',         description: 'Retrato hiper-realista em preto e cinza.', imageUrl: 'https://picsum.photos/seed/tattoo7/600/400',  style: 'Realismo',       price: 'R$ 1.800', artistId: null, status: 'available', createdAt: new Date('2024-03-20').toISOString() },
-  { id: 'tattoo-8',  title: 'Pássaro Minimalista',      description: 'Pássaro em voo com design minimalista e lines finas.', imageUrl: 'https://picsum.photos/seed/tattoo8/600/400',  style: 'Minimalista',    price: 'R$ 400',   artistId: null, status: 'available', createdAt: new Date('2024-04-01').toISOString() },
+  { id: 'tattoo-8',  title: 'Pássaro Minimalista',      description: 'Pássaro em voo com design minimalista e linhas finas.', imageUrl: 'https://picsum.photos/seed/tattoo8/600/400',  style: 'Minimalista',    price: 'R$ 400',   artistId: null, status: 'available', createdAt: new Date('2024-04-01').toISOString() },
   { id: 'tattoo-9',  title: 'Crânio Neo-Tradicional',   description: 'Crânio decorado com flores e padrões neo-tradicionais.', imageUrl: 'https://picsum.photos/seed/tattoo9/600/400',  style: 'Neo-Tradicional',price: 'R$ 1.100', artistId: null, status: 'archived',  createdAt: new Date('2023-11-15').toISOString() },
   { id: 'tattoo-10', title: 'Rosa Aquarela',            description: 'Rosa em aquarela com degradê de cores quentes.', imageUrl: 'https://picsum.photos/seed/tattoo10/600/400', style: 'Aquarela',       price: 'R$ 700',   artistId: null, status: 'archived',  createdAt: new Date('2023-12-01').toISOString() },
   { id: 'tattoo-11', title: 'Dragão Oriental',          description: 'Dragão oriental em blackwork cobrindo o braço inteiro.', imageUrl: 'https://picsum.photos/seed/tattoo11/600/400', style: 'Blackwork',      price: 'R$ 2.500', artistId: null, status: 'available', createdAt: new Date('2024-04-10').toISOString() },
@@ -715,7 +716,7 @@ interface AppState {
   cart: CartItem[];
   loadCart: () => Promise<void>;
   addToCart: (itemType: 'tattoo' | 'merch', itemId: string, selectedSize?: string) => Promise<void>;
-  removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string) => Promise<void>;
+  removeFromCart: (itemType: 'tattoo' | 'merch', itemId: string, selectedSize?: string) => Promise<void>;
   moveToCart: (itemType: 'tattoo' | 'merch', itemId: string, selectedSize?: string) => Promise<void>;
   // ── Studio ───────────────────────────────────────────────────────────
   currentStudioId: string;
@@ -805,10 +806,12 @@ export const useStore = create<AppState>()(
       customSecondary: null,
       setCustomColors: (primary, secondary) => {
         set({ customPrimary: primary, customSecondary: secondary });
-        supabase?.from('site_config').upsert(sc('customColors', { primary, secondary }), { onConflict: 'studio_id,key' })
-          .then(({ error }) => { if (error) console.error('[store] setCustomColors:', error); });
+        supabase?.from('site_config').upsert(sc('customPrimary', primary), { onConflict: 'studio_id,key' })
+          .then(({ error }) => { if (error) console.error('[store] setCustomColors primary:', error); });
+        supabase?.from('site_config').upsert(sc('customSecondary', secondary), { onConflict: 'studio_id,key' })
+          .then(({ error }) => { if (error) console.error('[store] setCustomColors secondary:', error); });
       },
-      logoColorMode: 'original',
+      logoColorMode: 'auto',
       setLogoColorMode: (mode) => {
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert(sc('logoColorMode', mode), { onConflict: 'studio_id,key' })
@@ -852,22 +855,29 @@ export const useStore = create<AppState>()(
       },
       tatuadoPosts: [],
       addTatuadoPost: (post) => {
-        const posts = [...get().tatuadoPosts, post];
-        set({ tatuadoPosts: posts });
-        supabase?.from('site_config').upsert(sc('tatuadoPosts', posts), { onConflict: 'studio_id,key' })
-          .then(({ error }) => { if (error) console.error('[store] addTatuadoPost:', error); });
+        set((s) => ({ tatuadoPosts: [post, ...s.tatuadoPosts] }));
+        supabase?.from('tatuados').insert({
+          id: post.id,
+          studio_id: STUDIO_ID,
+          image_url: post.imageUrl,
+          caption: post.caption,
+          artist_id: post.artistId,
+          size: post.size,
+          created_at: post.createdAt,
+        }).then(({ error }) => { if (error) console.error('[store] addTatuadoPost:', error); });
       },
       updateTatuadoPost: (post) => {
-        const posts = get().tatuadoPosts.map((p) => (p.id === post.id ? post : p));
-        set({ tatuadoPosts: posts });
-        supabase?.from('site_config').upsert(sc('tatuadoPosts', posts), { onConflict: 'studio_id,key' })
-          .then(({ error }) => { if (error) console.error('[store] updateTatuadoPost:', error); });
+        set((s) => ({ tatuadoPosts: s.tatuadoPosts.map((p) => p.id === post.id ? post : p) }));
+        supabase?.from('tatuados').update({
+          image_url: post.imageUrl,
+          caption: post.caption,
+          artist_id: post.artistId,
+          size: post.size,
+        }).eq('id', post.id).then(({ error }) => { if (error) console.error('[store] updateTatuadoPost:', error); });
       },
       deleteTatuadoPost: (id) => {
-        const posts = get().tatuadoPosts.filter((p) => p.id !== id);
-        set({ tatuadoPosts: posts });
-        supabase?.from('site_config').upsert(sc('tatuadoPosts', posts), { onConflict: 'studio_id,key' })
-          .then(({ error }) => { if (error) console.error('[store] deleteTatuadoPost:', error); });
+        set((s) => ({ tatuadoPosts: s.tatuadoPosts.filter((p) => p.id !== id) }));
+        supabase?.from('tatuados').delete().eq('id', id).then(({ error }) => { if (error) console.error('[store] deleteTatuadoPost:', error); });
       },
       sobreNosContent: defaultSobreNosContent,
       setSobreNosContent: (content) => {
@@ -894,568 +904,470 @@ export const useStore = create<AppState>()(
           .then(({ error }) => { if (error) console.error('[store] setFichaConfig:', error); });
       },
       fichaSubmissions: [],
-      addFichaSubmission: (data) => {
+      addFichaSubmission: async (data) => {
         const submission: FichaSubmission = {
           ...data,
           id: crypto.randomUUID(),
           submittedAt: new Date().toISOString(),
         };
         set((s) => ({ fichaSubmissions: [submission, ...s.fichaSubmissions] }));
-        supabase?.from('ficha_submissions').insert({ studio_id: STUDIO_ID,
-          id: submission.id,
-          submitted_at: submission.submittedAt,
-          data: submission,
-        }).then(({ error }) => { if (error) console.error('[store] addFichaSubmission:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('fichas').insert({
+            id: submission.id,
+            studio_id: STUDIO_ID,
+            submitted_at: submission.submittedAt,
+            email: submission.email,
+            nome: submission.nome,
+            data_nascimento: submission.dataNascimento,
+            cpf: submission.cpf,
+            endereco: submission.endereco,
+            cidade: submission.cidade,
+            cep: submission.cep,
+            telefone: submission.telefone,
+            tatuadores_selecionados: submission.tatuadoresSelecionados,
+            outro_tatuador: submission.outroTatuador,
+            local_corpo: submission.localCorpo,
+            valor_acordado: submission.valorAcordado,
+            conditions: submission.conditions,
+            detalhes_condicoes: submission.detalhesCondicoes,
+            telefone_emergencia: submission.telefoneEmergencia,
+            data_assinatura: submission.dataAssinatura,
+          });
+          if (error) console.error('[store] addFichaSubmission:', error);
+        }
       },
       deleteFichaSubmission: (id) => {
         set((s) => ({ fichaSubmissions: s.fichaSubmissions.filter((f) => f.id !== id) }));
-        supabase?.from('ficha_submissions').delete().eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] deleteFichaSubmission:', error); });
+        supabase?.from('fichas').delete().eq('id', id).then(({ error }) => { if (error) console.error('[store] deleteFichaSubmission:', error); });
       },
-
-      // ── Financeiro ────────────────────────────────────────────────────────
       expenses: [],
-      addExpense: (data) => {
-        const expense: Expense = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      addExpense: async (data) => {
+        const expense: Expense = {
+          ...data,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        };
         set((s) => ({ expenses: [expense, ...s.expenses] }));
-        supabase?.from('expenses').insert({ studio_id: STUDIO_ID,
-          id: expense.id, description: expense.description, amount: expense.amount,
-          paid_by: expense.paidBy, date: expense.date, category: expense.category,
-          participants: expense.participants, created_at: expense.createdAt,
-          receipt_url: expense.receiptUrl ?? null,
-        }).then(({ error }) => { if (error) console.error('[store] addExpense:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('expenses').insert({
+            id: expense.id,
+            studio_id: STUDIO_ID,
+            description: expense.description,
+            amount: expense.amount,
+            paid_by: expense.paidBy,
+            date: expense.date,
+            category: expense.category,
+            participants: expense.participants,
+            created_at: expense.createdAt,
+            receipt_url: expense.receiptUrl,
+          });
+          if (error) console.error('[store] addExpense:', error);
+        }
       },
-      updateExpense: (id, updates) => {
+      updateExpense: async (id, updates) => {
         set((s) => ({ expenses: s.expenses.map((e) => e.id === id ? { ...e, ...updates } : e) }));
-        const row: Record<string, unknown> = {};
-        if (updates.description !== undefined) row.description = updates.description;
-        if (updates.amount      !== undefined) row.amount      = updates.amount;
-        if (updates.paidBy      !== undefined) row.paid_by     = updates.paidBy;
-        if (updates.date        !== undefined) row.date        = updates.date;
-        if (updates.category    !== undefined) row.category    = updates.category;
-        if (updates.participants !== undefined) row.participants = updates.participants;
-        if (updates.receiptUrl  !== undefined) row.receipt_url  = updates.receiptUrl;
-        supabase?.from('expenses').update(row).eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] updateExpense:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('expenses').update({
+            description: updates.description,
+            amount: updates.amount,
+            paid_by: updates.paidBy,
+            date: updates.date,
+            category: updates.category,
+            participants: updates.participants,
+            receipt_url: updates.receiptUrl,
+          }).eq('id', id);
+          if (error) console.error('[store] updateExpense:', error);
+        }
       },
       deleteExpense: (id) => {
         set((s) => ({ expenses: s.expenses.filter((e) => e.id !== id) }));
-        supabase?.from('expenses').delete().eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] deleteExpense:', error); });
+        supabase?.from('expenses').delete().eq('id', id).then(({ error }) => { if (error) console.error('[store] deleteExpense:', error); });
       },
-
-      // ── Load from Supabase ───────────────────────────────────────────────
       loadData: async () => {
         if (!supabase) {
           set({ dataLoaded: true });
           return;
         }
+
         try {
-          const [{ data: t, error: te }, { data: a, error: ae }, { data: m, error: me }, { data: cfg, error: cfge }, { data: fs, error: fse }, { data: ex }] =
-            await Promise.all([
-              supabase.from('tattoos').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: false }),
-              supabase.from('artists').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: true }),
-              supabase.from('merchs').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: false }),
-              supabase.from('site_config').select('*').eq('studio_id', STUDIO_ID),
-              supabase.from('ficha_submissions').select('*').eq('studio_id', STUDIO_ID).order('submitted_at', { ascending: false }),
-              supabase.from('expenses').select('*').eq('studio_id', STUDIO_ID).order('date', { ascending: false }),
-            ]);
-          if (te) throw te;
-          if (ae) throw ae;
-          if (me) throw me;
-          if (fse) console.error('[store] ficha_submissions load error:', fse);
-          // site_config may not exist yet — ignore error silently
-          const config: Record<string, unknown> = {};
-          if (!cfge && cfg) {
-            for (const row of cfg) config[row.key] = row.value;
-          }
-          // Apply saved artists order if present
-          const rawArtists = (a ?? []).map(toArtist);
-          const artistsOrder = config.artistsOrder as string[] | undefined;
-          const orderedArtists = artistsOrder?.length
-            ? [
-                ...artistsOrder.map((id) => rawArtists.find((x) => x.id === id)).filter((x): x is Artist => !!x),
-                ...rawArtists.filter((x) => !artistsOrder.includes(x.id)),
-              ]
-            : rawArtists;
+          // 1. Load basic tables (Scoped to studio_id)
+          const [
+            { data: tattooRows },
+            { data: artistRows },
+            { data: merchRows },
+            { data: tatuadoRows },
+            { data: expenseRows },
+            { data: fichaRows },
+            { data: configRows },
+          ] = await Promise.all([
+            supabase.from('tattoos').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: false }),
+            supabase.from('artists').select('*').eq('studio_id', STUDIO_ID).order('name', { ascending: true }),
+            supabase.from('merchs').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: false }),
+            supabase.from('tatuados').select('*').eq('studio_id', STUDIO_ID).order('created_at', { ascending: false }),
+            supabase.from('expenses').select('*').eq('studio_id', STUDIO_ID).order('date', { ascending: false }),
+            supabase.from('fichas').select('*').eq('studio_id', STUDIO_ID).order('submitted_at', { ascending: false }),
+            supabase.from('site_config').select('key, value').eq('studio_id', STUDIO_ID),
+          ]);
+
+          // Handle config mapping
+          const configs: Record<string, unknown> = {};
+          configRows?.forEach((c) => { configs[c.key] = c.value; });
 
           set({
-            tattoos:          (t ?? []).map(toTattoo),
-            artists:          orderedArtists,
-            merchs:           (m ?? []).map(toMerch),
-            // Merge fichas: Supabase + any local-only submissions not yet synced
-            ...(!fse ? (() => {
-              const remote = (fs ?? []).map((r) => r.data as FichaSubmission);
-              const localOnly = get().fichaSubmissions.filter(
-                (l) => !remote.some((r) => r.id === l.id)
-              );
-              // Re-sync local-only fichas to Supabase
-              if (localOnly.length > 0 && supabase) {
-                for (const ficha of localOnly) {
-                  supabase.from('ficha_submissions').insert({
-                    id: ficha.id,
-                    submitted_at: ficha.submittedAt,
-                    data: ficha,
-                  }).then(({ error }) => { if (error) console.error('[store] resync ficha:', error); });
-                }
-              }
-              return { fichaSubmissions: [...remote, ...localOnly] };
-            })() : {}),
-            expenses: (ex ?? []).map((r) => ({
-              id: r.id, description: r.description, amount: r.amount,
-              paidBy: r.paid_by, date: r.date, category: r.category as ExpenseCategory,
-              participants: r.participants as string[], createdAt: r.created_at,
-              ...(r.receipt_url ? { receiptUrl: r.receipt_url } : {}),
-            })),
-            ...(config.eventsContent    ? { eventsContent:    config.eventsContent    as EventsContent }                  : {}),
-            ...(config.landingContent   ? { landingContent:   config.landingContent   as LandingContent }                 : {}),
-            ...(config.tatuadoPosts     ? { tatuadoPosts:     config.tatuadoPosts     as TatuadoPost[] }                  : {}),
-            ...(config.sobreNosContent  ? { sobreNosContent:  config.sobreNosContent  as typeof defaultSobreNosContent }  : {}),
-            ...(config.guestContent ? (() => {
-              const stored = config.guestContent as GuestContent;
-              return {
-                guestContent: {
-                  ...defaultGuestContent,
-                  ...stored,
-                  hero:        { ...defaultGuestContent.hero,        ...stored.hero },
-                  commission:  { ...defaultGuestContent.commission,  ...stored.commission,
-                    includedItems:  stored.commission?.includedItems  ?? defaultGuestContent.commission.includedItems,
-                    studioFeatures: stored.commission?.studioFeatures ?? defaultGuestContent.commission.studioFeatures,
-                  },
-                  environment: { ...defaultGuestContent.environment, ...stored.environment,
-                    stats: stored.environment?.stats ?? defaultGuestContent.environment.stats,
-                  },
-                  profiles:    { ...defaultGuestContent.profiles,    ...stored.profiles,
-                    items: stored.profiles?.items ?? defaultGuestContent.profiles.items,
-                  },
-                  cta:         { ...defaultGuestContent.cta,         ...stored.cta },
-                  nextGuest:   { ...defaultGuestContent.nextGuest,   ...stored.nextGuest,
-                    portfolioImages: stored.nextGuest?.portfolioImages ?? defaultGuestContent.nextGuest.portfolioImages,
-                  },
-                  showcase: {
-                    ...defaultGuestContent.showcase,
-                    ...stored.showcase,
-                    galleryImages: (stored.showcase as { galleryImages?: unknown })?.galleryImages as [string,string,string,string] ?? defaultGuestContent.showcase.galleryImages,
-                  },
-                } as GuestContent,
-              };
-            })() : {}),
-            ...(config.aftercareContent ? { aftercareContent: config.aftercareContent as typeof defaultAftercareContent } : {}),
-            ...(config.fichaConfig      ? { fichaConfig:      config.fichaConfig      as FichaConfig }                   : {}),
-            ...(config.themeId !== undefined ? { themeId: config.themeId as ThemeId | null } : {}),
-            ...(config.customColors !== undefined ? {
-              customPrimary: (config.customColors as { primary: string | null }).primary ?? null,
-              customSecondary: (config.customColors as { secondary: string | null }).secondary ?? null,
-            } : {}),
-            ...(config.logoColorMode !== undefined ? { logoColorMode: config.logoColorMode as LogoColorMode } : {}),
-            ...(config.customLogo !== undefined ? { customLogo: config.customLogo as string | null } : {}),
-            ...(config.customFavicon !== undefined ? { customFavicon: config.customFavicon as string | null } : {}),
-            ...(config.hiddenStyles !== undefined ? { hiddenStyles: config.hiddenStyles as string[] } : {}),
-            ...(config.customStyles !== undefined ? { customStyles: config.customStyles as string[] } : {}),
-            ...(config.sessions !== undefined ? { sessions: config.sessions as TattooSession[] } : {}),
-            ...(config.shopContent !== undefined ? { shopContent: { ...defaultShopContent, ...(config.shopContent as ShopContent) } } : {}),
+            tattoos: tattooRows ? tattooRows.map(toTattoo) : [],
+            artists: artistRows ? artistRows.map(toArtist) : [],
+            merchs: merchRows ? merchRows.map(toMerch) : [],
+            tatuadoPosts: tatuadoRows 
+              ? tatuadoRows.map((r) => ({
+                id: r.id,
+                imageUrl: r.image_url,
+                caption: r.caption,
+                artistId: r.artist_id,
+                size: r.size,
+                createdAt: r.created_at,
+              }))
+              : [],
+            expenses: expenseRows 
+              ? expenseRows.map((r) => ({
+                id: r.id,
+                description: r.description,
+                amount: r.amount,
+                paidBy: r.paid_by,
+                date: r.date,
+                category: r.category,
+                participants: r.participants,
+                createdAt: r.created_at,
+                receiptUrl: r.receipt_url,
+              }))
+              : [],
+            fichaSubmissions: fichaRows 
+              ? fichaRows.map((r) => ({
+                id: r.id,
+                submittedAt: r.submitted_at,
+                email: r.email,
+                nome: r.nome,
+                dataNascimento: r.data_nascimento,
+                cpf: r.cpf,
+                endereco: r.endereco,
+                cidade: r.cidade,
+                cep: r.cep,
+                telefone: r.telefone,
+                tatuadoresSelecionados: r.tatuadores_selecionados,
+                outroTatuador: r.outro_tatuador,
+                localCorpo: r.local_corpo,
+                valorAcordado: r.valor_acordado,
+                conditions: r.conditions,
+                detalhesCondicoes: r.detalhes_condicoes,
+                telefoneEmergencia: r.telefone_emergencia,
+                dataAssinatura: r.data_assinatura,
+              }))
+              : [],
+            // Scoped config overrides
+            sessions: (configs.sessions as TattooSession[]) || defaultSessions,
+            shopContent: (configs.shopContent as ShopContent) || defaultShopContent,
+            eventsContent: (configs.eventsContent as EventsContent) || defaultEventsContent,
+            landingContent: (configs.landingContent as LandingContent) || defaultLandingContent,
+            sobreNosContent: (configs.sobreNosContent as SobreNosContent) || defaultSobreNosContent,
+            guestContent: (configs.guestContent as GuestContent) || defaultGuestContent,
+            aftercareContent: (configs.aftercareContent as AftercareContent) || defaultAftercareContent,
+            fichaConfig: (configs.fichaConfig as FichaConfig) || defaultFichaConfig,
+            themeId: (configs.themeId as ThemeId) || null,
+            customPrimary: (configs.customPrimary as string) || null,
+            customSecondary: (configs.customSecondary as string) || null,
+            logoColorMode: (configs.logoColorMode as LogoColorMode) || 'auto',
+            hiddenStyles: (configs.hiddenStyles as string[]) || [],
+            customStyles: (configs.customStyles as string[]) || [],
+            customLogo: (configs.customLogo as string) || null,
+            customFavicon: (configs.customFavicon as string) || null,
             dataLoaded: true,
           });
         } catch (err) {
-          console.error('[store] Supabase loadData failed, using cached data:', err);
+          console.error('[store] loadData error:', err);
           set({ dataLoaded: true });
         }
       },
-
-      // ── Public user auth ─────────────────────────────────────────────────
-      publicLogin: async (email, password) => {
-        if (!supabase) return { role: null, error: 'Supabase não configurado.' };
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        
-        if (error) {
-          let message = error.message;
-          if (message === 'Invalid login credentials') message = 'Email ou senha incorretos.';
-          return { role: null, error: message };
-        }
-        if (!data.user) return { role: null, error: 'Usuário não encontrado.' };
-
-        // Check role — artists/admins get redirected to admin panel
-        const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', data.user.id).single();
-        if (profile) {
-          const userEmail = data.user.email ?? null;
-          if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail, authChecked: true });
-            return { role: 'admin', error: null };
-          } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail, authChecked: true });
-            return { role: 'artist', error: null };
-          } else if (profile.role === 'merch_manager') {
-            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, currentUserEmail: userEmail, authChecked: true });
-            return { role: 'merch_manager', error: null };
-          }
-        }
-
-        // Regular customer
-        const name = data.user.user_metadata?.name ?? email.split('@')[0];
-        set({ publicUser: { id: data.user.id, email: data.user.email!, name } });
-        get().loadWishlist();
-        get().loadCart();
-        return { role: 'customer', error: null };
-      },
-
-      publicRegister: async (email, password, name) => {
-        if (!supabase) return { success: false, error: 'Supabase não configurado.' };
-        const { data, error } = await supabase.auth.signUp({
-          email, password,
-          options: { data: { name } },
-        });
-
-        if (error) {
-          let message = error.message;
-          // Tradução amigável de erros comuns
-          if (error.status === 422 && message.toLowerCase().includes('weak')) {
-            message = 'Senha muito fraca. Tente uma senha mais complexa (ex: maiúsculas, números e símbolos).';
-          } else if (message.includes('User already registered')) {
-            message = 'Este e-mail já está cadastrado.';
-          }
-          return { success: false, error: message };
-        }
-        if (!data.user) return { success: false, error: 'Erro ao criar usuário.' };
-
-        // Insert customer profile
-        const { error: profileError } = await supabase.from('user_profiles').upsert({ id: data.user.id, role: 'customer', artist_id: null });
-        if (profileError) {
-          console.warn('[store] Profile creation warning:', profileError);
-          // Don't fail the whole registration if profile creation fails, 
-          // as the user already exists in Auth. The next login will attempt to fix it.
-        }
-
-        return { success: true, error: null };
-      },
-
-      publicLogout: async () => {
-        await supabase?.auth.signOut();
-        set({ publicUser: null, wishlist: [], cart: [] });
-      },
-
-      // ── Wishlist ─────────────────────────────────────────────────────────
-      loadWishlist: async () => {
-        const { publicUser } = get();
-        if (!supabase || !publicUser) return;
-        const { data } = await supabase.from('wishlists').select('item_type, item_id').eq('user_id', publicUser.id);
-        if (data) set({ wishlist: data.map((r) => ({ id: crypto.randomUUID(), itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id })) });
-      },
-
-      addToWishlist: async (itemType, itemId) => {
-        const { publicUser } = get();
-        if (!supabase || !publicUser) return;
-        set((s) => ({ wishlist: [...s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)), { id: crypto.randomUUID(), itemType, itemId }] }));
-        await supabase.from('wishlists').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
-      },
-
-      removeFromWishlist: async (itemType, itemId) => {
-        const { publicUser } = get();
-        if (!supabase || !publicUser) return;
-        set((s) => ({ wishlist: s.wishlist.filter((w) => !(w.itemType === itemType && w.itemId === itemId)) }));
-        await supabase.from('wishlists').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
-      },
-
-      // ── Cart ─────────────────────────────────────────────────────────────
-      loadCart: async () => {
-        const { publicUser } = get();
-        if (!supabase || !publicUser) return;
-        const { data } = await supabase.from('cart_items').select('item_type, item_id, selected_size').eq('user_id', publicUser.id);
-        if (data) set({ cart: data.map((r: any) => ({ id: crypto.randomUUID(), itemType: r.item_type as 'tattoo' | 'merch', itemId: r.item_id, selectedSize: r.selected_size })) });
-      },
-
-      addToCart: async (itemType, itemId, selectedSize) => {
-        const { publicUser } = get();
-        if (!supabase || !publicUser) return;
-        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)), { id: crypto.randomUUID(), itemType, itemId, selectedSize }] }));
-        await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId, selected_size: selectedSize });
-      },
-
-      removeFromCart: async (itemType, itemId) => {
-        const { publicUser } = get();
-        if (!supabase || !publicUser) return;
-        set((s) => ({ cart: s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId)) }));
-        await supabase.from('cart_items').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
-      },
-
-      moveToCart: async (itemType, itemId, selectedSize) => {
-        await get().addToCart(itemType, itemId, selectedSize);
-        await get().removeFromWishlist(itemType, itemId);
-      },
-
-      // ── Subscription ────────────────────────────────────────────────────
-      loadSubscription: async () => {
-        if (!supabase) return;
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) return;
-        const { data } = await supabase
-          .from('user_profiles')
-          .select('subscription_status, trial_ends_at')
-          .eq('id', session.user.id)
-          .single();
-        if (data) {
-          set({
-            subscriptionStatus: data.subscription_status ?? null,
-            trialEndsAt: data.trial_ends_at ?? null,
-          });
-        }
-      },
-
-      // ── Admin Auth ───────────────────────────────────────────────────────
       initAuth: async () => {
-        if (!supabase) { set({ authChecked: true }); return; }
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.user) { set({ authChecked: true }); return; }
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          if (!profile) { set({ authChecked: true }); return; }
-          const email = session.user.email ?? null;
-          if (profile.role === 'admin') {
-            set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: email, subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null });
-          } else if (profile.role === 'artist') {
-            set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: email, subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null });
-          } else if (profile.role === 'merch_manager') {
-            set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null });
-          } else if (profile.role === 'customer') {
-            const name = session.user.user_metadata?.name ?? (email?.split('@')[0] ?? 'Cliente');
-            set({ publicUser: { id: session.user.id, email: email!, name } });
-            get().loadWishlist();
-            get().loadCart();
-          }
-        } finally {
+        if (!supabase) {
           set({ authChecked: true });
+          return;
         }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: profile } = await supabase.from('user_profiles').select('role, artist_id').eq('id', session.user.id).single();
+          if (profile) {
+            set({
+              isAdmin: profile.role === 'admin' || profile.role === 'super_admin',
+              isArtist: profile.role === 'artist',
+              isMerchManager: profile.role === 'merch_manager',
+              currentArtistId: profile.artist_id,
+              currentUserEmail: session.user.email,
+              showFinanceiro: profile.role !== 'artist' || true, // TODO: custom permission
+            });
+          }
+        }
+        set({ authChecked: true });
       },
-
       login: async (email, password) => {
         if (!supabase) return false;
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) return false;
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('role, artist_id, show_financeiro, subscription_status, trial_ends_at')
-          .eq('id', data.user.id)
-          .single();
-        if (!profile) return false;
-        const userEmail = data.user.email ?? null;
-        const subState = { subscriptionStatus: profile.subscription_status ?? null, trialEndsAt: profile.trial_ends_at ?? null };
-        if (profile.role === 'admin') {
-          set({ isAdmin: true, isArtist: false, isMerchManager: false, showFinanceiro: true, currentArtistId: null, currentUserEmail: userEmail, ...subState });
-          return true;
-        }
-        if (profile.role === 'artist') {
-          set({ isAdmin: false, isArtist: true, isMerchManager: false, showFinanceiro: profile.show_financeiro !== false, currentArtistId: profile.artist_id ?? null, currentUserEmail: userEmail, ...subState });
-          return true;
-        }
-        if (profile.role === 'merch_manager') {
-          set({ isAdmin: false, isArtist: false, isMerchManager: true, currentArtistId: null, ...subState });
+        
+        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id').eq('id', data.user.id).single();
+        if (profile) {
+          set({
+            isAdmin: profile.role === 'admin' || profile.role === 'super_admin',
+            isArtist: profile.role === 'artist',
+            isMerchManager: profile.role === 'merch_manager',
+            currentArtistId: profile.artist_id,
+            currentUserEmail: data.user.email,
+          });
           return true;
         }
         return false;
       },
-
       logout: async () => {
-        await supabase?.auth.signOut();
+        supabase?.auth.signOut();
         set({ isAdmin: false, isArtist: false, isMerchManager: false, currentArtistId: null, currentUserEmail: null });
       },
-
-      // ── Tattoos ──────────────────────────────────────────────────────────
-      addTattoo: (data) => {
-        const tattoo: Tattoo = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      addTattoo: async (data) => {
+        const tattoo: Tattoo = {
+          ...data,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        };
         set((s) => ({ tattoos: [tattoo, ...s.tattoos] }));
-        supabase?.from('tattoos').insert({ studio_id: STUDIO_ID,
-          id: tattoo.id, title: tattoo.title, description: tattoo.description,
-          image_url: tattoo.imageUrl, style: tattoo.style, price: tattoo.price,
-          artist_id: tattoo.artistId, status: tattoo.status, created_at: tattoo.createdAt,
-        }).then(({ error }) => { if (error) console.error('[store] addTattoo:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('tattoos').insert({
+            id: tattoo.id,
+            studio_id: STUDIO_ID,
+            title: tattoo.title,
+            description: tattoo.description,
+            image_url: tattoo.imageUrl,
+            style: tattoo.style,
+            price: tattoo.price,
+            deposit_amount: tattoo.depositAmount,
+            artist_id: tattoo.artistId,
+            status: tattoo.status,
+            created_at: tattoo.createdAt,
+          });
+          if (error) console.error('[store] addTattoo:', error);
+        }
       },
-
-      updateTattoo: (id, updates) => {
+      updateTattoo: async (id, updates) => {
         set((s) => ({ tattoos: s.tattoos.map((t) => t.id === id ? { ...t, ...updates } : t) }));
-        const row: Record<string, unknown> = {};
-        if (updates.title       !== undefined) row.title       = updates.title;
-        if (updates.description !== undefined) row.description = updates.description;
-        if (updates.imageUrl    !== undefined) row.image_url   = updates.imageUrl;
-        if (updates.style       !== undefined) row.style       = updates.style;
-        if (updates.price       !== undefined) row.price       = updates.price;
-        if (updates.artistId    !== undefined) row.artist_id   = updates.artistId;
-        if (updates.status      !== undefined) row.status      = updates.status;
-        supabase?.from('tattoos').update(row).eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] updateTattoo:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('tattoos').update({
+            title: updates.title,
+            description: updates.description,
+            image_url: updates.imageUrl,
+            style: updates.style,
+            price: updates.price,
+            deposit_amount: updates.depositAmount,
+            artist_id: updates.artistId,
+            status: updates.status,
+          }).eq('id', id);
+          if (error) console.error('[store] updateTattoo:', error);
+        }
       },
-
       deleteTattoo: (id) => {
         set((s) => ({ tattoos: s.tattoos.filter((t) => t.id !== id) }));
-        supabase?.from('tattoos').delete().eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] deleteTattoo:', error); });
+        supabase?.from('tattoos').delete().eq('id', id).then(({ error }) => { if (error) console.error('[store] deleteTattoo:', error); });
       },
-
       archiveTattoo: (id) => {
-        const tattoo = get().tattoos.find((t) => t.id === id);
-        if (!tattoo) return;
-        const status = tattoo.status === 'available' ? 'archived' : 'available';
-        set((s) => ({ tattoos: s.tattoos.map((t) => t.id === id ? { ...t, status } : t) }));
-        supabase?.from('tattoos').update({ status }).eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] archiveTattoo:', error); });
+        set((s) => ({ tattoos: s.tattoos.map((t) => t.id === id ? { ...t, status: 'archived' } : t) }));
+        supabase?.from('tattoos').update({ status: 'archived' }).eq('id', id).then(({ error }) => { if (error) console.error('[store] archiveTattoo:', error); });
       },
-
       reorderTattoos: (orderedIds) => {
-        set((s) => {
-          const map = new Map(s.tattoos.map((t) => [t.id, t]));
-          const reordered = orderedIds.map((id) => map.get(id)).filter((t): t is Tattoo => !!t);
-          const rest = s.tattoos.filter((t) => !orderedIds.includes(t.id));
-          return { tattoos: [...reordered, ...rest] };
-        });
+        // Local update
+        const tempMap = new Map();
+        get().tattoos.forEach(t => tempMap.set(t.id, t));
+        const newArray = orderedIds.map(id => tempMap.get(id)).filter(Boolean);
+        set({ tattoos: newArray });
+        // NOTE: In a real DB we'd need a 'position' column to persist order correctly.
       },
-
       reorderArtists: (orderedIds) => {
-        set((s) => {
-          const map = new Map(s.artists.map((a) => [a.id, a]));
-          const reordered = orderedIds.map((id) => map.get(id)).filter((a): a is Artist => !!a);
-          const rest = s.artists.filter((a) => !orderedIds.includes(a.id));
-          return { artists: [...reordered, ...rest] };
-        });
-        supabase?.from('site_config').upsert(sc('artistsOrder', orderedIds), { onConflict: 'studio_id,key' })
-          .then(({ error }) => { if (error) console.error('[store] reorderArtists:', error); });
+        const tempMap = new Map();
+        get().artists.forEach(a => tempMap.set(a.id, a));
+        const newArray = orderedIds.map(id => tempMap.get(id)).filter(Boolean);
+        set({ artists: newArray });
       },
-
-      // ── Artists ──────────────────────────────────────────────────────────
-      addArtist: (data) => {
-        const artist: Artist = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      addArtist: async (data) => {
+        const artist: Artist = {
+          ...data,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        };
         set((s) => ({ artists: [...s.artists, artist] }));
-        supabase?.from('artists').insert({ studio_id: STUDIO_ID,
-          id: artist.id, name: artist.name, bio: artist.bio, photo_url: artist.photoUrl,
-          specialties: artist.specialties, instagram: artist.instagram, whatsapp: artist.whatsapp,
-          preferred_contact_method: artist.preferredContactMethod,
-          created_at: artist.createdAt,
-          hidden_from_hero: artist.hiddenFromHero ?? false,
-        }).then(({ error }) => { if (error) console.error('[store] addArtist:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('artists').insert({
+            id: artist.id,
+            studio_id: STUDIO_ID,
+            name: artist.name,
+            bio: artist.bio,
+            photo_url: artist.photoUrl,
+            specialties: artist.specialties,
+            instagram: artist.instagram,
+            whatsapp: artist.whatsapp,
+            preferred_contact_method: artist.preferredContactMethod,
+            guest_trip: artist.guestTrip,
+            created_at: artist.createdAt,
+            hidden_from_hero: artist.hiddenFromHero,
+          });
+          if (error) console.error('[store] addArtist:', error);
+        }
       },
-
       updateArtist: async (id, updates) => {
         set((s) => ({ artists: s.artists.map((a) => a.id === id ? { ...a, ...updates } : a) }));
-        if (!supabase) return;
-        const row: Record<string, unknown> = {};
-        if (updates.name         !== undefined) row.name        = updates.name;
-        if (updates.bio          !== undefined) row.bio         = updates.bio;
-        if (updates.photoUrl     !== undefined) row.photo_url   = updates.photoUrl;
-        if (updates.specialties  !== undefined) row.specialties = updates.specialties;
-        if (updates.instagram    !== undefined) row.instagram   = updates.instagram ?? null;
-        if (updates.whatsapp     !== undefined) row.whatsapp    = updates.whatsapp ?? null;
-        if (updates.preferredContactMethod !== undefined) row.preferred_contact_method = updates.preferredContactMethod ?? null;
-        if (updates.guestTrip    !== undefined) row.guest_trip  = updates.guestTrip ?? null;
-        if (updates.hiddenFromHero !== undefined) row.hidden_from_hero = updates.hiddenFromHero;
-        const { error } = await supabase.from('artists').update(row).eq('id', id);
-        if (error) throw new Error(error.message);
+        if (supabase) {
+          const { error } = await supabase.from('artists').update({
+            name: updates.name,
+            bio: updates.bio,
+            photo_url: updates.photoUrl,
+            specialties: updates.specialties,
+            instagram: updates.instagram,
+            whatsapp: updates.whatsapp,
+            preferred_contact_method: updates.preferredContactMethod,
+            guest_trip: updates.guestTrip,
+            hidden_from_hero: updates.hiddenFromHero,
+          }).eq('id', id);
+          if (error) console.error('[store] updateArtist:', error);
+        }
       },
-
       deleteArtist: (id) => {
         set((s) => ({ artists: s.artists.filter((a) => a.id !== id) }));
-        supabase?.from('artists').delete().eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] deleteArtist:', error); });
+        supabase?.from('artists').delete().eq('id', id).then(({ error }) => { if (error) console.error('[store] deleteArtist:', error); });
       },
-
-      // ── Merchs ───────────────────────────────────────────────────────────
-      addMerch: (data) => {
-        const merch: Merch = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      addMerch: async (data) => {
+        const merch: Merch = {
+          ...data,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString(),
+        };
         set((s) => ({ merchs: [merch, ...s.merchs] }));
-        supabase?.from('merchs').insert({ studio_id: STUDIO_ID,
-          id: merch.id, name: merch.name, description: merch.description,
-          price: merch.price, image_url: merch.imageUrl, link: merch.link,
-          category: merch.category ?? null,
-          sizes: merch.sizes ?? [],
-          created_at: merch.createdAt,
-        }).then(({ error }) => { if (error) console.error('[store] addMerch:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('merchs').insert({
+            id: merch.id,
+            studio_id: STUDIO_ID,
+            name: merch.name,
+            description: merch.description,
+            price: merch.price,
+            image_url: merch.imageUrl,
+            link: merch.link,
+            sizes: merch.sizes,
+            category: merch.category,
+            created_at: merch.createdAt,
+          });
+          if (error) console.error('[store] addMerch:', error);
+        }
       },
-
-      updateMerch: (id, updates) => {
+      updateMerch: async (id, updates) => {
         set((s) => ({ merchs: s.merchs.map((m) => m.id === id ? { ...m, ...updates } : m) }));
-        const row: Record<string, unknown> = {};
-        if (updates.name        !== undefined) row.name        = updates.name;
-        if (updates.description !== undefined) row.description = updates.description;
-        if (updates.price       !== undefined) row.price       = updates.price;
-        if (updates.imageUrl    !== undefined) row.image_url   = updates.imageUrl;
-        if (updates.link        !== undefined) row.link        = updates.link;
-        if (updates.category    !== undefined) row.category    = updates.category ?? null;
-        if (updates.sizes       !== undefined) row.sizes       = updates.sizes;
-        supabase?.from('merchs').update(row).eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] updateMerch:', error); });
+        if (supabase) {
+          const { error } = await supabase.from('merchs').update({
+            name: updates.name,
+            description: updates.description,
+            price: updates.price,
+            image_url: updates.imageUrl,
+            link: updates.link,
+            sizes: updates.sizes,
+            category: updates.category,
+          }).eq('id', id);
+          if (error) console.error('[store] updateMerch:', error);
+        }
       },
-
       deleteMerch: (id) => {
         set((s) => ({ merchs: s.merchs.filter((m) => m.id !== id) }));
-        supabase?.from('merchs').delete().eq('id', id)
-          .then(({ error }) => { if (error) console.error('[store] deleteMerch:', error); });
+        supabase?.from('merchs').delete().eq('id', id).then(({ error }) => { if (error) console.error('[store] deleteMerch:', error); });
+      },
+      publicUser: null,
+      publicLogin: async (email, password) => {
+        if (!supabase) return { role: null, error: 'Database connection failed' };
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) return { role: null, error: error?.message || 'Login failed' };
+        
+        const { data: profile } = await supabase.from('user_profiles').select('role, name').eq('id', data.user.id).single();
+        if (profile) {
+          set({ publicUser: { id: data.user.id, email: data.user.email!, name: profile.name } });
+          return { role: profile.role, error: null };
+        }
+        return { role: null, error: 'Profile not found' };
+      },
+      publicRegister: async (email, password, name) => {
+        if (!supabase) return { success: false, error: 'Database connection failed' };
+        const { data, error } = await supabase.auth.signUp({ 
+          email, 
+          password,
+          options: { data: { name } }
+        });
+        if (error || !data.user) return { success: false, error: error?.message || 'Registration failed' };
+        
+        // Wait for profile trigger or create manually if needed
+        return { success: true, error: null };
+      },
+      publicLogout: async () => {
+        await supabase?.auth.signOut();
+        set({ publicUser: null, wishlist: [], cart: [] });
+      },
+      loadWishlist: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('wishlist').select('id, item_type, item_id').eq('user_id', publicUser.id);
+        if (data) set({ wishlist: data.map(r => ({ id: r.id, itemType: r.item_type, itemId: r.item_id })) });
+      },
+      addToWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: [...s.wishlist, { id: crypto.randomUUID(), itemType, itemId }] }));
+        await supabase.from('wishlist').insert({ user_id: publicUser.id, item_type: itemType, item_id: itemId });
+      },
+      removeFromWishlist: async (itemType, itemId) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ wishlist: s.wishlist.filter(w => !(w.itemType === itemType && w.itemId === itemId)) }));
+        await supabase.from('wishlist').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+      },
+      loadCart: async () => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        const { data } = await supabase.from('cart_items').select('id, item_type, item_id, selected_size').eq('user_id', publicUser.id);
+        if (data) set({ cart: data.map(r => ({ id: r.id, itemType: r.item_type, itemId: r.item_id, selectedSize: r.selected_size })) });
+      },
+      addToCart: async (itemType, itemId, selectedSize) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: [...s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId && c.selectedSize === selectedSize)), { id: crypto.randomUUID(), itemType, itemId, selectedSize }] }));
+        await supabase.from('cart_items').upsert({ user_id: publicUser.id, item_type: itemType, item_id: itemId, selected_size: selectedSize || null });
+      },
+
+      removeFromCart: async (itemType, itemId, selectedSize) => {
+        const { publicUser } = get();
+        if (!supabase || !publicUser) return;
+        set((s) => ({ cart: s.cart.filter((c) => !(c.itemType === itemType && c.itemId === itemId && c.selectedSize === selectedSize)) }));
+        let query = supabase.from('cart_items').delete().eq('user_id', publicUser.id).eq('item_type', itemType).eq('item_id', itemId);
+        if (selectedSize) {
+          query = query.eq('selected_size', selectedSize);
+        } else {
+          query = query.is('selected_size', null);
+        }
+        await query;
+      },
+
+      moveToCart: async (itemType, itemId, selectedSize) => {
+        const { removeFromWishlist, addToCart } = get();
+        await removeFromWishlist(itemType, itemId);
+        await addToCart(itemType, itemId, selectedSize);
+      },
+      loadSubscription: async () => {
+        if (!supabase) return;
+        const { data } = await supabase.from('subscriptions').select('status, trial_ends_at').eq('studio_id', STUDIO_ID).single();
+        if (data) set({ subscriptionStatus: data.status, trialEndsAt: data.trial_ends_at });
       },
     }),
     {
-      name: 'tattoo-shop-storage-v5',
-      partialize: (state) => ({
-        themeId: state.themeId,
-        customPrimary: state.customPrimary,
-        customSecondary: state.customSecondary,
-        logoColorMode: state.logoColorMode,
-        customLogo: state.customLogo,
-        customFavicon: state.customFavicon,
-        tattoos: state.tattoos,
-        artists: state.artists,
-        merchs: state.merchs,
-        sessions: state.sessions,
-        shopContent: state.shopContent,
-        fichaSubmissions: state.fichaSubmissions,
-        expenses: state.expenses,
-        fichaConfig: state.fichaConfig,
-        eventsContent: state.eventsContent,
-        landingContent: state.landingContent,
-        sobreNosContent: state.sobreNosContent,
-        guestContent: state.guestContent,
-        aftercareContent: state.aftercareContent,
-        publicUser: state.publicUser,
-        wishlist: state.wishlist,
-        cart: state.cart,
+      name: `tatto-view-state-${STUDIO_ID}`,
+      partialize: (s) => ({
+        // themeId: s.themeId, // We persist this via Supabase now
       }),
-      // Deep-merge nested content objects so new fields always get their defaults
-      // even when localStorage has an older version without those fields
-      merge: (persisted, current) => {
-        const ps = persisted as Partial<AppState>;
-        return {
-          ...current,
-          ...ps,
-          landingContent: {
-            ...current.landingContent,
-            ...ps.landingContent,
-            hero:      { ...current.landingContent.hero,      ...ps.landingContent?.hero },
-            manifesto: { ...current.landingContent.manifesto, ...ps.landingContent?.manifesto },
-            cta:       { ...current.landingContent.cta,       ...ps.landingContent?.cta },
-          },
-          sobreNosContent: {
-            ...current.sobreNosContent,
-            ...ps.sobreNosContent,
-            hero:       { ...current.sobreNosContent.hero,       ...ps.sobreNosContent?.hero },
-            collective: { ...current.sobreNosContent.collective, ...ps.sobreNosContent?.collective,
-              galleryImages: ps.sobreNosContent?.collective?.galleryImages ?? current.sobreNosContent.collective.galleryImages,
-            },
-            studio:     { ...current.sobreNosContent.studio,     ...ps.sobreNosContent?.studio },
-            contact:    { ...current.sobreNosContent.contact,    ...ps.sobreNosContent?.contact },
-          },
-          aftercareContent: {
-            ...current.aftercareContent,
-            ...ps.aftercareContent,
-            hero:        { ...current.aftercareContent.hero,        ...ps.aftercareContent?.hero },
-            postSession: { ...current.aftercareContent.postSession, ...ps.aftercareContent?.postSession },
-            cta:         { ...current.aftercareContent.cta,         ...ps.aftercareContent?.cta },
-          },
-          eventsContent: {
-            ...current.eventsContent,
-            ...ps.eventsContent,
-            hero: { ...current.eventsContent.hero, ...ps.eventsContent?.hero },
-            events: ps.eventsContent?.events ?? current.eventsContent.events,
-          },
-        };
-      },
-    },
-  ),
+    }
+  )
 );
