@@ -2,11 +2,29 @@ import { useState, useMemo } from 'react';
 import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import SubscriptionGate from '../components/SubscriptionGate';
+import { useLang } from '../lib/useLang';
+
+const NAV_LABELS: Record<string, { pt: string; en: string }> = {
+  '/admin/merchs':         { pt: 'Loja',             en: 'Store' },
+  '/admin/dashboard':      { pt: 'Dashboard',         en: 'Dashboard' },
+  '/admin/tatuagens':      { pt: 'Tatuagens',         en: 'Tattoos' },
+  '/admin/artistas':       { pt: 'Artistas',          en: 'Artists' },
+  '/admin/guests':         { pt: 'Guests',            en: 'Guests' },
+  '/admin/events':         { pt: 'Events',            en: 'Events' },
+  '/admin/aftercare':      { pt: 'Pós Tattoo',        en: 'Aftercare' },
+  '/admin/landing':        { pt: 'Landing Page',      en: 'Landing Page' },
+  '/admin/ficha-anamnese': { pt: 'Ficha Anamnese',    en: 'Intake Form' },
+  '/admin/fichas':         { pt: 'Fichas Recebidas',  en: 'Received Forms' },
+  '/admin/configuracoes':  { pt: 'Configurações',     en: 'Settings' },
+  '/admin/financeiro':     { pt: 'Financeiro',        en: 'Financial' },
+  '/admin/billing':        { pt: 'Plano',             en: 'Plan' },
+  '/admin/meu-perfil':     { pt: 'Meu Perfil',        en: 'My Profile' },
+};
 
 const navItems = [
   {
     to: '/admin/merchs',
-    label: 'Loja',
+    label: 'Store',
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -165,6 +183,11 @@ export default function AdminLayout() {
   const logoColorMode    = useStore((s) => s.logoColorMode);
   const customLogo       = useStore((s) => s.customLogo);
   const logoSrc          = customLogo ?? '/logosemo-3.png';
+  const { lang } = useLang();
+  const navLabel = (to: string) => NAV_LABELS[to]?.[lang] ?? to;
+  const showcase = lang === 'en' ? 'Showcase' : 'Vitrine';
+  const logout_label = lang === 'en' ? 'Logout' : 'Sair';
+  const visit_site = lang === 'en' ? 'Visit Site' : 'Acessar o Site';
 
   const artistName = artists.find((a) => a.id === currentArtistId)?.name ?? null;
   const displayName = artistName ?? (currentUserEmail ? currentUserEmail.split('@')[0] : 'Admin');
@@ -189,8 +212,12 @@ export default function AdminLayout() {
   }, [isAdmin, isArtist, isMerchManager, showFinanceiro]);
 
   const currentLabel = useMemo(
-    () => navItems.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Admin',
-    [location.pathname],
+    () => {
+      const found = navItems.find((n) => location.pathname.startsWith(n.to));
+      return found ? navLabel(found.to) : 'Admin';
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [location.pathname, lang],
   );
 
   function closeDrawer() {
@@ -232,7 +259,7 @@ export default function AdminLayout() {
                 />
               )}
             </div>
-            <div className="text-gray-500 hover:text-white transition-colors" title="Acessar o Site">
+            <div className="text-gray-500 hover:text-white transition-colors" title={visit_site}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
@@ -253,7 +280,7 @@ export default function AdminLayout() {
               }
             >
               {item.icon}
-              {item.label}
+              {navLabel(item.to)}
             </NavLink>
           ))}
         </nav>
@@ -263,7 +290,7 @@ export default function AdminLayout() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Vitrine
+            {showcase}
           </Link>
           <button
             onClick={handleLogout}
@@ -272,7 +299,7 @@ export default function AdminLayout() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            Sair
+            {logout_label}
           </button>
         </div>
       </aside>
@@ -351,7 +378,7 @@ export default function AdminLayout() {
                     />
                   )}
                 </div>
-                <div className="text-gray-500 hover:text-white transition-colors" title="Acessar o Site">
+                <div className="text-gray-500 hover:text-white transition-colors" title={visit_site}>
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
@@ -378,7 +405,7 @@ export default function AdminLayout() {
                   }
                 >
                   {item.icon}
-                  {item.label}
+                  {navLabel(item.to)}
                 </NavLink>
               ))}
             </nav>
@@ -388,7 +415,7 @@ export default function AdminLayout() {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Ver Vitrine
+                {showcase}
               </Link>
               <button
                 onClick={() => { closeDrawer(); handleLogout(); }}
@@ -397,7 +424,7 @@ export default function AdminLayout() {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Sair
+                {logout_label}
               </button>
             </div>
           </aside>
