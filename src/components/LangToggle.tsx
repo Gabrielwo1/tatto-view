@@ -4,7 +4,7 @@ export default function LangToggle() {
   const { lang, setLanguage } = useLang();
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex rounded-full border border-white/20 bg-zinc-900/90 backdrop-blur-md overflow-hidden shadow-lg">
+    <div className="fixed bottom-28 right-6 z-[9999] flex rounded-full border border-white/20 bg-zinc-900/90 backdrop-blur-md overflow-hidden shadow-lg">
       <button
         onClick={() => setLanguage('pt')}
         className={`px-3 py-2 text-[11px] font-bold tracking-widest uppercase transition-colors ${
