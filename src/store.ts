@@ -260,7 +260,6 @@ export interface SobreNosContent {
     tiktokUrl: string;
     twitter: string;
     twitterUrl: string;
-    663: string;
   };
 }
 
@@ -811,7 +810,7 @@ export const useStore = create<AppState>()(
         supabase?.from('site_config').upsert(sc('customSecondary', secondary), { onConflict: 'studio_id,key' })
           .then(({ error }) => { if (error) console.error('[store] setCustomColors secondary:', error); });
       },
-      logoColorMode: 'auto',
+      logoColorMode: 'original',
       setLogoColorMode: (mode) => {
         set({ logoColorMode: mode });
         supabase?.from('site_config').upsert(sc('logoColorMode', mode), { onConflict: 'studio_id,key' })
@@ -1074,7 +1073,7 @@ export const useStore = create<AppState>()(
             themeId: (configs.themeId as ThemeId) || null,
             customPrimary: (configs.customPrimary as string) || null,
             customSecondary: (configs.customSecondary as string) || null,
-            logoColorMode: (configs.logoColorMode as LogoColorMode) || 'auto',
+            logoColorMode: (configs.logoColorMode as LogoColorMode) || 'original',
             hiddenStyles: (configs.hiddenStyles as string[]) || [],
             customStyles: (configs.customStyles as string[]) || [],
             customLogo: (configs.customLogo as string) || null,
@@ -1279,7 +1278,6 @@ export const useStore = create<AppState>()(
         set((s) => ({ merchs: s.merchs.filter((m) => m.id !== id) }));
         supabase?.from('merchs').delete().eq('id', id).then(({ error }) => { if (error) console.error('[store] deleteMerch:', error); });
       },
-      publicUser: null,
       publicLogin: async (email, password) => {
         if (!supabase) return { role: null, error: 'Database connection failed' };
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
