@@ -125,6 +125,10 @@ function PageTracker() {
 }
 
 function PublicLayout({ children, hideFooter = false }: { children: React.ReactNode, hideFooter?: boolean }) {
+  const dataLoaded = useStore((s) => s.dataLoaded);
+  if (!dataLoaded) {
+    return <div className="min-h-screen bg-zinc-950" />;
+  }
   return (
     <div className="min-h-screen bg-zinc-900 text-white flex flex-col">
       <Navbar />
@@ -170,6 +174,7 @@ export default function App() {
   const customPrimary  = useStore((s) => s.customPrimary);
   const customSecondary = useStore((s) => s.customSecondary);
   const customFavicon  = useStore((s) => s.customFavicon);
+  const dataLoaded     = useStore((s) => s.dataLoaded);
 
   // Apply theme + custom overrides on mount and whenever they change
   useEffect(() => {

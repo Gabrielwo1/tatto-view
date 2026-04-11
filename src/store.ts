@@ -746,8 +746,8 @@ interface AppState {
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
-      tattoos: seedTattoos,
-      artists: seedArtists,
+      tattoos: [],
+      artists: [],
       merchs: [],
       sessions: defaultSessions,
       addSession: (data) => {
