@@ -95,6 +95,7 @@ export default function BillingPage() {
   const [currency, setCurrency] = useState<Currency>('brl');
 
   const hasActivePlan = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+  const canSubscribe = !hasActivePlan;
   const currentPlan = getPlanByMaxArtists(maxArtists);
 
   const getUserId = async (): Promise<string | null> => {
@@ -252,7 +253,6 @@ export default function BillingPage() {
             {PLANS.map((plan) => {
               const isCurrentPlan = currentPlan?.key === plan.key;
               const isLoading = loading === plan.key;
-              const canSubscribe = !hasActivePlan || subscriptionStatus === 'canceled' || subscriptionStatus === 'unpaid' || subscriptionStatus === 'incomplete' || subscriptionStatus === 'incomplete_expired';
               const planName = lang === 'pt' ? plan.namePT : plan.nameEN;
 
               return (
