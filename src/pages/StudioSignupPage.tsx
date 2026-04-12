@@ -1,16 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useLang, type Lang } from '../lib/useLang';
-
-const PRICES = {
-  BRL: { id: 'price_1THVoi1DbauQaCosZKmpzwcn', symbol: 'R$', amount: '39', label: 'R$ 39/mês' },
-  USD: { id: 'price_1TKq4j1DbauQaCosGucUXHLZ', symbol: 'US$', amount: '20', label: 'US$ 20/mo' },
-  EUR: { id: 'price_1TKq5Z1DbauQaCos5zmmtJ35', symbol: '€', amount: '20', label: '€20/mo' },
-} as const;
-
-type Currency = keyof typeof PRICES;
-
-const ALLOWED_PRICE_IDS = new Set(Object.values(PRICES).map((p) => p.id));
+import { PLANS, getPlanByKey, formatPrice, type Currency } from '../lib/plans';
 
 function detectCurrency(): Currency {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
@@ -20,15 +11,20 @@ function detectCurrency(): Currency {
     'America/Belem', 'America/Manaus', 'America/Cuiaba', 'America/Porto_Velho',
     'America/Boa_Vista', 'America/Santarem', 'America/Maceio', 'America/Bahia',
   ];
-  if (brTimezones.includes(tz) || lang === 'pt-BR') return 'BRL';
-  if (tz.startsWith('Europe/')) return 'EUR';
-  return 'USD';
+  if (brTimezones.includes(tz) || lang === 'pt-BR') return 'brl';
+  if (tz.startsWith('Europe/')) return 'eur';
+  return 'usd';
 }
 
 const T = {
   pt: {
     title: 'Criar seu studio',
-    badge: '15 dias grátis · Sem cobrança imediata',
+    badge: '20 dias grátis · Sem cobrança imediata',
+    selectedPlan: 'Plano selecionado',
+    changePlan: 'Mudar plano',
+    perMonth: '/mês',
+    artist1: '1 tatuador',
+    artistsN: (n: number) => `até ${n} tatuadores`,
     labelName: 'Nome do estúdio',
     placeholderName: 'Ex: Black Rose Tattoo',
     labelSubdomain: 'Subdomínio',
@@ -40,7 +36,7 @@ const T = {
     btnLoading: 'Aguarde...',
     btnSubmit: 'Continuar para pagamento →',
     trust: [
-      { label: '15 dias', sub: 'grátis' },
+      { label: '20 dias', sub: 'grátis' },
       { label: 'Cancele', sub: 'quando quiser' },
       { label: 'Stripe', sub: 'pagamento seguro' },
     ],
@@ -50,7 +46,12 @@ const T = {
   },
   en: {
     title: 'Create your studio',
-    badge: '15 days free · No immediate charge',
+    badge: '20-day free trial · No immediate charge',
+    selectedPlan: 'Selected plan',
+    changePlan: 'Change plan',
+    perMonth: '/mo',
+    artist1: '1 artist',
+    artistsN: (n: number) => `up to ${n} artists`,
     labelName: 'Studio name',
     placeholderName: 'Ex: Black Rose Tattoo',
     labelSubdomain: 'Subdomain',
@@ -62,7 +63,7 @@ const T = {
     btnLoading: 'Please wait...',
     btnSubmit: 'Continue to payment →',
     trust: [
-      { label: '15 days', sub: 'free' },
+      { label: '20 days', sub: 'free' },
       { label: 'Cancel', sub: 'anytime' },
       { label: 'Stripe', sub: 'secure payment' },
     ],
@@ -75,19 +76,35 @@ const T = {
 export default function StudioSignupPage() {
   const { lang } = useLang();
   const t = T[lang];
+  const [searchParams] = useSearchParams();
+
+  const paramPlan = searchParams.get('plan') ?? 'starter';
+  const paramCurrency = searchParams.get('currency');
+
+  const [planKey] = useState(() =>
+    PLANS.some((p) => p.key === paramPlan) ? paramPlan : 'starter'
+  );
+  const [currency, setCurrency] = useState<Currency>(
+    (['brl', 'usd', 'eur'] as Currency[]).includes(paramCurrency as Currency)
+      ? (paramCurrency as Currency)
+      : 'brl'
+  );
 
   const [studioName, setStudioName] = useState('');
   const [subdomain, setSubdomain] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currency, setCurrency] = useState<Currency>('BRL');
 
   useEffect(() => {
-    setCurrency(detectCurrency());
+    if (!paramCurrency) setCurrency(detectCurrency());
   }, []);
 
-  const price = PRICES[currency];
+  const selectedPlan = getPlanByKey(planKey) ?? PLANS[0];
+  const planName = lang === 'pt' ? selectedPlan.namePT : selectedPlan.nameEN;
+  const artistLabel = selectedPlan.maxArtists === 1
+    ? t.artist1
+    : t.artistsN(selectedPlan.maxArtists);
 
   function handleSubdomainInput(value: string) {
     setSubdomain(value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
@@ -95,7 +112,6 @@ export default function StudioSignupPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!ALLOWED_PRICE_IDS.has(price.id)) return;
     setError(null);
     setLoading(true);
 
@@ -103,7 +119,7 @@ export default function StudioSignupPage() {
       const res = await fetch('/api/create-studio-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studioName, subdomain, email, priceId: price.id }),
+        body: JSON.stringify({ studioName, subdomain, email, planKey, currency }),
       });
 
       const data = await res.json();
@@ -137,9 +153,28 @@ export default function StudioSignupPage() {
             {t.badge}
           </p>
 
+          {/* Selected plan */}
+          <div className="flex items-center justify-between mb-5 p-4 border border-white/10 bg-white/[0.03]">
+            <div>
+              <p className="font-body text-[10px] text-gray-600 tracking-widest uppercase mb-0.5">
+                {t.selectedPlan}
+              </p>
+              <p className="font-display text-base text-white uppercase tracking-wide">{planName}</p>
+              <p className="font-body text-xs text-gray-500">
+                {formatPrice(selectedPlan, currency)}{t.perMonth} · {artistLabel}
+              </p>
+            </div>
+            <Link
+              to="/#pricing"
+              className="font-body text-[10px] text-gray-600 hover:text-white uppercase tracking-widest transition-colors"
+            >
+              {t.changePlan} →
+            </Link>
+          </div>
+
           {/* Currency selector */}
           <div className="flex gap-2 mb-6">
-            {(Object.keys(PRICES) as Currency[]).map((c) => (
+            {(['brl', 'usd', 'eur'] as Currency[]).map((c) => (
               <button
                 key={c}
                 type="button"
@@ -150,7 +185,7 @@ export default function StudioSignupPage() {
                     : 'border-white/15 text-gray-500 hover:border-white/30 hover:text-gray-300'
                 }`}
               >
-                {c} · {PRICES[c].symbol}{PRICES[c].amount}
+                {c.toUpperCase()} · {formatPrice(selectedPlan, c)}
               </button>
             ))}
           </div>

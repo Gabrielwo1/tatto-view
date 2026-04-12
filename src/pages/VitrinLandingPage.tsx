@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useLang, type Lang } from '../lib/useLang';
+import { PLANS, formatPrice, type Currency } from '../lib/plans';
 
 /* ─── tiny visibility hook ─── */
 function useVisible(threshold = 0.12) {
@@ -143,6 +144,16 @@ const T = {
         '✅ Suporte para configuração inicial',
       ],
     },
+    pricing: {
+      title: 'Planos & Preços',
+      subtitle: 'Escolha o plano ideal para o tamanho do seu estúdio. 20 dias grátis em todos os planos.',
+      popular: 'Popular',
+      artist1: '1 tatuador',
+      artistsN: (n: number) => `até ${n} tatuadores`,
+      perMonth: '/mês',
+      cta: 'Começar grátis',
+      trialNote: '20 dias grátis · Sem cobrança imediata · Cancele quando quiser',
+    },
     footer: {
       tagline: 'Sites profissionais para estúdios de tatuagem.',
       create: 'Criar estúdio',
@@ -259,6 +270,16 @@ const T = {
         '✅ Support for initial setup',
       ],
     },
+    pricing: {
+      title: 'Plans & Pricing',
+      subtitle: 'Choose the right plan for your studio size. 20-day free trial on all plans.',
+      popular: 'Popular',
+      artist1: '1 artist',
+      artistsN: (n: number) => `up to ${n} artists`,
+      perMonth: '/mo',
+      cta: 'Start free',
+      trialNote: '20-day free trial · No immediate charge · Cancel anytime',
+    },
     footer: {
       tagline: 'Professional websites for tattoo studios.',
       create: 'Create studio',
@@ -271,6 +292,7 @@ export default function VitrinLandingPage() {
   const { lang } = useLang();
   const t = T[lang];
   const [activeTheme, setActiveTheme] = useState(0);
+  const [priceCurrency, setPriceCurrency] = useState<Currency>('brl');
   const themes = t.themes.items;
 
   return (
@@ -551,6 +573,82 @@ export default function VitrinLandingPage() {
                 </div>
               </div>
             </div>
+          </Section>
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section className="py-24 px-6" id="pricing">
+        <div className="max-w-6xl mx-auto">
+          <Section>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl md:text-5xl font-black mb-4">{t.pricing.title}</h2>
+              <p className="text-zinc-400 text-lg max-w-xl mx-auto">{t.pricing.subtitle}</p>
+            </div>
+            {/* Currency toggle */}
+            <div className="flex justify-center mb-10">
+              <div className="flex gap-1 p-1 rounded-full bg-zinc-900 border border-zinc-800">
+                {(['brl', 'usd', 'eur'] as Currency[]).map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setPriceCurrency(c)}
+                    className={`px-5 py-2 rounded-full text-xs font-bold tracking-widest uppercase transition-all ${
+                      priceCurrency === c ? 'bg-orange-500 text-white' : 'text-zinc-500 hover:text-white'
+                    }`}
+                  >
+                    {c.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </Section>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {PLANS.map((plan) => {
+              const planName = lang === 'pt' ? plan.namePT : plan.nameEN;
+              const artistLabel = plan.maxArtists === 1
+                ? t.pricing.artist1
+                : t.pricing.artistsN(plan.maxArtists);
+              return (
+                <Section key={plan.key}>
+                  <div className={`relative rounded-2xl border p-6 flex flex-col gap-4 h-full transition-colors ${
+                    plan.popular
+                      ? 'border-orange-500/50 bg-gradient-to-b from-orange-500/10 to-zinc-950'
+                      : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
+                  }`}>
+                    {plan.popular && (
+                      <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-[10px] font-bold tracking-widest uppercase px-4 py-1 rounded-full">
+                        {t.pricing.popular}
+                      </span>
+                    )}
+                    <div>
+                      <p className="text-xl font-black uppercase tracking-wide text-white">{planName}</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">{artistLabel}</p>
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-black text-white">{formatPrice(plan, priceCurrency)}</span>
+                      <span className="text-sm text-zinc-500">{t.pricing.perMonth}</span>
+                    </div>
+                    <Link
+                      to={`/criar-studio?plan=${plan.key}&currency=${priceCurrency}`}
+                      className={`mt-auto text-center py-3 rounded-full text-sm font-bold tracking-wide transition-all hover:scale-105 ${
+                        plan.popular
+                          ? 'bg-orange-500 text-white hover:bg-orange-400'
+                          : 'border border-zinc-700 text-white hover:border-orange-500 hover:text-orange-400'
+                      }`}
+                    >
+                      {t.pricing.cta}
+                    </Link>
+                  </div>
+                </Section>
+              );
+            })}
+          </div>
+
+          <Section>
+            <p className="text-center text-xs text-zinc-600 mt-6 tracking-widest uppercase">
+              {t.pricing.trialNote}
+            </p>
           </Section>
         </div>
       </section>
