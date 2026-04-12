@@ -1,8 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useStore } from '../../store';
+import { useStore, STUDIO_ID } from '../../store';
 import { toSlug } from '../../utils';
 import { useLang } from '../../lib/useLang';
+
+// Studios with unlimited access — no billing required
+const FREE_STUDIOS = new Set(['eldude']);
 
 const T = {
   pt: {
@@ -13,6 +16,9 @@ const T = {
     viewPortfolio: 'Ver vitrine',
     dragToReorder: 'Arraste as linhas para reordenar',
     deleteConfirm: (name: string) => `Excluir artista "${name}"? Esta ação não pode ser desfeita.`,
+    limitReached: (current: number, max: number) => `Limite atingido (${current}/${max})`,
+    upgradePlan: 'Fazer upgrade',
+    artistCount: (current: number, max: number) => `${current} / ${max} artistas`,
   },
   en: {
     label: 'Admin', title: 'Artists', newArtist: 'New Artist',
@@ -22,6 +28,9 @@ const T = {
     viewPortfolio: 'View portfolio',
     dragToReorder: 'Drag rows to reorder',
     deleteConfirm: (name: string) => `Delete artist "${name}"? This action cannot be undone.`,
+    limitReached: (current: number, max: number) => `Limit reached (${current}/${max})`,
+    upgradePlan: 'Upgrade plan',
+    artistCount: (current: number, max: number) => `${current} / ${max} artists`,
   },
 };
 
@@ -31,9 +40,13 @@ export default function AdminArtists() {
   const artists = useStore((s) => s.artists);
   const tattoos = useStore((s) => s.tattoos);
   const isAdmin = useStore((s) => s.isAdmin);
+  const maxArtists = useStore((s) => s.maxArtists);
   const deleteArtist = useStore((s) => s.deleteArtist);
   const updateArtist = useStore((s) => s.updateArtist);
   const reorderArtists = useStore((s) => s.reorderArtists);
+
+  const isFreeStudio = FREE_STUDIOS.has(STUDIO_ID);
+  const atLimit = !isFreeStudio && artists.length >= maxArtists;
 
   // Local order state — mirrors store but allows live preview while dragging
   const [order, setOrder] = useState<string[]>(() => artists.map((a) => a.id));
@@ -85,16 +98,33 @@ export default function AdminArtists() {
         <div>
           <p className="font-body text-xs font-semibold tracking-widest uppercase text-gray-600 mb-1">{tr.label}</p>
           <h1 className="font-display text-3xl md:text-5xl text-white uppercase tracking-wide leading-none">{tr.title}</h1>
+          {!isFreeStudio && (
+            <p className="font-body text-xs text-gray-600 mt-1">
+              {tr.artistCount(artists.length, maxArtists)}
+            </p>
+          )}
         </div>
-        <Link
-          to="/admin/artistas/novo"
-          className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase px-5 py-3 transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-          </svg>
-          {tr.newArtist}
-        </Link>
+        {atLimit ? (
+          <Link
+            to="/admin/billing"
+            className="flex items-center gap-2 border border-yellow-500/40 text-yellow-400 hover:bg-yellow-500/10 font-body font-bold text-xs tracking-widest uppercase px-5 py-3 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            {tr.upgradePlan}
+          </Link>
+        ) : (
+          <Link
+            to="/admin/artistas/novo"
+            className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-body font-bold text-xs tracking-widest uppercase px-5 py-3 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+            </svg>
+            {tr.newArtist}
+          </Link>
+        )}
       </div>
 
       {sorted.length === 0 ? (

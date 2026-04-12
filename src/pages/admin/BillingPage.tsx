@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useStore } from '../../store';
 import { useLang } from '../../lib/useLang';
+import { PLANS, formatPrice, getPlanByMaxArtists, type Currency } from '../../lib/plans';
 
 const T = {
   pt: {
@@ -11,8 +12,10 @@ const T = {
     noActivePlan: 'Sem plano ativo',
     daysLeft: 'Dias restantes',
     trialDays: (n: number) => `${n} ${n === 1 ? 'dia' : 'dias'}`,
-    planLabel: 'Plano',
-    planDescription: 'Plano mensal — R$39,90/mês',
+    currentPlan: 'Plano atual',
+    artistsLabel: (n: number) => `${n} ${n === 1 ? 'tatuador' : 'tatuadores'}`,
+    perMonth: '/mês',
+    popular: 'Popular',
     statusTrialing: 'Período de teste',
     statusActive: 'Ativo',
     statusPastDue: 'Pagamento pendente',
@@ -21,13 +24,17 @@ const T = {
     statusIncomplete: 'Pagamento incompleto',
     statusIncompleteExpired: 'Expirado',
     loading: 'Aguarde...',
-    startTrial: 'Começar 10 dias grátis',
+    startTrial: 'Começar 20 dias grátis',
+    selectPlan: 'Selecionar plano',
     managePlan: 'Gerenciar plano / Cancelar',
     refreshStatus: 'Atualizar status',
     errNotIdentified: 'Usuário não identificado',
     errCreateSession: 'Erro ao criar sessão',
     errOpenPortal: 'Erro ao abrir portal',
     errUnexpected: 'Erro inesperado',
+    trialNote: '20 dias grátis · Sem cobrança imediata',
+    choosePlan: 'Escolha seu plano',
+    choosePlanSub: 'Todos os planos incluem 20 dias de teste gratuito.',
   },
   en: {
     title: 'Plan & Billing',
@@ -36,8 +43,10 @@ const T = {
     noActivePlan: 'No active plan',
     daysLeft: 'Days remaining',
     trialDays: (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`,
-    planLabel: 'Plan',
-    planDescription: 'Monthly plan — R$39.90/month',
+    currentPlan: 'Current plan',
+    artistsLabel: (n: number) => `${n} ${n === 1 ? 'artist' : 'artists'}`,
+    perMonth: '/mo',
+    popular: 'Popular',
     statusTrialing: 'Trial period',
     statusActive: 'Active',
     statusPastDue: 'Payment pending',
@@ -46,13 +55,17 @@ const T = {
     statusIncomplete: 'Incomplete payment',
     statusIncompleteExpired: 'Expired',
     loading: 'Please wait...',
-    startTrial: 'Start 10-day free trial',
+    startTrial: 'Start 20-day free trial',
+    selectPlan: 'Select plan',
     managePlan: 'Manage plan / Cancel',
     refreshStatus: 'Refresh status',
     errNotIdentified: 'User not identified',
     errCreateSession: 'Error creating session',
     errOpenPortal: 'Error opening portal',
     errUnexpected: 'Unexpected error',
+    trialNote: '20-day free trial · No immediate charge',
+    choosePlan: 'Choose your plan',
+    choosePlanSub: 'All plans include a 20-day free trial.',
   },
 };
 
@@ -68,6 +81,7 @@ export default function BillingPage() {
 
   const subscriptionStatus = useStore((s) => s.subscriptionStatus);
   const trialEndsAt = useStore((s) => s.trialEndsAt);
+  const maxArtists = useStore((s) => s.maxArtists);
   const loadSubscription = useStore((s) => s.loadSubscription);
   const isAdmin = useStore((s) => s.isAdmin);
   const isArtist = useStore((s) => s.isArtist);
@@ -76,8 +90,12 @@ export default function BillingPage() {
 
   const { lang } = useLang();
   const tr = T[lang];
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null); // planKey being loaded
   const [error, setError] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<Currency>('brl');
+
+  const hasActivePlan = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+  const currentPlan = getPlanByMaxArtists(maxArtists);
 
   const getUserId = async (): Promise<string | null> => {
     const { createClient } = await import('@supabase/supabase-js');
@@ -89,8 +107,8 @@ export default function BillingPage() {
     return session?.user?.id ?? null;
   };
 
-  const handleStartSubscription = async () => {
-    setLoading(true);
+  const handleSelectPlan = async (planKey: string) => {
+    setLoading(planKey);
     setError(null);
     try {
       const userId = await getUserId();
@@ -98,7 +116,7 @@ export default function BillingPage() {
       const res = await fetch('/api/create-subscription-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, email: currentUserEmail }),
+        body: JSON.stringify({ userId, email: currentUserEmail, planKey, currency }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? tr.errCreateSession);
@@ -106,12 +124,12 @@ export default function BillingPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : tr.errUnexpected);
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
   const handleManageBilling = async () => {
-    setLoading(true);
+    setLoading('portal');
     setError(null);
     try {
       const userId = await getUserId();
@@ -127,7 +145,7 @@ export default function BillingPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : tr.errUnexpected);
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -155,7 +173,7 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto py-12 px-6 space-y-8">
+    <div className="max-w-5xl mx-auto py-12 px-6 space-y-10">
       <h1 className="font-display text-3xl uppercase tracking-wide text-white">{tr.title}</h1>
 
       {success && (
@@ -164,65 +182,153 @@ export default function BillingPage() {
         </div>
       )}
 
-      {/* Status card */}
-      <div className="bg-zinc-900 border border-white/10 rounded-lg p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="font-body text-xs tracking-widest uppercase text-gray-500">{tr.statusLabel}</span>
-          {subscriptionStatus ? (
+      {/* Status card — only when plan is active */}
+      {subscriptionStatus && (
+        <div className="bg-zinc-900 border border-white/10 rounded-lg p-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-body text-xs tracking-widest uppercase text-gray-500">{tr.statusLabel}</span>
             <span className={`font-body text-sm font-semibold ${statusColor[subscriptionStatus] ?? 'text-gray-400'}`}>
               {statusLabel[subscriptionStatus] ?? subscriptionStatus}
             </span>
-          ) : (
-            <span className="font-body text-sm text-gray-500">{tr.noActivePlan}</span>
-          )}
-        </div>
-
-        {subscriptionStatus === 'trialing' && trialDays !== null && (
-          <div className="flex items-center justify-between">
-            <span className="font-body text-xs tracking-widest uppercase text-gray-500">{tr.daysLeft}</span>
-            <span className="font-body text-sm font-semibold text-white">{tr.trialDays(trialDays)}</span>
           </div>
-        )}
 
-        <div className="flex items-center justify-between">
-          <span className="font-body text-xs tracking-widest uppercase text-gray-500">{tr.planLabel}</span>
-          <span className="font-body text-sm text-white">{tr.planDescription}</span>
-        </div>
-      </div>
-
-      {error && (
-        <p className="text-sm text-red-400">{error}</p>
-      )}
-
-      {/* Actions */}
-      {isStaff && (
-        <div className="space-y-3">
-          {!subscriptionStatus || subscriptionStatus === 'canceled' || subscriptionStatus === 'unpaid' || subscriptionStatus === 'incomplete' || subscriptionStatus === 'incomplete_expired' ? (
-            <button
-              onClick={handleStartSubscription}
-              disabled={loading}
-              className="w-full font-body text-xs font-bold tracking-widest uppercase bg-white text-black px-8 py-3 hover:bg-white/90 transition-colors disabled:opacity-50"
-            >
-              {loading ? tr.loading : tr.startTrial}
-            </button>
-          ) : (
-            <button
-              onClick={handleManageBilling}
-              disabled={loading}
-              className="w-full font-body text-xs font-bold tracking-widest uppercase bg-white text-black px-8 py-3 hover:bg-white/90 transition-colors disabled:opacity-50"
-            >
-              {loading ? tr.loading : tr.managePlan}
-            </button>
+          {subscriptionStatus === 'trialing' && trialDays !== null && (
+            <div className="flex items-center justify-between">
+              <span className="font-body text-xs tracking-widest uppercase text-gray-500">{tr.daysLeft}</span>
+              <span className="font-body text-sm font-semibold text-white">{tr.trialDays(trialDays)}</span>
+            </div>
           )}
 
-          <button
-            onClick={async () => { await loadSubscription(); }}
-            className="w-full font-body text-xs tracking-widest uppercase text-gray-500 hover:text-white transition-colors py-2"
-          >
-            {tr.refreshStatus}
-          </button>
+          {currentPlan && (
+            <div className="flex items-center justify-between">
+              <span className="font-body text-xs tracking-widest uppercase text-gray-500">{tr.currentPlan}</span>
+              <span className="font-body text-sm text-white">
+                {lang === 'pt' ? currentPlan.namePT : currentPlan.nameEN} — {tr.artistsLabel(currentPlan.maxArtists)}
+              </span>
+            </div>
+          )}
         </div>
       )}
+
+      {error && <p className="text-sm text-red-400">{error}</p>}
+
+      {/* Manage plan button — for active/trialing users */}
+      {isStaff && hasActivePlan && (
+        <button
+          onClick={handleManageBilling}
+          disabled={loading === 'portal'}
+          className="font-body text-xs font-bold tracking-widest uppercase bg-white text-black px-8 py-3 hover:bg-white/90 transition-colors disabled:opacity-50"
+        >
+          {loading === 'portal' ? tr.loading : tr.managePlan}
+        </button>
+      )}
+
+      {/* ── Plan cards ── */}
+      {isStaff && (
+        <div className="space-y-6">
+          <div className="flex items-end justify-between">
+            <div>
+              <h2 className="font-display text-2xl uppercase tracking-wide text-white">{tr.choosePlan}</h2>
+              <p className="font-body text-xs text-gray-500 mt-1">{tr.choosePlanSub}</p>
+            </div>
+
+            {/* Currency toggle */}
+            <div className="flex items-center gap-1 bg-zinc-900 border border-white/10 p-1">
+              {(['brl', 'usd', 'eur'] as Currency[]).map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCurrency(c)}
+                  className={`font-body text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 transition-colors ${
+                    currency === c ? 'bg-white text-black' : 'text-gray-500 hover:text-white'
+                  }`}
+                >
+                  {c.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {PLANS.map((plan) => {
+              const isCurrentPlan = currentPlan?.key === plan.key;
+              const isLoading = loading === plan.key;
+              const canSubscribe = !hasActivePlan || subscriptionStatus === 'canceled' || subscriptionStatus === 'unpaid' || subscriptionStatus === 'incomplete' || subscriptionStatus === 'incomplete_expired';
+              const planName = lang === 'pt' ? plan.namePT : plan.nameEN;
+
+              return (
+                <div
+                  key={plan.key}
+                  className={`relative border rounded-lg p-6 flex flex-col gap-4 transition-colors ${
+                    isCurrentPlan
+                      ? 'border-white/60 bg-white/[0.06]'
+                      : plan.popular
+                      ? 'border-white/30 bg-zinc-900'
+                      : 'border-white/10 bg-zinc-900 hover:border-white/20'
+                  }`}
+                >
+                  {plan.popular && !isCurrentPlan && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-black font-body text-[10px] font-bold tracking-widest uppercase px-3 py-1">
+                      {tr.popular}
+                    </span>
+                  )}
+                  {isCurrentPlan && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-black font-body text-[10px] font-bold tracking-widest uppercase px-3 py-1">
+                      {tr.currentPlan}
+                    </span>
+                  )}
+
+                  <div>
+                    <p className="font-display text-xl uppercase tracking-wide text-white">{planName}</p>
+                    <p className="font-body text-xs text-gray-500 mt-0.5">{tr.artistsLabel(plan.maxArtists)}</p>
+                  </div>
+
+                  <div className="flex items-baseline gap-1">
+                    <span className="font-display text-3xl text-white">{formatPrice(plan, currency)}</span>
+                    <span className="font-body text-xs text-gray-500">{tr.perMonth}</span>
+                  </div>
+
+                  {canSubscribe ? (
+                    <button
+                      onClick={() => handleSelectPlan(plan.key)}
+                      disabled={isLoading || loading !== null}
+                      className={`mt-auto font-body text-xs font-bold tracking-widest uppercase px-4 py-2.5 transition-colors disabled:opacity-50 ${
+                        plan.popular || isCurrentPlan
+                          ? 'bg-white text-black hover:bg-white/90'
+                          : 'border border-white/20 text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {isLoading ? tr.loading : tr.startTrial}
+                    </button>
+                  ) : (
+                    <Link
+                      to="#"
+                      onClick={(e) => { e.preventDefault(); handleManageBilling(); }}
+                      className={`mt-auto text-center font-body text-xs font-bold tracking-widest uppercase px-4 py-2.5 transition-colors ${
+                        isCurrentPlan
+                          ? 'bg-white text-black hover:bg-white/90'
+                          : 'border border-white/20 text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {isCurrentPlan ? tr.managePlan : tr.selectPlan}
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="font-body text-[10px] tracking-widest uppercase text-gray-600 text-center">
+            {tr.trialNote}
+          </p>
+        </div>
+      )}
+
+      <button
+        onClick={async () => { await loadSubscription(); }}
+        className="font-body text-xs tracking-widest uppercase text-gray-600 hover:text-white transition-colors py-2"
+      >
+        {tr.refreshStatus}
+      </button>
     </div>
   );
 }
