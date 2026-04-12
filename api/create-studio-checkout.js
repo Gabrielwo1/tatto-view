@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import { resolvePlan } from './plans.js';
+import { resolvePlan, resolvePriceId } from './plans.js';
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -12,7 +12,7 @@ const RESERVED = ['www', 'api', 'admin', 'app', 'mail', 'vitrink', 'eldude', 'st
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { studioName, subdomain, email, planKey } = req.body ?? {};
+  const { studioName, subdomain, email, planKey, currency = 'brl' } = req.body ?? {};
 
   if (!studioName || !subdomain || !email) {
     return res.status(400).json({ error: 'Preencha todos os campos.' });
@@ -45,10 +45,11 @@ export default async function handler(req, res) {
   }
 
   const plan = resolvePlan(planKey);
+  const priceId = resolvePriceId(planKey, currency);
 
-  if (!plan.priceId) {
-    console.error(`[create-studio-checkout] Missing price ID for plan "${plan.key}" (env: ${plan.envVar})`);
-    return res.status(500).json({ error: `Preço não configurado para o plano "${plan.key}"` });
+  if (!priceId) {
+    console.error(`[create-studio-checkout] Missing price ID for plan "${plan.key}" currency "${currency}"`);
+    return res.status(500).json({ error: `Preço não configurado para o plano "${plan.key}" (${currency.toUpperCase()})` });
   }
 
   const origin = req.headers.origin || 'https://vitrink.app';
@@ -60,7 +61,7 @@ export default async function handler(req, res) {
       payment_method_types: ['card'],
       mode: 'subscription',
       customer_email: email,
-      line_items: [{ price: plan.priceId, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
         trial_period_days: 20,
         metadata: {
