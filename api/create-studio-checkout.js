@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { resolvePlan } from './plans.js';
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -11,7 +12,7 @@ const RESERVED = ['www', 'api', 'admin', 'app', 'mail', 'vitrink', 'eldude', 'st
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { studioName, subdomain, email } = req.body ?? {};
+  const { studioName, subdomain, email, planKey } = req.body ?? {};
 
   if (!studioName || !subdomain || !email) {
     return res.status(400).json({ error: 'Preencha todos os campos.' });
@@ -43,17 +44,11 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuração de pagamento ausente.' });
   }
 
-  const ALLOWED_PRICE_IDS = new Set([
-    process.env.STRIPE_PRICE_ID,                  // BRL (default)
-    'price_1TKq4j1DbauQaCosGucUXHLZ',             // USD
-    'price_1TKq5Z1DbauQaCos5zmmtJ35',             // EUR
-  ].filter(Boolean));
+  const plan = resolvePlan(planKey);
 
-  const { priceId } = req.body ?? {};
-  const resolvedPriceId = ALLOWED_PRICE_IDS.has(priceId) ? priceId : process.env.STRIPE_PRICE_ID;
-
-  if (!resolvedPriceId) {
-    return res.status(500).json({ error: 'Preço não configurado.' });
+  if (!plan.priceId) {
+    console.error(`[create-studio-checkout] Missing price ID for plan "${plan.key}" (env: ${plan.envVar})`);
+    return res.status(500).json({ error: `Preço não configurado para o plano "${plan.key}"` });
   }
 
   const origin = req.headers.origin || 'https://vitrink.app';
@@ -65,14 +60,16 @@ export default async function handler(req, res) {
       payment_method_types: ['card'],
       mode: 'subscription',
       customer_email: email,
-      line_items: [{ price: resolvedPriceId, quantity: 1 }],
+      line_items: [{ price: plan.priceId, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 15,
+        trial_period_days: 20,
         metadata: {
           type: 'studio_creation',
           studio_name: studioName,
           subdomain,
           email,
+          plan_key: plan.key,
+          max_artists: String(plan.maxArtists),
         },
       },
       payment_method_collection: 'always',
@@ -83,6 +80,8 @@ export default async function handler(req, res) {
         studio_name: studioName,
         subdomain,
         email,
+        plan_key: plan.key,
+        max_artists: String(plan.maxArtists),
       },
     });
 

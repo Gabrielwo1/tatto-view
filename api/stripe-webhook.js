@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { resolvePlanByPriceId } from './plans.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -9,11 +10,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-async function updateSubscription(userId, { status, stripeCustomerId, stripeSubscriptionId }) {
+async function updateSubscription(userId, { status, stripeCustomerId, stripeSubscriptionId, maxArtists }) {
   if (!userId) return;
   const update = { subscription_status: status };
   if (stripeCustomerId)    update.stripe_customer_id    = stripeCustomerId;
   if (stripeSubscriptionId) update.stripe_subscription_id = stripeSubscriptionId;
+  if (maxArtists != null)   update.max_artists           = maxArtists;
   const { error } = await supabase
     .from('user_profiles')
     .update(update)
@@ -30,8 +32,27 @@ async function getUserIdFromCustomer(customerId) {
   return data?.id ?? null;
 }
 
+/**
+ * Resolve max_artists from a subscription object.
+ * Priority: metadata on the subscription > price ID lookup.
+ */
+function resolveMaxArtists(sub) {
+  // Prefer explicit metadata set at checkout time
+  const fromMeta = parseInt(sub.metadata?.max_artists, 10);
+  if (!isNaN(fromMeta) && fromMeta > 0) return fromMeta;
+
+  // Fall back to price ID lookup via plans config
+  const priceId = sub.items?.data?.[0]?.price?.id;
+  if (priceId) {
+    const plan = resolvePlanByPriceId(priceId);
+    if (plan) return plan.maxArtists;
+  }
+
+  return null; // unknown — leave unchanged
+}
+
 async function handleStudioCreation(session) {
-  const { studio_name, subdomain, email } = session.metadata ?? {};
+  const { studio_name, subdomain, email, plan_key, max_artists } = session.metadata ?? {};
   if (!subdomain || !email) {
     console.error('[webhook] studio_creation: missing metadata', session.metadata);
     return;
@@ -58,7 +79,8 @@ async function handleStudioCreation(session) {
     return;
   }
 
-  const trialEndsAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString();
+  const resolvedMaxArtists = parseInt(max_artists, 10) || 1;
+  const trialEndsAt = new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString();
 
   // 2. Create studio entry
   const { error: studioError } = await supabase.from('studios').upsert({
@@ -69,7 +91,7 @@ async function handleStudioCreation(session) {
 
   if (studioError) console.error('[webhook] studios upsert error:', studioError);
 
-  // 3. Create user_profiles with trialing subscription
+  // 3. Create user_profiles with trialing subscription and plan limits
   const { error: profileError } = await supabase.from('user_profiles').upsert({
     id: userId,
     role: 'admin',
@@ -79,6 +101,8 @@ async function handleStudioCreation(session) {
     trial_ends_at: trialEndsAt,
     stripe_customer_id: session.customer,
     stripe_subscription_id: session.subscription,
+    max_artists: resolvedMaxArtists,
+    plan_key: plan_key ?? 'starter',
   }, { onConflict: 'id' });
 
   if (profileError) console.error('[webhook] user_profiles upsert error:', profileError);
@@ -94,7 +118,7 @@ async function handleStudioCreation(session) {
 
   if (recoveryError) console.error('[webhook] generateLink error:', recoveryError);
 
-  console.log(`[webhook] Studio "${subdomain}" created for ${email}, trial until ${trialEndsAt}`);
+  console.log(`[webhook] Studio "${subdomain}" created for ${email}, plan="${plan_key ?? 'starter'}", maxArtists=${resolvedMaxArtists}, trial until ${trialEndsAt}`);
 }
 
 async function handleOneTimePayment(session) {
@@ -118,7 +142,7 @@ async function handleOneTimePayment(session) {
       .from('cart_items')
       .delete()
       .eq('user_id', userId);
-    
+
     if (cartError) console.error('[webhook] Error clearing cart:', cartError);
   }
 }
@@ -156,10 +180,12 @@ export default async function handler(req, res) {
         } else if (session.mode === 'subscription') {
           // Existing studio activating/reactivating a plan
           const userId = session.metadata?.supabase_user_id;
+          const maxArtists = parseInt(session.metadata?.max_artists, 10) || null;
           await updateSubscription(userId, {
             status: 'active',
             stripeCustomerId: session.customer,
             stripeSubscriptionId: session.subscription,
+            maxArtists,
           });
         } else if (session.mode === 'payment') {
           await handleOneTimePayment(session);
@@ -167,7 +193,7 @@ export default async function handler(req, res) {
         break;
       }
 
-      // Renovação bem-sucedida / mudança de status
+      // Renovação bem-sucedida / mudança de status (inclui upgrade/downgrade)
       case 'customer.subscription.updated': {
         const sub = event.data.object;
         const userId = sub.metadata?.supabase_user_id ?? await getUserIdFromCustomer(sub.customer);
@@ -178,10 +204,12 @@ export default async function handler(req, res) {
           unpaid:    'unpaid',
           trialing:  'trialing',
         };
+        const maxArtists = resolveMaxArtists(sub);
         await updateSubscription(userId, {
           status: statusMap[sub.status] ?? sub.status,
           stripeSubscriptionId: sub.id,
           stripeCustomerId: sub.customer,
+          maxArtists,
         });
         break;
       }

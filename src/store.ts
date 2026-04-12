@@ -723,6 +723,8 @@ interface AppState {
   // ── Subscription ─────────────────────────────────────────────────────
   subscriptionStatus: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid' | 'incomplete' | 'incomplete_expired' | null;
   trialEndsAt: string | null;
+  /** Maximum number of active artists allowed by the current plan (default 1). */
+  maxArtists: number;
   loadSubscription: () => Promise<void>;
   // ── Admin auth ────────────────────────────────────────────────────────
   /** Check existing Supabase session on app load. */
@@ -788,6 +790,7 @@ export const useStore = create<AppState>()(
       currentStudioId: STUDIO_ID,
       subscriptionStatus: null,
       trialEndsAt: null,
+      maxArtists: 1,
       isAdmin: false,
       isArtist: false,
       isMerchManager: false,
@@ -1093,7 +1096,7 @@ export const useStore = create<AppState>()(
         }
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user?.id) {
-          const { data: profile } = await supabase.from('user_profiles').select('role, artist_id').eq('id', session.user.id).single();
+          const { data: profile } = await supabase.from('user_profiles').select('role, artist_id, max_artists').eq('id', session.user.id).single();
           if (profile) {
             set({
               isAdmin: profile.role === 'admin' || profile.role === 'super_admin',
@@ -1102,6 +1105,7 @@ export const useStore = create<AppState>()(
               currentArtistId: profile.artist_id,
               currentUserEmail: session.user.email,
               showFinanceiro: profile.role !== 'artist' || true, // TODO: custom permission
+              maxArtists: profile.max_artists ?? 1,
             });
           }
         }
@@ -1112,7 +1116,7 @@ export const useStore = create<AppState>()(
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) return false;
         
-        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id').eq('id', data.user.id).single();
+        const { data: profile } = await supabase.from('user_profiles').select('role, artist_id, max_artists').eq('id', data.user.id).single();
         if (profile) {
           set({
             isAdmin: profile.role === 'admin' || profile.role === 'super_admin',
@@ -1120,6 +1124,7 @@ export const useStore = create<AppState>()(
             isMerchManager: profile.role === 'merch_manager',
             currentArtistId: profile.artist_id,
             currentUserEmail: data.user.email,
+            maxArtists: profile.max_artists ?? 1,
           });
           return true;
         }
@@ -1361,6 +1366,16 @@ export const useStore = create<AppState>()(
         if (!supabase) return;
         const { data } = await supabase.from('subscriptions').select('status, trial_ends_at').eq('studio_id', STUDIO_ID).single();
         if (data) set({ subscriptionStatus: data.status, trialEndsAt: data.trial_ends_at });
+        // Fetch max_artists from user_profiles (requires an active session)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('max_artists')
+            .eq('id', session.user.id)
+            .single();
+          if (profile?.max_artists != null) set({ maxArtists: profile.max_artists });
+        }
       },
     }),
     {
