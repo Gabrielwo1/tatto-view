@@ -95,14 +95,14 @@ export default function WhatsAppButton() {
           }}
         >
           {/* Header */}
-          <div style={{ background: '#25D366', padding: '20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: '#111', padding: '18px 20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Agende sua Tattoo</h3>
-              <p style={{ margin: '4px 0 0 0', fontSize: '11px', opacity: 0.9 }}>Escolha com quem você quer falar:</p>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, letterSpacing: '0.01em' }}>Agende sua Tattoo</h3>
+              <p style={{ margin: '3px 0 0 0', fontSize: '11px', color: '#666' }}>Escolha com quem você quer falar:</p>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              style={{ background: 'rgba(0,0,0,0.1)', border: 'none', color: 'white', padding: '6px', borderRadius: '50%', cursor: 'pointer' }}
+              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: '#aaa', padding: '6px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -146,13 +146,17 @@ export default function WhatsAppButton() {
             <div style={{ fontSize: '10px', color: '#444', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', padding: '0 0 8px 4px' }}>Artistas</div>
 
             {artists.map((artist) => {
-              const prefersInstagram = artist.preferredContactMethod === 'instagram';
+              const method = artist.preferredContactMethod || 'whatsapp';
+              const badge =
+                method === 'instagram'
+                  ? { label: 'Instagram', bg: 'rgba(225,48,108,0.12)', color: '#E1306C', border: 'rgba(225,48,108,0.25)' }
+                  : { label: 'WhatsApp', bg: 'rgba(37,211,102,0.1)', color: '#25D366', border: 'rgba(37,211,102,0.22)' };
 
               return (
                 <button
                   key={artist.id}
                   onClick={() => {
-                    if (prefersInstagram && artist.instagram) {
+                    if (method === 'instagram' && artist.instagram) {
                       const instaUser = artist.instagram.replace(/.*instagram\.com\//, '').replace(/\//g, '');
                       window.open(`https://instagram.com/${instaUser}`, '_blank');
                     } else {
@@ -165,10 +169,10 @@ export default function WhatsAppButton() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    padding: '10px',
+                    padding: '10px 12px',
                     background: 'transparent',
                     border: 'none',
-                    borderRadius: '12px',
+                    borderRadius: '10px',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'all 0.2s',
@@ -177,23 +181,25 @@ export default function WhatsAppButton() {
                   <img
                     src={artist.photoUrl || '/placeholder-artist.png'}
                     alt={artist.name}
-                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }}
+                    style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}
                   />
-                  <div style={{ flex: 1 }}>
-                    <span style={{ display: 'block', color: '#eee', fontSize: '13px', fontWeight: 500 }}>{artist.name}</span>
-                    <span style={{ fontSize: '11px', color: '#555' }}>
-                      {prefersInstagram ? 'Falar pelo Instagram 📸' : 'Falar pelo WhatsApp 💬'}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: 'block', color: '#e0e0e0', fontSize: '13px', fontWeight: 600, marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{artist.name}</span>
+                    <span style={{
+                      display: 'inline-block',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      textTransform: 'uppercase',
+                      color: badge.color,
+                      background: badge.bg,
+                      border: `1px solid ${badge.border}`,
+                      borderRadius: '4px',
+                      padding: '1px 6px',
+                    }}>
+                      {badge.label}
                     </span>
                   </div>
-                  <div 
-                    style={{ 
-                      width: '8px', 
-                      height: '8px', 
-                      borderRadius: '50%', 
-                      background: prefersInstagram ? '#E1306C' : '#25D366', 
-                      opacity: 0.6 
-                    }} 
-                  />
                 </button>
               );
             })}
