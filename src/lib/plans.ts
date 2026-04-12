@@ -11,12 +11,12 @@ export interface Plan {
 }
 
 export const PLANS: Plan[] = [
-  { key: 'starter', maxArtists: 1,  namePT: 'Iniciante', nameEN: 'Starter', priceBRL: 29.90, priceUSD: 5.99,  priceEUR: 4.99  },
-  { key: 'duo',     maxArtists: 2,  namePT: 'Dupla',     nameEN: 'Duo',     priceBRL: 39.90, priceUSD: 7.99,  priceEUR: 6.99  },
-  { key: 'trio',    maxArtists: 3,  namePT: 'Trio',      nameEN: 'Trio',    priceBRL: 49.90, priceUSD: 9.99,  priceEUR: 8.99  },
-  { key: 'studio',  maxArtists: 4,  namePT: 'Estúdio',   nameEN: 'Studio',  priceBRL: 59.90, priceUSD: 11.99, priceEUR: 10.99, popular: true },
-  { key: 'pro',     maxArtists: 5,  namePT: 'Pro',       nameEN: 'Pro',     priceBRL: 69.90, priceUSD: 13.99, priceEUR: 12.99 },
-  { key: 'agency',  maxArtists: 15, namePT: 'Agência',   nameEN: 'Agency',  priceBRL: 149.90, priceUSD: 27.99, priceEUR: 24.99 },
+  { key: 'starter', maxArtists: 1,  namePT: 'Iniciante', nameEN: 'Starter', priceBRL: 29.90, priceUSD: 20.00, priceEUR: 20.00 },
+  { key: 'duo',     maxArtists: 2,  namePT: 'Dupla',     nameEN: 'Duo',     priceBRL: 39.90, priceUSD: 30.00, priceEUR: 30.00 },
+  { key: 'trio',    maxArtists: 3,  namePT: 'Trio',      nameEN: 'Trio',    priceBRL: 49.90, priceUSD: 40.00, priceEUR: 40.00 },
+  { key: 'studio',  maxArtists: 4,  namePT: 'Estúdio',   nameEN: 'Studio',  priceBRL: 59.90, priceUSD: 50.00, priceEUR: 50.00, popular: true },
+  { key: 'pro',     maxArtists: 5,  namePT: 'Pro',       nameEN: 'Pro',     priceBRL: 69.90, priceUSD: 60.00, priceEUR: 60.00 },
+  { key: 'agency',  maxArtists: 15, namePT: 'Agência',   nameEN: 'Agency',  priceBRL: 149.90, priceUSD: 120.00, priceEUR: 120.00 },
 ];
 
 export function getPlanByKey(key: string): Plan | undefined {

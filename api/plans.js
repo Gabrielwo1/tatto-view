@@ -5,12 +5,12 @@
  * Price IDs are read from environment variables at runtime.
  *
  * Plans:
- *   starter  → 1 artist   → R$29,90 / $5,99 / €4,99
- *   duo      → 2 artists  → R$39,90 / $7,99 / €6,99
- *   trio     → 3 artists  → R$49,90 / $9,99 / €8,99
- *   studio   → 4 artists  → R$59,90 / $11,99 / €10,99
- *   pro      → 5 artists  → R$69,90 / $13,99 / €12,99
- *   agency   → 15 artists → R$149,90 / $27,99 / €24,99
+ *   starter  → 1 artist   → R$29,90 / $20,00 / €20,00
+ *   duo      → 2 artists  → R$39,90 / $30,00 / €30,00
+ *   trio     → 3 artists  → R$49,90 / $40,00 / €40,00
+ *   studio   → 4 artists  → R$59,90 / $50,00 / €50,00
+ *   pro      → 5 artists  → R$69,90 / $60,00 / €60,00
+ *   agency   → 15 artists → R$149,90 / $120,00 / €120,00
  */
 
 export const PLANS = {
